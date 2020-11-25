@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Entities;
@@ -93,13 +90,13 @@ namespace twitchBot
                 if (command[0].Equals("%lm"))
                 {
                     var userLastMessage =
-                        _redisCacheClient.Db0.GetAsync<SimplifiedChatMessage>($"lastmessage:{message.Username}");
+                        _redisCacheClient.Db0.GetAsync<SimplifiedChatMessage>($"lastmessage:{command[1]}");
 
                     var result = userLastMessage.Result;
 
                     if (result == null)
                     {
-                        _client.SendMessage(message.Channel, $"Não encontrei nenhuma mensagem do usuário {message.Username} TearGlove");
+                        _client.SendMessage(message.Channel, $"Não encontrei nenhuma mensagem do usuário {command[1]} TearGlove");
                     }
                     else
                     {
