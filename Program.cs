@@ -25,7 +25,8 @@ namespace twitchBot
 
                 var redis = serviceProvider.GetService<IRedisCacheClient>();
 
-                var bot = new Bot(_configuration, redis);
+                var bot1 = new Bot(_configuration, redis, "k1notv");
+                var bot2 = new Bot(_configuration, redis, "professorgilbertos");
 
                 while (true)
                 {

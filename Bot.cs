@@ -16,7 +16,7 @@ namespace twitchBot
         readonly TwitchClient _client;
         private readonly IRedisCacheClient _redisCacheClient;
 
-        public Bot(IConfiguration configuration, IRedisCacheClient redisCacheClient)
+        public Bot(IConfiguration configuration, IRedisCacheClient redisCacheClient, string channel)
         {
             _redisCacheClient = redisCacheClient;
             ConnectionCredentials credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["access_token"]);
@@ -29,7 +29,7 @@ namespace twitchBot
 
             WebSocketClient customClient = new WebSocketClient(clientOptions);
             _client = new TwitchClient(customClient);
-            _client.Initialize(credentials, configuration["channel"]);
+            _client.Initialize(credentials, channel);
 
             _client.OnLog += Client_OnLog;
             _client.OnConnected += Client_OnConnected;
@@ -77,7 +77,7 @@ namespace twitchBot
                 Id = message.Id
             };
 
-            _redisCacheClient.Db0.AddAsync($"lastmessage:{message.Username}", simplifiedChatMessage);
+            _redisCacheClient.Db0.AddAsync($"{message.Channel}:lastmessage:{message.Username}", simplifiedChatMessage);
         }
 
         private void ExecuteCommand(ChatMessage message)
@@ -90,7 +90,7 @@ namespace twitchBot
                 if (command[0].Equals("%lm"))
                 {
                     var userLastMessage =
-                        _redisCacheClient.Db0.GetAsync<SimplifiedChatMessage>($"lastmessage:{command[1]}");
+                        _redisCacheClient.Db0.GetAsync<SimplifiedChatMessage>($"{message.Channel}:lastmessage:{command[1]}");
 
                     var result = userLastMessage.Result;
 
