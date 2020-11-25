@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
+using TwitchLib.Client.Models;
 
 namespace twitchBot.Entities
 {
     public class Pyramid
     {
+        private static Pyramid _currentPyramid;
+
         public string ContentKey { get; set; }
 
         public int LastTileWidth { get; set; }
@@ -15,6 +18,42 @@ namespace twitchBot.Entities
         public bool Finished { get; set; }
 
         public List<string> Lines { get; set; }
+
+        public static string Check(ChatMessage message)
+        {
+            if (_currentPyramid == null)
+                _currentPyramid = new Pyramid();
+
+            _currentPyramid.Add(message.Message);
+
+            if (_currentPyramid.Failed)
+            {
+                _currentPyramid = null;
+
+                return null;
+            }
+
+            if (_currentPyramid.Finished)
+            {
+                //not a valid pyramid, min width = 3
+                if (!_currentPyramid.IsValid())
+                {
+                    _currentPyramid = null;
+
+                    return null;
+                }
+
+                var responseMessage =
+                    $"O {message.Username} conseguiu completar uma piramide com largura {_currentPyramid.Width} {_currentPyramid.ContentKey} ! insano PogChamp";
+
+                _currentPyramid = null;
+
+                return responseMessage;
+
+            }
+
+            return null;
+        }
 
         public void Add(string content)
         {

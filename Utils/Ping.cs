@@ -5,9 +5,9 @@ namespace twitchBot.Utils
 {
     public class Ping
     {
-        private TwitchClient client;
+        private ChatBotClient client;
         private Thread sender;
-        public Ping(TwitchClient client)
+        public Ping(ChatBotClient client)
         {
             this.client = client;
             sender = new Thread(new ThreadStart(Run));

@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace twitchBot
 {
-    public class TwitchClient
+    public class ChatBotClient
     {
         private string username;
         private string password;
@@ -13,7 +13,7 @@ namespace twitchBot
         private StreamReader reader;
         private StreamWriter writer;
 
-        public TwitchClient(string host, int port, string user, string pwd, string channel)
+        public ChatBotClient(string host, int port, string user, string pwd, string channel)
         {
             username = user;
             password = pwd;
