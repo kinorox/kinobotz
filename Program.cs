@@ -20,29 +20,11 @@ namespace twitchBot
                 ConfigureServices(serviceCollection);
 
                 Bot bot = new Bot(_configuration);
-                Console.ReadLine();
 
-                //var client = new ChatBotClient("irc.twitch.tv", 6667, "kinobotz", "oauth:retkq3zlim0r5cgf11v8ipk6su3edw", "k1notv");
-
-                //// Ping the server to prevent twitch disconnect your bot
-                //var botAlive = new Ping(client);
-                //botAlive.Start();
-
-                //// Initial connection
-                //Interpreter.Init(client.ReadChatMessage());
-
-                //BasicCommands commands = new BasicCommands();
-
-                //// Message listener
-                //while (true)
-                //{
-                //    var message = client.ReadChatMessage();
-                //    var msg = Interpreter.Chat(message);
-
-                //    // listen to commands and respond
-                //    var response = commands.CommandListener(msg);
-                //    client.SendChatMessages(response);
-                //}
+                while (true)
+                {
+                    
+                }
             }
             catch (Exception e)
             {
