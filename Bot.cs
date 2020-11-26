@@ -89,6 +89,13 @@ namespace twitchBot
 
                 if (command[0].Equals("%lm"))
                 {
+                    if (string.Equals(command[1], "kinobotz"))
+                    {
+                        _client.SendMessage(message.Channel, $"{message.Username} acha mesmo que vou te falar? B)");
+
+                        return;
+                    }
+
                     var userLastMessage =
                         _redisCacheClient.Db0.GetAsync<SimplifiedChatMessage>($"{message.Channel}:lastmessage:{command[1]}");
 
