@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Entities;
 using twitchBot.Extensions;
+using TwitchLib.Api;
+using TwitchLib.Api.Helix.Models.Users;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
@@ -13,11 +17,18 @@ namespace twitchBot
 {
     public class Bot : IBot
     {
+        private static TwitchAPI _api;
         readonly TwitchClient _client;
         private readonly IRedisCacheClient _redisCacheClient;
 
         public Bot(IConfiguration configuration, IRedisCacheClient redisCacheClient, string channel)
         {
+            _api = new TwitchAPI();
+             
+            _api.Settings.ClientId = configuration["client_id"];
+            _api.Settings.Secret = configuration["client_secret"];
+            _api.Settings.AccessToken = _api.V5.Auth.GetAccessToken();
+            
             _redisCacheClient = redisCacheClient;
             ConnectionCredentials credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["access_token"]);
 
@@ -87,32 +98,38 @@ namespace twitchBot
             {
                 var command = message.Message.Split(" ");
 
-                if (command[0].Equals("%lm"))
+                if (string.Equals(command[0], "%lm"))
                 {
-                    if (string.Equals(command[1], "kinobotz"))
-                    {
-                        _client.SendMessage(message.Channel, $"{message.Username} acha mesmo que vou te falar? B)");
+                    LastMessageCommand(message, command);
 
-                        return;
-                    }
-
-                    var userLastMessage =
-                        _redisCacheClient.Db0.GetAsync<SimplifiedChatMessage>($"{message.Channel}:lastmessage:{command[1]}");
-
-                    var result = userLastMessage.Result;
-
-                    if (result == null)
-                    {
-                        _client.SendMessage(message.Channel, $"Não encontrei nenhuma mensagem do usuário {command[1]} TearGlove");
-                    }
-                    else
-                    {
-                        _client.SendMessage(message.Channel, $"A última mensagem do usuario {result.UserName} " +
-                                                             $"foi '{result.Message}' " +
-                                                             $"em {result.TmiSentTs.ConvertTimestampToDateTime()}' EZ");
-                    }
+                    return;
                 }
+            }
+        }
 
+        private void LastMessageCommand(ChatMessage message, string[] command)
+        {
+            if (string.Equals(command[1], "kinobotz"))
+            {
+                _client.SendMessage(message.Channel, $"{message.Username} acha mesmo que vou te falar? B)");
+
+                return;
+            }
+
+            var userLastMessage =
+                _redisCacheClient.Db0.GetAsync<SimplifiedChatMessage>($"{message.Channel}:lastmessage:{command[1]}");
+
+            var result = userLastMessage.Result;
+
+            if (result == null)
+            {
+                _client.SendMessage(message.Channel, $"Não encontrei nenhuma mensagem do usuário {command[1]} TearGlove");
+            }
+            else
+            {
+                _client.SendMessage(message.Channel, $"A última mensagem do usuario {result.UserName} " +
+                                                     $"foi '{result.Message}' " +
+                                                     $"em {result.TmiSentTs.ConvertTimestampToDateTime()}' EZ");
             }
         }
     }
