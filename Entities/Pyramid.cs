@@ -5,6 +5,8 @@ namespace twitchBot.Entities
 {
     public class Pyramid
     {
+        private static readonly object Lock = new object();
+
         private static Pyramid _currentPyramid;
 
         public string ContentKey { get; set; }
@@ -24,7 +26,10 @@ namespace twitchBot.Entities
             if (_currentPyramid == null)
                 _currentPyramid = new Pyramid();
 
-            _currentPyramid.Add(message.Message);
+            lock (Lock)
+            {
+                _currentPyramid.Add(message.Message);
+            }
 
             if (_currentPyramid.Failed)
             {
@@ -82,8 +87,11 @@ namespace twitchBot.Entities
                 Width++;
 
             LastTileWidth = keys.Length;
-
-            Lines.Add(content);
+            
+            lock (Lock)
+            {
+                Lines.Add(content);
+            }
         }
 
         private void CheckIfIsFinished(int currentTileWidth)
