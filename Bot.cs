@@ -75,6 +75,26 @@ namespace twitchBot
             StoreMessage(e.ChatMessage);
 
             ExecuteCommand(e.ChatMessage);
+
+            SendCopyPasta(e);
+        }
+
+        private void SendCopyPasta(OnMessageReceivedArgs e)
+        {
+            if (e.ChatMessage.Message.Length >= 200)
+            {
+                var hashCode = e.ChatMessage.Message.GetHashCode();
+
+                var existentHash = _redisCacheClient.Db0.GetAsync<int>($"{e.ChatMessage.Channel}:messages:{hashCode}");
+
+                if (existentHash.Result == 0)
+                {
+                    _redisCacheClient.Db0.AddAsync($"{e.ChatMessage.Channel}:messages:{hashCode}", hashCode,
+                        TimeSpan.FromMinutes(5));
+
+                    SendMessageWithMe(e.ChatMessage.Channel, e.ChatMessage.Message);
+                }
+            }
         }
 
         private void StoreMessage(ChatMessage message)
@@ -123,14 +143,19 @@ namespace twitchBot
 
             if (result == null)
             {
-                _client.SendMessage(message.Channel, $"Não encontrei nenhuma mensagem do usuário {command[1]} TearGlove");
+                SendMessageWithMe(message.Channel, $"Não encontrei nenhuma mensagem do usuário {command[1]} TearGlove");
             }
             else
             {
-                _client.SendMessage(message.Channel, $"A última mensagem do usuario {result.UserName} " +
-                                                     $"foi '{result.Message}' " +
-                                                     $"em {result.TmiSentTs.ConvertTimestampToDateTime()}' EZ");
+                SendMessageWithMe(message.Channel, $"A última mensagem do usuario {result.UserName} " +
+                                                    $"foi '{result.Message}' " +
+                                                    $"em {result.TmiSentTs.ConvertTimestampToDateTime()}' EZ");
             }
+        }
+
+        private void SendMessageWithMe(string channel, string message, bool dryRun = false)
+        {
+            _client.SendMessage(channel, $"/me {message}", dryRun);
         }
     }
 
