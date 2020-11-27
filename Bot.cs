@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Timers;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Entities;
@@ -29,7 +30,12 @@ namespace twitchBot
             Api.Settings.ClientId = configuration["client_id"];
             Api.Settings.Secret = configuration["client_secret"];
             Api.Settings.AccessToken = Api.V5.Auth.GetAccessToken();
-            
+
+            Timer aTimer = new Timer();
+            aTimer.Elapsed += OnTimedAccessToken;
+            aTimer.Interval = TimeSpan.FromMinutes(30).TotalMilliseconds;
+            aTimer.Enabled = true;
+
             _redisCacheClient = redisCacheClient;
             ConnectionCredentials credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["access_token"]);
 
@@ -54,6 +60,11 @@ namespace twitchBot
 
             PubSubClient.OnStreamUp += PubSubClient_OnOnStreamUp;
             PubSubClient.OnStreamDown += PubSubClient_OnOnStreamDown;
+        }
+
+        private void OnTimedAccessToken(object sender, ElapsedEventArgs e)
+        {
+            Api.Settings.AccessToken = Api.V5.Auth.GetAccessToken();
         }
 
         private void PubSubClient_OnOnStreamDown(object? sender, OnStreamDownArgs e)
