@@ -21,8 +21,10 @@ namespace twitchBot.Commands
         {
             if (string.IsNullOrEmpty(command))
                 return null;
+            
+            var userName = command.Replace("@", string.Empty).ToLower();
 
-            var user = Bot.Api.V5.Users.GetUserByNameAsync(command.ToLower());
+            var user = Bot.Api.V5.Users.GetUserByNameAsync(userName.ToLower());
 
             if (user.Result.Total > 0)
             {
