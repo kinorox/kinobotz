@@ -132,7 +132,15 @@ namespace twitchBot
             if (command == null)
                 return;
 
-            var responseMessage = command.Execute(message, splittedCommand[1]);
+            string responseMessage = null;
+            try
+            {
+                responseMessage = command.Execute(message, splittedCommand[1]);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
 
             if(!string.IsNullOrEmpty(responseMessage))
                 SendMessageWithMe(message.Channel, responseMessage);
