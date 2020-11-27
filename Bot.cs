@@ -128,7 +128,10 @@ namespace twitchBot
             var commandFactory = new CommandFactory(_redisCacheClient);
 
             var command = commandFactory.Build(splittedCommand[0]);
-            
+
+            if (command == null)
+                return;
+
             var responseMessage = command.Execute(message, splittedCommand[1]);
 
             if(!string.IsNullOrEmpty(responseMessage))

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using twitchBot.Interfaces;
@@ -22,7 +23,14 @@ namespace twitchBot.Factories
                 {"%ff", new FirstFollower(_redisCacheClient)}
             };
 
-            return dictionary[key];
+
+            ICommand value;
+            if (dictionary.TryGetValue(key, out value))
+            {
+                return value;
+            }
+
+            return null;
         }
     }
 }
