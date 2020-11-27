@@ -1,8 +1,13 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Interfaces;
+using TwitchLib.Api.Core.Models.Undocumented.CSStreams;
+using TwitchLib.Api.V5.Models.Users;
 using TwitchLib.Client.Models;
+using User = TwitchLib.Api.V5.Models.Users.User;
 
 namespace twitchBot.Commands
 {
@@ -24,11 +29,22 @@ namespace twitchBot.Commands
             
             var userName = command.Replace("@", string.Empty).ToLower();
 
-            var user = Bot.Api.V5.Users.GetUserByNameAsync(userName.ToLower());
+            Users user = null;
 
-            if (user.Result.Total > 0)
+            try
             {
-                var resultUser = user.Result.Matches.FirstOrDefault();
+                user = Bot.Api.V5.Users.GetUserByNameAsync(userName.ToLower()).Result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+
+                return null;
+            }
+            
+            if (user != null && user.Total > 0)
+            {
+                var resultUser = user.Matches.FirstOrDefault();
 
                 if (resultUser != null)
                 {
