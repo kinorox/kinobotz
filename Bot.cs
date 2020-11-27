@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis.Extensions.Core.Abstractions;
-using twitchBot.Commands;
 using twitchBot.Entities;
-using twitchBot.Interfaces;
+using twitchBot.Factories;
 using TwitchLib.Api;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -114,16 +112,12 @@ namespace twitchBot
             if (!message.Message.StartsWith("%"))
                 return;
 
-            var commands = new Dictionary<string, ICommand>()
-            {
-                {"%lm", new LastMessage(_redisCacheClient)},
-                {"%ff", new FirstFollower(_redisCacheClient)}
-            };
-
             var splittedCommand = message.Message.Split(" ");
 
-            var command = commands[splittedCommand[0]];
+            var commandFactory = new CommandFactory(_redisCacheClient);
 
+            var command = commandFactory.Build(splittedCommand[0]);
+            
             var responseMessage = command.Execute(message, splittedCommand[1]);
 
             if(!string.IsNullOrEmpty(responseMessage))
