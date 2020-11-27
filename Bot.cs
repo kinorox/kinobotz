@@ -1,33 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis.Extensions.Core.Abstractions;
+using twitchBot.Commands;
 using twitchBot.Entities;
-using twitchBot.Extensions;
+using twitchBot.Interfaces;
 using TwitchLib.Api;
-using TwitchLib.Api.Helix.Models.Users;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
+using TwitchLib.PubSub;
+using TwitchLib.PubSub.Events;
+using OnLogArgs = TwitchLib.Client.Events.OnLogArgs;
 
 namespace twitchBot
 {
     public class Bot : IBot
     {
-        private static TwitchAPI _api;
-        readonly TwitchClient _client;
+        public static TwitchAPI Api;
+        public static TwitchClient Client;
+        public static TwitchPubSub PubSubClient;
         private readonly IRedisCacheClient _redisCacheClient;
 
         public Bot(IConfiguration configuration, IRedisCacheClient redisCacheClient, string channel)
         {
-            _api = new TwitchAPI();
+            Api = new TwitchAPI();
              
-            _api.Settings.ClientId = configuration["client_id"];
-            _api.Settings.Secret = configuration["client_secret"];
-            _api.Settings.AccessToken = _api.V5.Auth.GetAccessToken();
+            Api.Settings.ClientId = configuration["client_id"];
+            Api.Settings.Secret = configuration["client_secret"];
+            Api.Settings.AccessToken = Api.V5.Auth.GetAccessToken();
             
             _redisCacheClient = redisCacheClient;
             ConnectionCredentials credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["access_token"]);
@@ -39,15 +42,30 @@ namespace twitchBot
             };
 
             WebSocketClient customClient = new WebSocketClient(clientOptions);
-            _client = new TwitchClient(customClient);
-            _client.Initialize(credentials, channel);
+            Client = new TwitchClient(customClient);
+            Client.Initialize(credentials, channel);
 
-            _client.OnLog += Client_OnLog;
-            _client.OnConnected += Client_OnConnected;
-            _client.OnUserBanned += Client_OnUserBanned;
-            _client.OnMessageReceived += Client_OnMessageReceived;
+            Client.OnLog += Client_OnLog;
+            Client.OnConnected += Client_OnConnected;
+            Client.OnUserBanned += Client_OnUserBanned;
+            Client.OnMessageReceived += Client_OnMessageReceived;
 
-            _client.Connect();
+            Client.Connect();
+
+            PubSubClient = new TwitchPubSub();
+
+            PubSubClient.OnStreamUp += PubSubClient_OnOnStreamUp;
+            PubSubClient.OnStreamDown += PubSubClient_OnOnStreamDown;
+        }
+
+        private void PubSubClient_OnOnStreamDown(object? sender, OnStreamDownArgs e)
+        {
+            
+        }
+
+        private void PubSubClient_OnOnStreamUp(object? sender, OnStreamUpArgs e)
+        {
+            
         }
 
         private void Client_OnLog(object sender, OnLogArgs e)
@@ -62,7 +80,7 @@ namespace twitchBot
 
         private void Client_OnUserBanned(object sender, OnUserBannedArgs e)
         {
-            _client.SendMessage(e.UserBan.Channel, "xbn pepeLaugh");
+            Client.SendMessage(e.UserBan.Channel, "xbn pepeLaugh");
         }
 
         private void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
@@ -70,31 +88,11 @@ namespace twitchBot
             var pyramidMessageResponse = Pyramid.Check(e.ChatMessage);
 
             if(!string.IsNullOrEmpty(pyramidMessageResponse))
-                _client.SendMessage(e.ChatMessage.Channel, pyramidMessageResponse);
+                Client.SendMessage(e.ChatMessage.Channel, pyramidMessageResponse);
 
             StoreMessage(e.ChatMessage);
 
             ExecuteCommand(e.ChatMessage);
-
-            SendCopyPasta(e);
-        }
-
-        private void SendCopyPasta(OnMessageReceivedArgs e)
-        {
-            if (e.ChatMessage.Message.Length >= 200)
-            {
-                var hashCode = e.ChatMessage.Message.GetHashCode();
-
-                var existentHash = _redisCacheClient.Db0.GetAsync<int>($"{e.ChatMessage.Channel}:messages:{hashCode}");
-
-                if (existentHash.Result == 0)
-                {
-                    _redisCacheClient.Db0.AddAsync($"{e.ChatMessage.Channel}:messages:{hashCode}", hashCode,
-                        TimeSpan.FromMinutes(5));
-
-                    SendMessageWithMe(e.ChatMessage.Channel, e.ChatMessage.Message);
-                }
-            }
         }
 
         private void StoreMessage(ChatMessage message)
@@ -108,54 +106,33 @@ namespace twitchBot
                 Id = message.Id
             };
 
-            _redisCacheClient.Db0.AddAsync($"{message.Channel}:lastmessage:{message.Username}", simplifiedChatMessage);
+            _redisCacheClient.Db0.AddAsync($"{message.Channel}:lastmessage:{message.Username.ToLower()}", simplifiedChatMessage);
         }
 
         private void ExecuteCommand(ChatMessage message)
         {
-            //command prefix, temp solution
-            if (message.Message.StartsWith("%"))
-            {
-                var command = message.Message.Split(" ");
-
-                if (string.Equals(command[0], "%lm"))
-                {
-                    LastMessageCommand(message, command);
-
-                    return;
-                }
-            }
-        }
-
-        private void LastMessageCommand(ChatMessage message, string[] command)
-        {
-            if (string.Equals(command[1], "kinobotz"))
-            {
-                _client.SendMessage(message.Channel, $"{message.Username} acha mesmo que vou te falar? B)");
-
+            if (!message.Message.StartsWith("%"))
                 return;
-            }
 
-            var userLastMessage =
-                _redisCacheClient.Db0.GetAsync<SimplifiedChatMessage>($"{message.Channel}:lastmessage:{command[1]}");
-
-            var result = userLastMessage.Result;
-
-            if (result == null)
+            var commands = new Dictionary<string, ICommand>()
             {
-                SendMessageWithMe(message.Channel, $"Não encontrei nenhuma mensagem do usuário {command[1]} TearGlove");
-            }
-            else
-            {
-                SendMessageWithMe(message.Channel, $"A última mensagem do usuario {result.UserName} " +
-                                                    $"foi '{result.Message}' " +
-                                                    $"em {result.TmiSentTs.ConvertTimestampToDateTime()}' EZ");
-            }
+                {"%lm", new LastMessage(_redisCacheClient)},
+                {"%ff", new FirstFollower(_redisCacheClient)}
+            };
+
+            var splittedCommand = message.Message.Split(" ");
+
+            var command = commands[splittedCommand[0]];
+
+            var responseMessage = command.Execute(message, splittedCommand[1]);
+
+            if(!string.IsNullOrEmpty(responseMessage))
+                SendMessageWithMe(message.Channel, responseMessage);
         }
 
         private void SendMessageWithMe(string channel, string message, bool dryRun = false)
         {
-            _client.SendMessage(channel, $"/me {message}", dryRun);
+            Client.SendMessage(channel, $"/me {message}", dryRun);
         }
     }
 
