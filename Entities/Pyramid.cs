@@ -44,7 +44,7 @@ namespace twitchBot.Entities
                 }
 
                 var responseMessage =
-                    $"O {message.Username} conseguiu completar uma piramide com largura {_currentPyramid.Width} {_currentPyramid.ContentKey} ! Belo trabalho amigão BloodTrail";
+                    $"O @{message.Username} conseguiu completar uma piramide com largura {_currentPyramid.Width} {_currentPyramid.ContentKey} ! Belo trabalho amigão BloodTrail";
 
                 _currentPyramid = null;
 

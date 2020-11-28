@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Interfaces;
-using TwitchLib.Api.Core.Models.Undocumented.CSStreams;
 using TwitchLib.Api.V5.Models.Users;
 using TwitchLib.Client.Models;
-using User = TwitchLib.Api.V5.Models.Users.User;
 
 namespace twitchBot.Commands
 {
