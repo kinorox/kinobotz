@@ -85,6 +85,8 @@ namespace twitchBot
         private void Client_OnConnected(object sender, OnConnectedArgs e)
         {
             Console.WriteLine($"Connected to {e.AutoJoinChannel}");
+
+            Client.SendMessage(e.AutoJoinChannel, "cheguei");
         }
 
         private void Client_OnUserBanned(object sender, OnUserBannedArgs e)

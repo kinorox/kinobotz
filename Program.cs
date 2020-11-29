@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +26,17 @@ namespace twitchBot
 
                 var redis = serviceProvider.GetService<IRedisCacheClient>();
 
-                var bot = new Bot(_configuration, redis, "k1notv");
+                var channels = _configuration["channels"];
+                var splittedChannels = channels.Split(";");
+
+                var bots = new List<Bot>();
+
+                foreach (var channel in splittedChannels)
+                {
+                    var bot = new Bot(_configuration, redis, channel);
+
+                    bots.Add(bot);
+                }
 
                 while (true)
                 {
