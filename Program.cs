@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Timers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using StackExchange.Redis.Extensions.Core.Abstractions;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
+using twitchBot.Utils;
 using TwitchLib.Api;
 using TwitchLib.Api.Interfaces;
-using TwitchLib.Client;
-using TwitchLib.Client.Interfaces;
 
 namespace twitchBot
 {
@@ -23,7 +20,9 @@ namespace twitchBot
         static void Main(string[] args)
         {
             try
-            {   
+            {
+                DotEnv.Load();
+
                 var serviceCollection = new ServiceCollection();
                 ConfigureServices(serviceCollection);
 
@@ -49,6 +48,7 @@ namespace twitchBot
             _configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetParent(AppContext.BaseDirectory).FullName)
                 .AddJsonFile("appsettings.json", false)
+                .AddEnvironmentVariables()
                 .Build();
             
             var logger = new LoggerConfiguration()
@@ -57,7 +57,7 @@ namespace twitchBot
 
             serviceCollection.AddLogging(config => config.AddSerilog(logger, true));
             serviceCollection.AddSingleton(_configuration);
-            var redisConfig = new RedisConfiguration() {ConnectionString = _configuration["redis"]};
+            var redisConfig = new RedisConfiguration() {ConnectionString = $"{_configuration["redis_host"]},password={_configuration["redis_password"]},allowAdmin=true"};
             serviceCollection.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfig); 
             serviceCollection.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
             serviceCollection.AddTransient<IBot, Bot>();
@@ -67,12 +67,11 @@ namespace twitchBot
                 Settings =
                 {
                     ClientId = _configuration["client_id"],
-                    Secret = _configuration["client_secret"]
+                    Secret = _configuration["client_secret"],
+                    AccessToken = _configuration["access_token"]
                 }
             };
 
-            twitchApi.Settings.AccessToken = twitchApi.Auth.GetAccessTokenAsync().Result;
-            
             var aTimer = new Timer();
             aTimer.Elapsed += OnTimedAccessToken;
             aTimer.Interval = TimeSpan.FromMinutes(30).TotalMilliseconds;
@@ -83,7 +82,7 @@ namespace twitchBot
 
         private static void OnTimedAccessToken(object sender, ElapsedEventArgs e)
         {
-            twitchApi.Settings.AccessToken = twitchApi.Auth.GetAccessTokenAsync().Result;
+            twitchApi.Auth.RefreshAuthTokenAsync(twitchApi.Settings.AccessToken, _configuration["client_secret"], _configuration["client_id"]);
         }
     }
 }
