@@ -41,7 +41,12 @@ namespace twitchBot
 
                 bot.JoinChannels(channels);
 
-                Console.ReadLine();
+                while (true)
+                {
+                    
+                }
+
+                Console.ReadKey();
             }
             catch (Exception e)
             {
