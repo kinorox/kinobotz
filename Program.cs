@@ -3,12 +3,15 @@ using System.IO;
 using System.Timers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Core;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
 using twitchBot.Utils;
 using TwitchLib.Api;
 using TwitchLib.Api.Interfaces;
+using ILogger = Serilog.ILogger;
 
 namespace twitchBot
 {
@@ -19,6 +22,8 @@ namespace twitchBot
 
         static void Main(string[] args)
         {
+            ILogger<Program> Logger = null;
+
             try
             {
                 DotEnv.Load();
@@ -32,13 +37,16 @@ namespace twitchBot
                 
                 var bot = serviceProvider.GetService<IBot>();
 
+                Logger = serviceProvider.GetService<ILogger<Program>>();
+
                 bot.JoinChannels(channels);
 
                 Console.ReadLine();
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                if (Logger != null) Logger.LogError(e, e.Message);
+                else Console.WriteLine(e.Message);
             }
         }
 
