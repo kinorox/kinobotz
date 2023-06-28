@@ -21,23 +21,28 @@ namespace twitchBot
         public static TwitchAPI Api;
         public static TwitchClient Client;
         public static TwitchPubSub PubSubClient;
-        private readonly IRedisCacheClient _redisCacheClient;
+        private readonly IRedisCacheClient redisCacheClient;
 
         public Bot(IConfiguration configuration, IRedisCacheClient redisCacheClient, string channel)
         {
-            Api = new TwitchAPI();
-             
-            Api.Settings.ClientId = configuration["client_id"];
-            Api.Settings.Secret = configuration["client_secret"];
+            Api = new TwitchAPI
+            {
+                Settings =
+                {
+                    ClientId = configuration["client_id"],
+                    Secret = configuration["client_secret"]
+                }
+            };
+
             Api.Settings.AccessToken = Api.V5.Auth.GetAccessToken();
 
-            Timer aTimer = new Timer();
+            var aTimer = new Timer();
             aTimer.Elapsed += OnTimedAccessToken;
             aTimer.Interval = TimeSpan.FromMinutes(30).TotalMilliseconds;
             aTimer.Enabled = true;
 
-            _redisCacheClient = redisCacheClient;
-            ConnectionCredentials credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["access_token"]);
+            this.redisCacheClient = redisCacheClient;
+            var credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["access_token"]);
 
             var clientOptions = new ClientOptions
             {
@@ -45,7 +50,7 @@ namespace twitchBot
                 ThrottlingPeriod = TimeSpan.FromSeconds(30)
             };
 
-            WebSocketClient customClient = new WebSocketClient(clientOptions);
+            var customClient = new WebSocketClient(clientOptions);
             Client = new TwitchClient(customClient);
             Client.Initialize(credentials, channel);
 
@@ -85,8 +90,6 @@ namespace twitchBot
         private void Client_OnConnected(object sender, OnConnectedArgs e)
         {
             Console.WriteLine($"Connected to {e.AutoJoinChannel}");
-
-            Client.SendMessage(e.AutoJoinChannel, "cheguei");
         }
 
         private void Client_OnUserBanned(object sender, OnUserBannedArgs e)
@@ -117,7 +120,7 @@ namespace twitchBot
                 Id = message.Id
             };
 
-            _redisCacheClient.Db0.AddAsync($"{message.Channel}:lastmessage:{message.Username.ToLower()}", simplifiedChatMessage);
+            redisCacheClient.Db0.AddAsync($"{message.Channel}:lastmessage:{message.Username.ToLower()}", simplifiedChatMessage);
         }
 
         private void ExecuteCommand(ChatMessage message)
@@ -127,7 +130,7 @@ namespace twitchBot
 
             var splittedCommand = message.Message.Split(" ");
 
-            var commandFactory = new CommandFactory(_redisCacheClient);
+            var commandFactory = new CommandFactory(redisCacheClient);
 
             var command = commandFactory.Build(splittedCommand[0]);
 
