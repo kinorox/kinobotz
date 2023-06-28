@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Timers;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using twitchBot.Entities;
-using TwitchLib.Api;
 using TwitchLib.Api.Interfaces;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -33,7 +31,8 @@ namespace twitchBot
             this.redisClient = redisClient;
             this.mediator = mediator;
             this.logger = logger;
-            
+            this.twitchApi = twitchApi;
+
             twitchPubSub = new TwitchPubSub();
             
             var clientOptions = new ClientOptions
