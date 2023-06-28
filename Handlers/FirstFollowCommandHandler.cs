@@ -6,16 +6,19 @@ using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using twitchBot.Entities;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
+using TwitchLib.Api.Interfaces;
 
 namespace twitchBot.Handlers
 {
     internal class FirstFollowCommandHandler : BaseCommandHandler<FirstFollowCommand>
     {
         private readonly IRedisClient redisClient;
+        private readonly ITwitchAPI twitchApi;
 
-        public FirstFollowCommandHandler(IRedisClient redisClient)
+        public FirstFollowCommandHandler(IRedisClient redisClient, ITwitchAPI twitchApi)
         {
             this.redisClient = redisClient;
+            this.twitchApi = twitchApi;
         }
 
         public override async Task<Response> InternalHandle(FirstFollowCommand request, CancellationToken cancellationToken)
@@ -33,7 +36,7 @@ namespace twitchBot.Handlers
                 return response;
             }
             
-            var getUsersResponse = Bot.TwitchApi.Helix.Users.GetUsersAsync(logins: new List<string> { request.Username.ToLower() }).Result;
+            var getUsersResponse = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string> { request.Username.ToLower() }).Result;
             
             var user = getUsersResponse.Users.FirstOrDefault();
             
@@ -49,7 +52,7 @@ namespace twitchBot.Handlers
             var done = false;
             while (!done)
             {
-                getuserFollowsResponse = Bot.TwitchApi.Helix.Users.GetUsersFollowsAsync(fromId: user.Id, first: 100, after: paginationCursor).Result;
+                getuserFollowsResponse = twitchApi.Helix.Users.GetUsersFollowsAsync(fromId: user.Id, first: 100, after: paginationCursor).Result;
 
                 if (getuserFollowsResponse != null)
                 {
