@@ -2,4 +2,4 @@ build:
   docker:
     worker: Dockerfile
 run:
-  worker: dotnet twitchBot.dll
+  worker: /bin/sh -c dotnet\ twitchBot.dll
