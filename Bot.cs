@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Timers;
+using MediatR;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
+using twitchBot.Commands;
 using twitchBot.Entities;
-using twitchBot.Factories;
 using TwitchLib.Api;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -18,14 +20,17 @@ namespace twitchBot
 {
     public class Bot : IBot
     {
-        public static TwitchAPI Api;
-        public static TwitchClient Client;
-        public static TwitchPubSub PubSubClient;
-        private readonly IRedisCacheClient redisCacheClient;
+        public static TwitchAPI TwitchApi;
+        public static TwitchClient TwitchClient;
+        public static TwitchPubSub TwitchPubSub;
+        private readonly IRedisClient redisClient;
+        private readonly IMediator mediator;
+        private readonly ILogger<Bot> logger;
+        private readonly IConfiguration configuration;
 
-        public Bot(IConfiguration configuration, IRedisCacheClient redisCacheClient, string channel)
+        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger)
         {
-            Api = new TwitchAPI
+            TwitchApi = new TwitchAPI
             {
                 Settings =
                 {
@@ -34,14 +39,26 @@ namespace twitchBot
                 }
             };
 
-            Api.Settings.AccessToken = Api.V5.Auth.GetAccessToken();
+            TwitchApi.Settings.AccessToken = TwitchApi.Auth.GetAccessTokenAsync().Result;
 
             var aTimer = new Timer();
             aTimer.Elapsed += OnTimedAccessToken;
             aTimer.Interval = TimeSpan.FromMinutes(30).TotalMilliseconds;
             aTimer.Enabled = true;
 
-            this.redisCacheClient = redisCacheClient;
+            this.configuration = configuration;
+            this.redisClient = redisClient;
+            this.mediator = mediator;
+            this.logger = logger;
+            
+            TwitchPubSub = new TwitchPubSub();
+
+            TwitchPubSub.OnStreamUp += TwitchPubSubOnOnStreamUp;
+            TwitchPubSub.OnStreamDown += TwitchPubSubOnOnStreamDown;
+        }
+
+        public void Connect(string channelName)
+        {
             var credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["access_token"]);
 
             var clientOptions = new ClientOptions
@@ -51,58 +68,53 @@ namespace twitchBot
             };
 
             var customClient = new WebSocketClient(clientOptions);
-            Client = new TwitchClient(customClient);
-            Client.Initialize(credentials, channel);
+            TwitchClient = new TwitchClient(customClient);
+            TwitchClient.Initialize(credentials, channelName);
 
-            Client.OnLog += Client_OnLog;
-            Client.OnConnected += Client_OnConnected;
-            Client.OnUserBanned += Client_OnUserBanned;
-            Client.OnMessageReceived += Client_OnMessageReceived;
+            TwitchClient.OnLog += TwitchClientOnLog;
+            TwitchClient.OnConnected += TwitchClientOnConnected;
+            TwitchClient.OnUserBanned += TwitchClientOnUserBanned;
+            TwitchClient.OnMessageReceived += TwitchClientOnMessageReceived;
 
-            Client.Connect();
-
-            PubSubClient = new TwitchPubSub();
-
-            PubSubClient.OnStreamUp += PubSubClient_OnOnStreamUp;
-            PubSubClient.OnStreamDown += PubSubClient_OnOnStreamDown;
+            TwitchClient.Connect();
         }
 
         private void OnTimedAccessToken(object sender, ElapsedEventArgs e)
         {
-            Api.Settings.AccessToken = Api.V5.Auth.GetAccessToken();
+            TwitchApi.Settings.AccessToken = TwitchApi.Auth.GetAccessTokenAsync().Result;
         }
 
-        private void PubSubClient_OnOnStreamDown(object? sender, OnStreamDownArgs e)
+        private void TwitchPubSubOnOnStreamDown(object? sender, OnStreamDownArgs e)
         {
             
         }
 
-        private void PubSubClient_OnOnStreamUp(object? sender, OnStreamUpArgs e)
+        private void TwitchPubSubOnOnStreamUp(object? sender, OnStreamUpArgs e)
         {
             
         }
 
-        private void Client_OnLog(object sender, OnLogArgs e)
+        private void TwitchClientOnLog(object sender, OnLogArgs e)
         {
-            Console.WriteLine($"{e.DateTime}: {e.BotUsername} - {e.Data}");
+            logger.LogInformation($"{e.DateTime}: {e.BotUsername} - {e.Data}");
         }
 
-        private void Client_OnConnected(object sender, OnConnectedArgs e)
+        private void TwitchClientOnConnected(object sender, OnConnectedArgs e)
         {
-            Console.WriteLine($"Connected to {e.AutoJoinChannel}");
+            logger.LogInformation($"Connected to {e.AutoJoinChannel}");
         }
 
-        private void Client_OnUserBanned(object sender, OnUserBannedArgs e)
+        private void TwitchClientOnUserBanned(object sender, OnUserBannedArgs e)
         {
-            Client.SendMessage(e.UserBan.Channel, "xbn pepeLaugh");
+            TwitchClient.SendMessage(e.UserBan.Channel, "xbn pepeLaugh");
         }
 
-        private void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
+        private void TwitchClientOnMessageReceived(object sender, OnMessageReceivedArgs e)
         {
             var pyramidMessageResponse = Pyramid.Check(e.ChatMessage);
 
             if(!string.IsNullOrEmpty(pyramidMessageResponse))
-                Client.SendMessage(e.ChatMessage.Channel, pyramidMessageResponse);
+                TwitchClient.SendMessage(e.ChatMessage.Channel, pyramidMessageResponse);
 
             StoreMessage(e.ChatMessage);
 
@@ -120,44 +132,55 @@ namespace twitchBot
                 Id = message.Id
             };
 
-            redisCacheClient.Db0.AddAsync($"{message.Channel}:lastmessage:{message.Username.ToLower()}", simplifiedChatMessage);
+            redisClient.Db0.AddAsync($"{Entities.Commands.LAST_MESSAGE}:{message.Username.ToLower()}", simplifiedChatMessage);
         }
 
-        private void ExecuteCommand(ChatMessage message)
+        private async void ExecuteCommand(ChatMessage message)
         {
-            if (!message.Message.StartsWith("%"))
-                return;
-
-            var splittedCommand = message.Message.Split(" ");
-
-            var commandFactory = new CommandFactory(redisCacheClient);
-
-            var command = commandFactory.Build(splittedCommand[0]);
-
-            if (command == null)
-                return;
-
-            string responseMessage = null;
             try
             {
-                responseMessage = command.Execute(message, splittedCommand[1]);
+                if (!message.Message.StartsWith("%"))
+                    return;
+
+                var commandSplits = message.Message.Split(" ");
+
+                var commandPrefix = commandSplits[0].Replace("%", string.Empty);
+
+                ICommand command = commandPrefix switch
+                {
+                    Entities.Commands.LAST_MESSAGE => new LastMessageCommand() { ChatMessage = message, Username = commandSplits[1] },
+                    Entities.Commands.FIRST_FOLLOW => new FirstFollowCommand() { ChatMessage = message, Username = commandSplits[1] },
+                    _ => null
+                };
+
+                if (command == null)
+                    return;
+
+                var response = await mediator.Send(command);
+
+                if (!response.Error && !string.IsNullOrEmpty(response.Message))
+                {
+                    SendMessageWithMe(message.Channel, response.Message);
+                }
+                else
+                {
+                    throw response.Exception;
+                }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                logger.LogError(e, e.Message);
             }
-
-            if(!string.IsNullOrEmpty(responseMessage))
-                SendMessageWithMe(message.Channel, responseMessage);
         }
 
         private void SendMessageWithMe(string channel, string message, bool dryRun = false)
         {
-            Client.SendMessage(channel, $"/me {message}", dryRun);
+            TwitchClient.SendMessage(channel, $"/me {message}", dryRun);
         }
     }
 
     public interface IBot
     {
+        void Connect(string channelName);
     }
 }
