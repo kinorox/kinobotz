@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <UserSecretsId>52a0e8b1-9315-46f8-a2b5-6dd9830e562b</UserSecretsId>
   </PropertyGroup>
 
