@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
@@ -17,31 +18,25 @@ namespace twitchBot
         {
             try
             {   
-                // Create service collection
-                Console.WriteLine("Creating service collection");
-                ServiceCollection serviceCollection = new ServiceCollection();
+                var serviceCollection = new ServiceCollection();
                 ConfigureServices(serviceCollection);
-                
+
                 var serviceProvider = serviceCollection.BuildServiceProvider();
 
-                var redis = serviceProvider.GetService<IRedisCacheClient>();
+                var channels = _configuration.GetSection("channels").Get<List<string>>();
 
-                var channels = _configuration["channels"];
-                var splittedChannels = channels.Split(";");
+                var connectedChannels = new List<IBot>();
 
-                var bots = new List<Bot>();
-
-                foreach (var channel in splittedChannels)
+                foreach (var channel in channels)
                 {
-                    var bot = new Bot(_configuration, redis, channel);
+                    var bot = serviceProvider.GetService<IBot>();
 
-                    bots.Add(bot);
+                    bot.Connect(channel);
+
+                    connectedChannels.Add(bot);
                 }
 
-                while (true)
-                {
-                    
-                }
+                Console.ReadLine();
             }
             catch (Exception e)
             {
@@ -57,12 +52,17 @@ namespace twitchBot
                 .AddJsonFile("appsettings.json", false)
                 .Build();
 
-            // Add access to generic IConfigurationRoot
-            serviceCollection.AddSingleton(_configuration);
-
             var redisConfiguration = _configuration.GetSection("Redis").Get<RedisConfiguration>();
 
-            serviceCollection.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfiguration);
+            var logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .CreateLogger();
+
+            serviceCollection.AddLogging(config => config.AddSerilog(logger, true));
+            serviceCollection.AddSingleton(_configuration);
+            serviceCollection.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfiguration); 
+            serviceCollection.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+            serviceCollection.AddTransient<IBot, Bot>();
         }
     }
 }
