@@ -1,6 +1,5 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using twitchBot.Entities;
@@ -11,12 +10,10 @@ namespace twitchBot.Handlers
     public class LastMessageCommandHandler : BaseCommandHandler<LastMessageCommand>
     {
         private readonly IRedisClient redisClient;
-        private readonly ILogger<LastMessageCommandHandler> logger;
 
-        public LastMessageCommandHandler(IRedisClient redisClient, ILogger<LastMessageCommandHandler> logger)
+        public LastMessageCommandHandler(IRedisClient redisClient)
         {
             this.redisClient = redisClient;
-            this.logger = logger;
         }
 
         public override async Task<Response> InternalHandle(LastMessageCommand request, CancellationToken cancellationToken)
