@@ -128,7 +128,7 @@ namespace twitchBot
                 ICommand command = commandPrefix switch
                 {
                     Entities.Commands.LAST_MESSAGE => new LastMessageCommand() { ChatMessage = message, Username = commandSplits[1] },
-                    //Entities.Commands.FIRST_FOLLOW => new FirstFollowCommand() { ChatMessage = message, Username = commandSplits[1] }, //only works for the bot owner
+                    //Entities.Commands.FIRST_FOLLOW => new FirstFollowCommand() { ChatMessage = message, Username = commandSplits[1] }, //only works for the bot owner :)
                     _ => null
                 };
 
