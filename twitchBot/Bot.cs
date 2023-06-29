@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -126,8 +127,8 @@ namespace twitchBot
                     return;
 
                 var response = await mediator.Send(command);
-
-                twitchClient.SendMessage(message.Channel, !response.Error ? response.Message : response.Exception?.Message);
+                
+                twitchClient.SendReply(message.Channel, message.Id, !response.Error ? response.Message : response.Exception?.Message);
             }
             catch (Exception e)
             {
