@@ -1,0 +1,29 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: '**/twitchBot.csproj'
+    feedsToUse: 'select'
+    vstsFeed: '9cb35126-f1f0-4e3d-9933-a1dd8fcd24fb'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '**/twitchBot.csproj'
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
