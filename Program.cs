@@ -1,26 +1,27 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Timers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Core;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
 using twitchBot.Utils;
 using TwitchLib.Api;
 using TwitchLib.Api.Interfaces;
-using ILogger = Serilog.ILogger;
+using Timer = System.Timers.Timer;
 
 namespace twitchBot
 {
     class Program
     {
         private static IConfiguration _configuration;
-        private static TwitchAPI twitchApi;
+        private static TwitchAPI _twitchApi;
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             ILogger<Program> Logger = null;
 
@@ -28,25 +29,26 @@ namespace twitchBot
             {
                 DotEnv.Load();
 
-                var serviceCollection = new ServiceCollection();
-                ConfigureServices(serviceCollection);
+                var builder = new HostBuilder();
 
-                var serviceProvider = serviceCollection.BuildServiceProvider();
+                builder.ConfigureServices(ConfigureServices);
+                
+                var host = builder.Build();
+
+                var serviceProvider = host.Services;
 
                 var channels = _configuration["channels"]?.Split(',');
-                
+
                 var bot = serviceProvider.GetService<IBot>();
 
                 Logger = serviceProvider.GetService<ILogger<Program>>();
 
                 bot.JoinChannels(channels);
-
-                while (true)
+                
+                using (host)
                 {
-                    
+                    await host.RunAsync();
                 }
-
-                Console.ReadKey();
             }
             catch (Exception e)
             {
@@ -75,7 +77,7 @@ namespace twitchBot
             serviceCollection.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
             serviceCollection.AddTransient<IBot, Bot>();
 
-            twitchApi = new TwitchAPI
+            _twitchApi = new TwitchAPI
             {
                 Settings =
                 {
@@ -90,12 +92,12 @@ namespace twitchBot
             aTimer.Interval = TimeSpan.FromMinutes(30).TotalMilliseconds;
             aTimer.Enabled = true;
 
-            serviceCollection.AddSingleton<ITwitchAPI>(twitchApi);
+            serviceCollection.AddSingleton<ITwitchAPI>(_twitchApi);
         }
 
         private static void OnTimedAccessToken(object sender, ElapsedEventArgs e)
         {
-            twitchApi.Auth.RefreshAuthTokenAsync(twitchApi.Settings.AccessToken, _configuration["client_secret"], _configuration["client_id"]);
+            _twitchApi.Auth.RefreshAuthTokenAsync(_twitchApi.Settings.AccessToken, _configuration["client_secret"], _configuration["client_id"]);
         }
     }
 }

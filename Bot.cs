@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using twitchBot.Entities;
-using TwitchLib.Api.Interfaces;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
@@ -19,19 +18,17 @@ namespace twitchBot
 {
     public class Bot : IBot
     {
-        private readonly ITwitchAPI twitchApi;
         private readonly TwitchClient twitchClient;
         private readonly TwitchPubSub twitchPubSub;
         private readonly IRedisClient redisClient;
         private readonly IMediator mediator;
         private readonly ILogger<Bot> logger;
 
-        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger, ITwitchAPI twitchApi)
+        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger)
         {
             this.redisClient = redisClient;
             this.mediator = mediator;
             this.logger = logger;
-            this.twitchApi = twitchApi;
 
             twitchPubSub = new TwitchPubSub();
             
@@ -131,7 +128,7 @@ namespace twitchBot
                 ICommand command = commandPrefix switch
                 {
                     Entities.Commands.LAST_MESSAGE => new LastMessageCommand() { ChatMessage = message, Username = commandSplits[1] },
-                    Entities.Commands.FIRST_FOLLOW => new FirstFollowCommand() { ChatMessage = message, Username = commandSplits[1] },
+                    //Entities.Commands.FIRST_FOLLOW => new FirstFollowCommand() { ChatMessage = message, Username = commandSplits[1] }, //only works for the bot owner
                     _ => null
                 };
 
@@ -140,7 +137,7 @@ namespace twitchBot
 
                 var response = await mediator.Send(command);
 
-                if (!response.Error && !string.IsNullOrEmpty(response.Message))
+                if (response is {Error: false} && !string.IsNullOrEmpty(response.Message))
                 {
                     SendMessageWithMe(message.Channel, response.Message);
                 }
