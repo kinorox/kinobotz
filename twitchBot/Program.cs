@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OpenAI_API;
 using Serilog;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
@@ -93,6 +94,10 @@ namespace twitchBot
             aTimer.Enabled = true;
 
             serviceCollection.AddSingleton<ITwitchAPI>(_twitchApi);
+
+            OpenAIAPI api = new OpenAIAPI();
+
+            serviceCollection.AddSingleton<IOpenAIAPI>(api);
         }
 
         private static void OnTimedAccessToken(object sender, ElapsedEventArgs e)

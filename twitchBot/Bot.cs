@@ -57,6 +57,8 @@ namespace twitchBot
 
         public void JoinChannels(string[] channels)
         {
+            logger.LogInformation($"Joining channels: {string.Join(',', channels)}");
+
             foreach (var channel in channels)
             {
                 twitchClient.JoinChannel(channel);
@@ -111,50 +113,26 @@ namespace twitchBot
                 Id = message.Id
             };
 
-            redisClient.Db0.AddAsync($"{Entities.Commands.LAST_MESSAGE}:{message.Username.ToLower()}", simplifiedChatMessage);
+            redisClient.Db0.AddAsync($"{Commands.Commands.LAST_MESSAGE}:{message.Username.ToLower()}", simplifiedChatMessage);
         }
 
         private async void ExecuteCommand(ChatMessage message)
         {
             try
             {
-                if (!message.Message.StartsWith("%"))
-                    return;
-
-                var commandSplits = message.Message.Split(" ");
-
-                var commandPrefix = commandSplits[0].Replace("%", string.Empty);
-
-                ICommand command = commandPrefix switch
-                {
-                    Entities.Commands.LAST_MESSAGE => new LastMessageCommand() { ChatMessage = message, Username = commandSplits[1] },
-                    //Entities.Commands.FIRST_FOLLOW => new FirstFollowCommand() { ChatMessage = message, Username = commandSplits[1] }, //only works for the bot owner :)
-                    _ => null
-                };
+                var command = CommandFactory.Build(message);
 
                 if (command == null)
                     return;
 
                 var response = await mediator.Send(command);
 
-                if (response is {Error: false} && !string.IsNullOrEmpty(response.Message))
-                {
-                    SendMessageWithMe(message.Channel, response.Message);
-                }
-                else
-                {
-                    throw response.Exception;
-                }
+                twitchClient.SendMessage(message.Channel, !response.Error ? response.Message : response.Exception?.Message);
             }
             catch (Exception e)
             {
                 logger.LogError(e, e.Message);
             }
-        }
-
-        private void SendMessageWithMe(string channel, string message, bool dryRun = false)
-        {
-            twitchClient.SendMessage(channel, $"/me {message}", dryRun);
         }
     }
 
