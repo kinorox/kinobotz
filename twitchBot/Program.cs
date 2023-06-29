@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using System.Timers;
+using ElevenLabs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -95,9 +96,13 @@ namespace twitchBot
 
             serviceCollection.AddSingleton<ITwitchAPI>(_twitchApi);
 
-            OpenAIAPI api = new OpenAIAPI();
+            var api = new OpenAIAPI();
 
             serviceCollection.AddSingleton<IOpenAIAPI>(api);
+
+            var elevenLabsClient = new ElevenLabsClient(ElevenLabsAuthentication.LoadFromEnv());
+
+            serviceCollection.AddSingleton(elevenLabsClient);
         }
 
         private static void OnTimedAccessToken(object sender, ElapsedEventArgs e)
