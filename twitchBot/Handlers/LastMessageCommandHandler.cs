@@ -32,7 +32,7 @@ namespace twitchBot.Handlers
                 return response;
             }
 
-            var userLastMessage = await redisClient.Db0.GetAsync<SimplifiedChatMessage>($"{request.Prefix}:{request.Username}");
+            var userLastMessage = await redisClient.Db0.GetAsync<SimplifiedChatMessage>($"{request.Prefix}:{request.Username.ToLower()}");
 
             if (userLastMessage != null)
             {
