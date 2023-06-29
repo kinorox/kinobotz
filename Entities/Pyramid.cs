@@ -5,7 +5,7 @@ namespace twitchBot.Entities
 {
     public class Pyramid
     {
-        private static readonly object Lock = new object();
+        private static readonly object Lock = new();
 
         private static Pyramid _currentPyramid;
 
