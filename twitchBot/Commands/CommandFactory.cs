@@ -10,6 +10,7 @@ namespace twitchBot.Commands
         {
             {twitchBot.Commands.Commands.LAST_MESSAGE, new LastMessageCommand()},
             {twitchBot.Commands.Commands.GPT, new GptCommand()},
+            {twitchBot.Commands.Commands.TTS, new TextToSpeechCommand()}
         };
 
         public static ICommand Build(ChatMessage chatMessage)
