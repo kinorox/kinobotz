@@ -41,7 +41,7 @@ namespace twitchBot.Handlers
             
             var existingVoiceId = await redisClient.Db0.GetAsync<string>($"{request.Prefix}:{request.Voice}");
 
-            Voice matchVoice = null;
+            Voice matchVoice;
             if (string.IsNullOrEmpty(existingVoiceId))
             {
                 var allVoices = await elevenLabsClient.VoicesEndpoint.GetAllVoicesAsync(cancellationToken);

@@ -11,6 +11,7 @@ using OpenAI_API;
 using Serilog;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
+using twitchBot.Commands;
 using twitchBot.Utils;
 using TwitchLib.Api;
 using TwitchLib.Api.Interfaces;
@@ -103,6 +104,7 @@ namespace twitchBot
             var elevenLabsClient = new ElevenLabsClient(ElevenLabsAuthentication.LoadFromEnv());
 
             serviceCollection.AddSingleton(elevenLabsClient);
+            serviceCollection.AddSingleton<ICommandFactory, CommandFactory>();
         }
 
         private static void OnTimedAccessToken(object sender, ElapsedEventArgs e)

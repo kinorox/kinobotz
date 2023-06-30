@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -24,12 +23,14 @@ namespace twitchBot
         private readonly IRedisClient redisClient;
         private readonly IMediator mediator;
         private readonly ILogger<Bot> logger;
+        private readonly ICommandFactory commandFactory;
 
-        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger)
+        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger, ICommandFactory commandFactory)
         {
             this.redisClient = redisClient;
             this.mediator = mediator;
             this.logger = logger;
+            this.commandFactory = commandFactory;
 
             twitchPubSub = new TwitchPubSub();
             
@@ -121,7 +122,7 @@ namespace twitchBot
         {
             try
             {
-                var command = CommandFactory.Build(message);
+                var command = commandFactory.Build(message);
 
                 if (command == null)
                     return;
