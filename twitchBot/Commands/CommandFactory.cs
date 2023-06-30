@@ -4,16 +4,16 @@ using TwitchLib.Client.Models;
 
 namespace twitchBot.Commands
 {
-    public static class CommandFactory
+    public class CommandFactory : ICommandFactory
     {
-        private static Dictionary<string, ICommand> Commands => new()
+        private Dictionary<string, ICommand> Commands => new()
         {
             {twitchBot.Commands.Commands.LAST_MESSAGE, new LastMessageCommand()},
             {twitchBot.Commands.Commands.GPT, new GptCommand()},
             {twitchBot.Commands.Commands.TTS, new TextToSpeechCommand()}
         };
 
-        public static ICommand Build(ChatMessage chatMessage)
+        public ICommand Build(ChatMessage chatMessage)
         {
             var message = chatMessage.Message;
 
@@ -31,5 +31,10 @@ namespace twitchBot.Commands
             command.Build(chatMessage, commandPrefix, message.Split($"%{commandPrefix}")[1]);
             return command;
         }
+    }
+
+    public interface ICommandFactory
+    {
+        ICommand Build(ChatMessage chatMessage);
     }
 }
