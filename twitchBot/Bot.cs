@@ -51,7 +51,7 @@ namespace twitchBot
             var customClient = new WebSocketClient(clientOptions);
             twitchClient = new TwitchClient(customClient);
             
-            var credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["access_token"]);
+            var credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["bot_access_token"]);
             
             twitchClient.Initialize(credentials);
 
@@ -74,17 +74,6 @@ namespace twitchBot
 
             twitchClient.Connect();
             twitchPubSub.Connect();
-
-            //refresh oauth token every 30 minutes
-            var timer = new Timer(1800000);
-            timer.Elapsed += TimerOnElapsed;
-            timer.Start();
-        }
-
-        private void TimerOnElapsed(object sender, ElapsedEventArgs e)
-        {
-            var token = twitchApi.ThirdParty.AuthorizationFlow.RefreshToken(configuration["refresh_token"]);
-            twitchApi.Settings.AccessToken = token.Token;
         }
 
         private void TwitchPubSubOnOnPrediction(object sender, OnPredictionArgs e)
