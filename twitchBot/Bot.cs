@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using twitchBot.Entities;
+using TwitchLib.Api.Interfaces;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
@@ -24,13 +27,17 @@ namespace twitchBot
         private readonly IMediator mediator;
         private readonly ILogger<Bot> logger;
         private readonly ICommandFactory commandFactory;
+        private readonly ITwitchAPI twitchApi;
+        private readonly IConfiguration configuration;
 
-        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger, ICommandFactory commandFactory)
+        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger, ICommandFactory commandFactory, ITwitchAPI twitchApi)
         {
+            this.configuration = configuration;
             this.redisClient = redisClient;
             this.mediator = mediator;
             this.logger = logger;
             this.commandFactory = commandFactory;
+            this.twitchApi = twitchApi;
 
             twitchPubSub = new TwitchPubSub();
             
@@ -51,28 +58,64 @@ namespace twitchBot
             twitchClient.OnConnected += TwitchClientOnConnected;
             twitchClient.OnUserBanned += TwitchClientOnUserBanned;
             twitchClient.OnMessageReceived += TwitchClientOnMessageReceived;
+            
             twitchPubSub.OnStreamUp += TwitchPubSubOnOnStreamUp;
             twitchPubSub.OnStreamDown += TwitchPubSubOnOnStreamDown;
+            twitchPubSub.OnChannelPointsRewardRedeemed += TwitchPubSubChannelPoints;
+            twitchPubSub.OnPubSubServiceConnected += OnPubSubServiceConnected;
+            twitchPubSub.OnListenResponse += OnListenResponse;
+            twitchPubSub.OnPrediction += TwitchPubSubOnOnPrediction;
+            
+            var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { "k1notv" }).Result.Users.FirstOrDefault();
+
+            twitchPubSub.ListenToChannelPoints(user?.Id);
+            twitchPubSub.ListenToPredictions(user?.Id);
 
             twitchClient.Connect();
+            twitchPubSub.Connect();
+        }
+
+        private void TwitchPubSubOnOnPrediction(object sender, OnPredictionArgs e)
+        {
+            twitchClient.SendMessage(e.ChannelId, "parabens otario");
         }
 
         public void JoinChannels(string[] channels)
         {
-            logger.LogInformation($"Joining channels: {string.Join(',', channels)}");
-
             foreach (var channel in channels)
             {
                 twitchClient.JoinChannel(channel);
             }
         }
 
-        private void TwitchPubSubOnOnStreamDown(object? sender, OnStreamDownArgs e)
+        private void OnListenResponse(object sender, OnListenResponseArgs e)
         {
-            
+            if (!e.Successful)
+                logger.LogInformation("connected to pubsub");
         }
 
-        private void TwitchPubSubOnOnStreamUp(object? sender, OnStreamUpArgs e)
+        private void OnPubSubServiceConnected(object sender, EventArgs e)
+        {
+            twitchPubSub.SendTopics(configuration["access_token"]);
+        }
+
+        private async void TwitchPubSubChannelPoints(object sender, OnChannelPointsRewardRedeemedArgs e)
+        {
+            var ttsCommand = commandFactory.Build(e.RewardRedeemed);
+
+            if (ttsCommand == null)
+                return;
+
+            var response = await mediator.Send(ttsCommand);
+
+            logger.LogInformation(response.Message);
+        }
+
+        private void TwitchPubSubOnOnStreamDown(object sender, OnStreamDownArgs e)
+        {
+        }
+
+        private void TwitchPubSubOnOnStreamUp(object sender, OnStreamUpArgs e)
         {
             
         }

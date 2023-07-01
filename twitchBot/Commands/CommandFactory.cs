@@ -1,16 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using TwitchLib.Client.Models;
+using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
 namespace twitchBot.Commands
 {
     public class CommandFactory : ICommandFactory
     {
-        private Dictionary<string, ICommand> Commands => new()
+        private Dictionary<string, ICommand> ChatCommands => new()
         {
-            {twitchBot.Commands.Commands.LAST_MESSAGE, new LastMessageCommand()},
-            {twitchBot.Commands.Commands.GPT, new GptCommand()},
-            {twitchBot.Commands.Commands.TTS, new TextToSpeechCommand()}
+            {Commands.LAST_MESSAGE, new LastMessageCommand()},
+            {Commands.GPT, new GptCommand()}
+        };
+
+        private Dictionary<string, ICommand> RewardCommands => new()
+        {
+            {Commands.TTS, new TextToSpeechCommand()}
         };
 
         public ICommand Build(ChatMessage chatMessage)
@@ -23,18 +28,41 @@ namespace twitchBot.Commands
 
             // Retrieve command prefix from message
             string commandPrefix = message
-                .Substring(0, Commands.Keys.Max(k => k.Length) + 1)
+                .Substring(0, ChatCommands.Keys.Max(k => k.Length) + 1)
                 .Split(' ')[0]
                 .Replace("%", string.Empty);
 
-            if (!Commands.TryGetValue(commandPrefix, out var command)) return null;
+            if (!ChatCommands.TryGetValue(commandPrefix, out var command)) return null;
             command.Build(chatMessage, commandPrefix, message.Split($"%{commandPrefix}")[1]);
             return command;
+        }
+
+        public ICommand Build(RewardRedeemed rewardRedeemed)
+        {
+            var rewardTitle = rewardRedeemed.Redemption.Reward.Title;
+
+            var commandPrefix = rewardTitle switch
+            {
+                "TTS V2" => "tts",
+                _ => null
+            };
+
+            if (commandPrefix == null) return null;
+
+            _ = !RewardCommands.TryGetValue(commandPrefix, out var command);
+
+            if (command == null) return null;
+
+            command.Build(rewardRedeemed);
+
+            return command;
+
         }
     }
 
     public interface ICommandFactory
     {
         ICommand Build(ChatMessage chatMessage);
+        ICommand Build(RewardRedeemed rewardRedeemed);
     }
 }
