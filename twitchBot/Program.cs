@@ -107,9 +107,10 @@ namespace twitchBot
             serviceCollection.AddSingleton<ICommandFactory, CommandFactory>();
         }
 
-        private static void OnTimedAccessToken(object sender, ElapsedEventArgs e)
+        private static async void OnTimedAccessToken(object sender, ElapsedEventArgs e)
         {
-            _twitchApi.Auth.RefreshAuthTokenAsync(_twitchApi.Settings.AccessToken, _configuration["client_secret"], _configuration["client_id"]);
+            var response = await _twitchApi.Auth.RefreshAuthTokenAsync(_configuration["refresh_token"], _configuration["client_secret"], _configuration["client_id"]);
+            _twitchApi.Settings.AccessToken = response.AccessToken;
         }
     }
 }
