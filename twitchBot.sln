@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "twitchBot", "twitchBot\twit
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "vueapp", "vueapp\vueapp.esproj", "{5A7AF539-D79B-426E-B566-75553554359B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Entities", "Entities\Entities.csproj", "{8C8635C7-5FFD-48F7-B4E8-B5470A0D3887}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,10 @@ Global
 		{5A7AF539-D79B-426E-B566-75553554359B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A7AF539-D79B-426E-B566-75553554359B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5A7AF539-D79B-426E-B566-75553554359B}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{8C8635C7-5FFD-48F7-B4E8-B5470A0D3887}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C8635C7-5FFD-48F7-B4E8-B5470A0D3887}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C8635C7-5FFD-48F7-B4E8-B5470A0D3887}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C8635C7-5FFD-48F7-B4E8-B5470A0D3887}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
