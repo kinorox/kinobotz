@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -73,11 +74,22 @@ namespace twitchBot
 
             twitchClient.Connect();
             twitchPubSub.Connect();
+
+            //refresh oauth token every 30 minutes
+            var timer = new Timer(1800000);
+            timer.Elapsed += TimerOnElapsed;
+            timer.Start();
+        }
+
+        private void TimerOnElapsed(object sender, ElapsedEventArgs e)
+        {
+            var token = twitchApi.ThirdParty.AuthorizationFlow.RefreshToken(configuration["refresh_token"]);
+            twitchApi.Settings.AccessToken = token.Token;
         }
 
         private void TwitchPubSubOnOnPrediction(object sender, OnPredictionArgs e)
         {
-            twitchClient.SendMessage(e.ChannelId, "parabens otario");
+            
         }
 
         public void JoinChannels(string[] channels)

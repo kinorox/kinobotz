@@ -56,7 +56,6 @@ namespace twitchBot.Commands
             command.Build(rewardRedeemed);
 
             return command;
-
         }
     }
 
