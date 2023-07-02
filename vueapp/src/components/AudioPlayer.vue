@@ -56,7 +56,11 @@
                     audioQueue.push(url);
                 }
             });
-
+        },
+        computed() {
+            return {
+                
+            }
         },
         name: 'AudioPlayer'
     }

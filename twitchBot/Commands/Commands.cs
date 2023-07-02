@@ -6,5 +6,6 @@
         public const string FIRST_FOLLOW = "ff";
         public const string GPT = "gpt";
         public const string TTS = "tts";
+        public const string NOTIFY = "notify";
     }
 }
