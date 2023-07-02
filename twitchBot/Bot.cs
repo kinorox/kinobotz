@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -103,13 +102,32 @@ namespace twitchBot
             logger.LogInformation(response.Message);
         }
 
-        private void TwitchPubSubOnOnStreamDown(object sender, OnStreamDownArgs e)
+        private async void TwitchPubSubOnOnStreamDown(object sender, OnStreamDownArgs e)
         {
+            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{Commands.Commands.NOTIFY}");
+
+            if (notifyUsers?.Usernames == null)
+                return;
+
+            if (!notifyUsers.Usernames.Any()) return;
+
+            var users = string.Join(", ", notifyUsers.Usernames);
+
+            twitchClient.SendMessage("k1notv", $"K1NOtv stream ended. Notify users: {users}");
         }
 
-        private void TwitchPubSubOnOnStreamUp(object sender, OnStreamUpArgs e)
+        private async void TwitchPubSubOnOnStreamUp(object sender, OnStreamUpArgs e)
         {
-            
+            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{Commands.Commands.NOTIFY}");
+
+            if (notifyUsers?.Usernames == null)
+                return;
+
+            if (!notifyUsers.Usernames.Any()) return;
+
+            var users = string.Join(", ", notifyUsers.Usernames);
+
+            twitchClient.SendMessage("k1notv", $"K1NOtv is live. Notify users: {users}");
         }
 
         private void TwitchClientOnLog(object sender, OnLogArgs e)

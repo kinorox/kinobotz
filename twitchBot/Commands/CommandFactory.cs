@@ -10,7 +10,8 @@ namespace twitchBot.Commands
         private Dictionary<string, ICommand> ChatCommands => new()
         {
             {Commands.LAST_MESSAGE, new LastMessageCommand()},
-            {Commands.GPT, new GptCommand()}
+            {Commands.GPT, new GptCommand()},
+            {Commands.NOTIFY, new NotifyCommand()}
         };
 
         private Dictionary<string, ICommand> RewardCommands => new()
