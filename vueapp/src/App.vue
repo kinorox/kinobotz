@@ -1,24 +1,17 @@
-<template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+<template>  
+    <AudioPlayer/>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-import { useSignalR } from '@dreamonkey/vue-signalr';
-import { inject } from 'vue';
+    import AudioPlayer from './components/AudioPlayer.vue'
 
     export default {
         setup() {
-            const signalr = useSignalR();
 
-            signalr.on('AudioReceived', ({ message }) => {
-                /* do stuff */
-            });
         },
         name: 'App',
         components: {
-        HelloWorld
+            AudioPlayer
         }
     }
 </script>
