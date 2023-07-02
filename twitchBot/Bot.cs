@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Timers;
+using System.Threading;
+using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
@@ -20,7 +22,7 @@ using OnLogArgs = TwitchLib.Client.Events.OnLogArgs;
 
 namespace twitchBot
 {
-    public class Bot : IBot
+    public class Bot : IBot, IHostedService
     {
         private readonly TwitchClient twitchClient;
         private readonly TwitchPubSub twitchPubSub;
@@ -67,13 +69,8 @@ namespace twitchBot
             twitchPubSub.OnListenResponse += OnListenResponse;
             twitchPubSub.OnPrediction += TwitchPubSubOnOnPrediction;
             
-            var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { "k1notv" }).Result.Users.FirstOrDefault();
-
-            twitchPubSub.ListenToChannelPoints(user?.Id);
-            twitchPubSub.ListenToPredictions(user?.Id);
-
-            twitchClient.Connect();
-            twitchPubSub.Connect();
+            twitchPubSub.ListenToChannelPoints("136946918");
+            twitchPubSub.ListenToPredictions("136946918");
         }
 
         private void TwitchPubSubOnOnPrediction(object sender, OnPredictionArgs e)
@@ -81,18 +78,12 @@ namespace twitchBot
             
         }
 
-        public void JoinChannels(string[] channels)
-        {
-            foreach (var channel in channels)
-            {
-                twitchClient.JoinChannel(channel);
-            }
-        }
-
         private void OnListenResponse(object sender, OnListenResponseArgs e)
         {
             if (!e.Successful)
-                logger.LogInformation("connected to pubsub");
+            {
+                logger.LogError($"Couldn't connect to PubSub topic: {e.Topic}");
+            }
         }
 
         private void OnPubSubServiceConnected(object sender, EventArgs e)
@@ -180,10 +171,24 @@ namespace twitchBot
                 logger.LogError(e, e.Message);
             }
         }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            twitchClient.Connect();
+            twitchPubSub.Connect();
+            twitchClient.JoinChannel("k1notv");
+            
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            logger.LogInformation("Stopping bot");
+            return Task.CompletedTask;
+        }
     }
 
     public interface IBot
     {
-        void JoinChannels(string[] channels);
     }
 }

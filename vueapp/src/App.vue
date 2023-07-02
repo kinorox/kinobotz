@@ -5,13 +5,22 @@
 
 <script>
 import HelloWorld from './components/HelloWorld.vue'
+import { useSignalR } from '@dreamonkey/vue-signalr';
+import { inject } from 'vue';
 
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
-}
+    export default {
+        setup() {
+            const signalr = useSignalR();
+
+            signalr.on('AudioReceived', ({ message }) => {
+                /* do stuff */
+            });
+        },
+        name: 'App',
+        components: {
+        HelloWorld
+        }
+    }
 </script>
 
 <style>
