@@ -85,6 +85,15 @@ namespace twitchBot
                         services.AddSingleton<ICommandFactory, CommandFactory>();
                         services.AddHostedService<Bot>();
                         services.AddSignalR();
+                        services.AddSingleton<AudioHub>();
+                        services.AddCors(options => options.AddPolicy("CorsPolicy",
+                            builder =>
+                            {
+                                builder.AllowAnyHeader()
+                                    .AllowAnyMethod()
+                                    .SetIsOriginAllowed((host) => true)
+                                    .AllowCredentials();
+                            }));
                     })
                     .ConfigureWebHostDefaults(webBuilder =>
                     {
@@ -121,6 +130,7 @@ namespace twitchBot
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseCors("CorsPolicy");
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {

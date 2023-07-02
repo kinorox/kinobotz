@@ -6,7 +6,7 @@ import { HubConnectionBuilder } from '@microsoft/signalr';
 // Create your connection
 // See https://docs.microsoft.com/en-us/javascript/api/@microsoft/signalr/hubconnectionbuilder
 const connection = new HubConnectionBuilder()
-    .withUrl('http://localhost:5000/signalr')
+    .withUrl('http://localhost:5000/audioHub')
     .build();
 
 createApp(App)
