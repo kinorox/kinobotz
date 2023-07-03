@@ -36,6 +36,18 @@ namespace twitchBot.Handlers
 
         public override async Task<Response> InternalHandle(TextToSpeechCommand request, CancellationToken cancellationToken)
         {
+            var lastExecutionTime = await redisClient.Db0.GetAsync<DateTime>($"{request.Prefix}:lastexecution:{request.Username}");
+
+            if (lastExecutionTime.AddMinutes(5) > DateTime.UtcNow)
+            {
+                var difference = lastExecutionTime.AddMinutes(5) - DateTime.UtcNow;
+
+                return new Response()
+                {
+                    Message = $"Wait {difference.Minutes} minutes to execute this command again."
+                };
+            }
+
             var existingVoiceId = await redisClient.Db0.GetAsync<string>($"{request.Prefix}:{request.Voice}");
 
             Voice matchVoice;
@@ -99,6 +111,9 @@ namespace twitchBot.Handlers
             
             //sending audio stream to signalR hub
             await audioHub.SendAudioStream(audioStreamData);
+
+            //adding last execution time to redis
+            await redisClient.Db0.AddAsync($"{request.Prefix}:lastexecution:{request.Username}", DateTime.UtcNow);
 
             return new Response
             {
