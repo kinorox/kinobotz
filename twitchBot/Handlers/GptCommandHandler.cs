@@ -1,7 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using OpenAI_API;
-using OpenAI_API.Chat;
 using twitchBot.Commands;
 using twitchBot.Entities;
 

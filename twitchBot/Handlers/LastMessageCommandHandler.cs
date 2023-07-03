@@ -31,8 +31,8 @@ namespace twitchBot.Handlers
                 response.Message = string.Format("{0}, I can't tell you that.", request.ChatMessage.Username);
                 return response;
             }
-
-            var userLastMessage = await redisClient.Db0.GetAsync<SimplifiedChatMessage>($"{request.Prefix}:{request.Username.ToLower()}");
+            
+            var userLastMessage = await redisClient.Db0.GetAsync<SimplifiedChatMessage>($"{request.Prefix}:{request.Username.ToLower()}".Trim());
 
             if (userLastMessage != null)
             {
