@@ -11,12 +11,12 @@ namespace twitchBot.Commands
         {
             {Commands.LAST_MESSAGE, new LastMessageCommand()},
             {Commands.GPT, new GptCommand()},
-            {Commands.NOTIFY, new NotifyCommand()}
+            {Commands.NOTIFY, new NotifyCommand()},
+            {Commands.TTS, new TextToSpeechCommand()}
         };
 
         private Dictionary<string, ICommand> RewardCommands => new()
         {
-            {Commands.TTS, new TextToSpeechCommand()}
         };
 
         public ICommand Build(ChatMessage chatMessage)
