@@ -76,7 +76,7 @@ namespace twitchBot
                     .ConfigureWebHostDefaults(webBuilder =>
                     {
                         webBuilder.UseStartup<Startup>();
-                        webBuilder.UseUrls($"http://*:{_configuration["PORT"]}");
+                        webBuilder.UseUrls("http://*:5000");
                         webBuilder.CaptureStartupErrors(true);
                         webBuilder.UseSetting(WebHostDefaults.DetailedErrorsKey, "true");
                     })
