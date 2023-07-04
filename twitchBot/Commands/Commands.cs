@@ -2,6 +2,7 @@
 {
     public class Commands
     {
+        public const string EXISTING_COMMANDS = "commands";
         public const string LAST_MESSAGE = "lm";
         public const string FIRST_FOLLOW = "ff";
         public const string CREATE_CLIP = "clip";

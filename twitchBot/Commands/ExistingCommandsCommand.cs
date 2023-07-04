@@ -4,25 +4,19 @@ using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
 namespace twitchBot.Commands
 {
-    internal class FirstFollowCommand : BaseCommand
+    public class ExistingCommandsCommand : BaseCommand
     {
-        public FirstFollowCommand(ITwitchAPI twitchApi)
+        public ExistingCommandsCommand(ITwitchAPI twitchApi)
         {
             TwitchApi = twitchApi;
         }
 
-        public override string Prefix => Commands.FIRST_FOLLOW;
+        public override string Prefix => Commands.EXISTING_COMMANDS;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
-            throw new System.NotImplementedException();
         }
-
         public override void Build(RewardRedeemed rewardRedeemed)
         {
-            throw new System.NotImplementedException();
         }
-
-        public ChatMessage ChatMessage { get; set; }
-        public string Username { get; set; }
     }
 }

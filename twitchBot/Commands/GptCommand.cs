@@ -1,17 +1,23 @@
-﻿using TwitchLib.Client.Models;
+﻿using TwitchLib.Api.Interfaces;
+using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
 namespace twitchBot.Commands
 {
-    public class GptCommand : ICommand
+    public class GptCommand : BaseCommand
     {
-        public string Prefix => Commands.GPT;
-        public void Build(ChatMessage chatMessage, string command, string commandContent)
+        public GptCommand(ITwitchAPI twitchApi)
+        {
+            TwitchApi = twitchApi;
+        }
+
+        public override string Prefix => Commands.GPT;
+        public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             Message = commandContent;
         }
 
-        public void Build(RewardRedeemed rewardRedeemed)
+        public override void Build(RewardRedeemed rewardRedeemed)
         {
             throw new System.NotImplementedException();
         }

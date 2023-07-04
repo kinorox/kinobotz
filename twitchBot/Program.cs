@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Timers;
 using ElevenLabs;
+using Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SignalR;
@@ -31,12 +32,7 @@ namespace twitchBot
         {
             try
             {
-                DotEnv.Load(); 
-                
-                //var aTimer = new Timer();
-                //aTimer.Elapsed += OnTimedAccessToken;
-                //aTimer.Interval = TimeSpan.FromMinutes(30).TotalMilliseconds;
-                //aTimer.Enabled = true;
+                DotEnv.Load();
 
                 await Host.CreateDefaultBuilder(args)
                     .ConfigureServices(services =>
@@ -62,19 +58,7 @@ namespace twitchBot
                         services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfig);
                         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
                         services.AddTransient<IBot, Bot>();
-
-                        _twitchApi = new TwitchAPI
-                        {
-                            Settings =
-                            {
-                                ClientId = _configuration["client_id"],
-                                Secret = _configuration["client_secret"],
-                                AccessToken = _configuration["access_token"]
-                            }
-                        };
-
-                        services.AddSingleton<ITwitchAPI>(_twitchApi);
-
+                        
                         var api = new OpenAIAPI();
 
                         services.AddSingleton<IOpenAIAPI>(api);
@@ -83,15 +67,15 @@ namespace twitchBot
 
                         services.AddSingleton(elevenLabsClient);
                         services.AddSingleton<ICommandFactory, CommandFactory>();
-                        services.AddHostedService<Bot>();
+                        services.AddHostedService<Orchestrator>();
                         services.AddSignalR();
-                        services.AddSingleton<AudioHub>();
+                        services.AddSingleton<OverlayHub>();
                         services.AddCors(options => options.AddPolicy("CorsPolicy",
                             builder =>
                             {
                                 builder.AllowAnyHeader()
                                     .AllowAnyMethod()
-                                    .SetIsOriginAllowed((host) => true)
+                                    .SetIsOriginAllowed((_) => true)
                                     .AllowCredentials();
                             }));
                     })
@@ -110,13 +94,6 @@ namespace twitchBot
                 Console.WriteLine(e.Message);
             }
         }
-
-        private static async void OnTimedAccessToken(object sender, ElapsedEventArgs e)
-        {
-            var response = await _twitchApi.Auth.RefreshAuthTokenAsync(_configuration["refresh_token"],
-                _configuration["client_secret"], _configuration["client_id"]);
-            _twitchApi.Settings.AccessToken = response.AccessToken;
-        }
     }
 
     class Startup
@@ -134,7 +111,7 @@ namespace twitchBot
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<AudioHub>("/audioHub");
+                endpoints.MapHub<OverlayHub>("/overlay");
             });
         }
     }

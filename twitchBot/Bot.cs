@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
+using Entities;
 using MediatR;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using twitchBot.Entities;
-using TwitchLib.Api.Interfaces;
+using TwitchLib.Api;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
@@ -18,10 +20,11 @@ using TwitchLib.Communication.Models;
 using TwitchLib.PubSub;
 using TwitchLib.PubSub.Events;
 using OnLogArgs = TwitchLib.Client.Events.OnLogArgs;
+using Timer = System.Timers.Timer;
 
 namespace twitchBot
 {
-    public class Bot : IBot, IHostedService
+    public class Bot : IBot
     {
         private readonly TwitchClient twitchClient;
         private readonly TwitchPubSub twitchPubSub;
@@ -29,19 +32,17 @@ namespace twitchBot
         private readonly IMediator mediator;
         private readonly ILogger<Bot> logger;
         private readonly ICommandFactory commandFactory;
-        private readonly ITwitchAPI twitchApi;
         private readonly IConfiguration configuration;
+        private TwitchAPI twitchApi;
+        private BotConnection botConnection;
 
-        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger, ICommandFactory commandFactory, ITwitchAPI twitchApi)
+        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger, ICommandFactory commandFactory)
         {
             this.configuration = configuration;
             this.redisClient = redisClient;
             this.mediator = mediator;
             this.logger = logger;
             this.commandFactory = commandFactory;
-            this.twitchApi = twitchApi;
-
-            twitchPubSub = new TwitchPubSub();
             
             var clientOptions = new ClientOptions
             {
@@ -51,25 +52,61 @@ namespace twitchBot
 
             var customClient = new WebSocketClient(clientOptions);
             twitchClient = new TwitchClient(customClient);
-            
-            var credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["bot_access_token"]);
-            
-            twitchClient.Initialize(credentials);
-
             twitchClient.OnLog += TwitchClientOnLog;
             twitchClient.OnConnected += TwitchClientOnConnected;
             twitchClient.OnUserBanned += TwitchClientOnUserBanned;
             twitchClient.OnMessageReceived += TwitchClientOnMessageReceived;
-            
+
+            twitchPubSub = new TwitchPubSub();
             twitchPubSub.OnStreamUp += TwitchPubSubOnOnStreamUp;
             twitchPubSub.OnStreamDown += TwitchPubSubOnOnStreamDown;
             twitchPubSub.OnChannelPointsRewardRedeemed += TwitchPubSubChannelPoints;
             twitchPubSub.OnPubSubServiceConnected += OnPubSubServiceConnected;
             twitchPubSub.OnListenResponse += OnListenResponse;
             twitchPubSub.OnPrediction += TwitchPubSubOnOnPrediction;
-            
-            twitchPubSub.ListenToChannelPoints("136946918");
-            twitchPubSub.ListenToPredictions("136946918");
+        }
+
+        private async void OnTimedAccessToken(object sender, ElapsedEventArgs e)
+        {
+            var response = await twitchApi.Auth.RefreshAuthTokenAsync(botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]);
+            twitchApi.Settings.AccessToken = response.AccessToken;
+        }
+
+        public void Connect(BotConnection botConnection)
+        {
+            this.botConnection = botConnection;
+
+            twitchApi = new TwitchAPI
+            {
+                Settings =
+                {
+                    ClientId = configuration["client_id"],
+                    Secret = configuration["client_secret"],
+                    AccessToken = botConnection.AccessToken
+                }
+            };
+
+            commandFactory.Setup(twitchApi);
+
+            var credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["bot_access_token"]);
+
+            twitchClient.Initialize(credentials);
+
+            var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { botConnection.Login }).Result;
+
+            var userId = user.Users.FirstOrDefault()?.Id;
+
+            twitchPubSub.ListenToChannelPoints(userId);
+            twitchPubSub.ListenToPredictions(userId);
+
+            twitchClient.Connect();
+            twitchPubSub.Connect();
+            twitchClient.JoinChannel(botConnection.Login);
+
+            var aTimer = new Timer();
+            aTimer.Elapsed += OnTimedAccessToken;
+            aTimer.Interval = TimeSpan.FromMinutes(60).TotalMilliseconds;
+            aTimer.Enabled = true;
         }
 
         private void TwitchPubSubOnOnPrediction(object sender, OnPredictionArgs e)
@@ -192,10 +229,6 @@ namespace twitchBot
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            twitchClient.Connect();
-            twitchPubSub.Connect();
-            twitchClient.JoinChannel("k1notv");
-            
             return Task.CompletedTask;
         }
 
@@ -208,5 +241,6 @@ namespace twitchBot
 
     public interface IBot
     {
+        void Connect(BotConnection botConnection);
     }
 }

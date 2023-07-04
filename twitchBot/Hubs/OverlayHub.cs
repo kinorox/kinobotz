@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace twitchBot.Hubs
 {
-    public class AudioHub : Hub
+    public class OverlayHub : Hub
     {
-        private readonly IHubContext<AudioHub> hubContext;
+        private readonly IHubContext<OverlayHub> hubContext;
 
-        public AudioHub(IHubContext<AudioHub> hubContext)
+        public OverlayHub(IHubContext<OverlayHub> hubContext)
         {
             this.hubContext = hubContext;
         }
@@ -17,7 +17,7 @@ namespace twitchBot.Hubs
         {
             var base64String = Convert.ToBase64String(audioStream);
 
-            await hubContext.Clients.All.SendAsync("receiveAudio", base64String);
+            await hubContext.Clients.All.SendAsync("1234", base64String);
         }
     }
 }

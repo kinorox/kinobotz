@@ -11,6 +11,8 @@ Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "vueapp", "vueapp\vueapp.esp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Entities", "Entities\Entities.csproj", "{8C8635C7-5FFD-48F7-B4E8-B5470A0D3887}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{FC6B8582-A8FB-4D2C-BDEF-5B5E1E4B1CDD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{8C8635C7-5FFD-48F7-B4E8-B5470A0D3887}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C8635C7-5FFD-48F7-B4E8-B5470A0D3887}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C8635C7-5FFD-48F7-B4E8-B5470A0D3887}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC6B8582-A8FB-4D2C-BDEF-5B5E1E4B1CDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC6B8582-A8FB-4D2C-BDEF-5B5E1E4B1CDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC6B8582-A8FB-4D2C-BDEF-5B5E1E4B1CDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC6B8582-A8FB-4D2C-BDEF-5B5E1E4B1CDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
