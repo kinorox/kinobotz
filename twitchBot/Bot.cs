@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Timers;
 using Entities;
 using MediatR;
@@ -66,16 +64,8 @@ namespace twitchBot
             twitchPubSub.OnPrediction += TwitchPubSubOnOnPrediction;
         }
 
-        private async void OnTimedAccessToken(object sender, ElapsedEventArgs e)
-        {
-            var response = await twitchApi.Auth.RefreshAuthTokenAsync(botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]);
-            twitchApi.Settings.AccessToken = response.AccessToken;
-        }
-
         public void Connect(BotConnection botConnection)
         {
-            this.botConnection = botConnection;
-
             twitchApi = new TwitchAPI
             {
                 Settings =
@@ -85,6 +75,17 @@ namespace twitchBot
                     AccessToken = botConnection.AccessToken
                 }
             };
+
+            //refreshing token in case it has expired
+            var response = twitchApi.Auth.RefreshAuthTokenAsync(botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]).Result;
+            
+            twitchApi.Settings.AccessToken = response.AccessToken;
+            botConnection.AccessToken = botConnection.AccessToken;
+            botConnection.RefreshToken = response.RefreshToken;
+
+            redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", botConnection);
+
+            this.botConnection = botConnection;
 
             commandFactory.Setup(twitchApi);
 
@@ -102,11 +103,6 @@ namespace twitchBot
             twitchClient.Connect();
             twitchPubSub.Connect();
             twitchClient.JoinChannel(botConnection.Login);
-
-            var aTimer = new Timer();
-            aTimer.Elapsed += OnTimedAccessToken;
-            aTimer.Interval = TimeSpan.FromMinutes(60).TotalMilliseconds;
-            aTimer.Enabled = true;
         }
 
         private void TwitchPubSubOnOnPrediction(object sender, OnPredictionArgs e)
@@ -124,7 +120,7 @@ namespace twitchBot
 
         private void OnPubSubServiceConnected(object sender, EventArgs e)
         {
-            twitchPubSub.SendTopics(configuration["access_token"]);
+            twitchPubSub.SendTopics(botConnection.AccessToken);
         }
 
         private async void TwitchPubSubChannelPoints(object sender, OnChannelPointsRewardRedeemedArgs e)
@@ -225,17 +221,6 @@ namespace twitchBot
             {
                 logger.LogError(e, e.Message);
             }
-        }
-
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            logger.LogInformation("Stopping bot");
-            return Task.CompletedTask;
         }
     }
 

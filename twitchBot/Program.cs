@@ -15,14 +15,12 @@ using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
 using twitchBot.Commands;
 using twitchBot.Hubs;
-using TwitchLib.Api;
 
 namespace twitchBot
 {
     class Program
     {
         private static IConfiguration _configuration;
-        private static TwitchAPI _twitchApi;
 
         static async Task Main(string[] args)
         {
