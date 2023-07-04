@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace twitchBot.Utils
+﻿namespace Infrastructure
 {
     public static class DotEnv
     {

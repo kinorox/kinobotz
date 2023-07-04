@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
@@ -7,17 +8,26 @@ namespace twitchBot.Commands
 {
     public class CommandFactory : ICommandFactory
     {
+        private ITwitchAPI twitchApi;
+
         private Dictionary<string, ICommand> ChatCommands => new()
         {
-            {Commands.LAST_MESSAGE, new LastMessageCommand()},
-            {Commands.GPT, new GptCommand()},
-            {Commands.NOTIFY, new NotifyCommand()},
-            {Commands.TTS, new TextToSpeechCommand()}
+            {Commands.LAST_MESSAGE, new LastMessageCommand(twitchApi)},
+            {Commands.GPT, new GptCommand(twitchApi)},
+            {Commands.NOTIFY, new NotifyCommand(twitchApi)},
+            {Commands.TTS, new TextToSpeechCommand(twitchApi)},
+            {Commands.EXISTING_COMMANDS, new ExistingCommandsCommand(twitchApi)},
+            {Commands.CREATE_CLIP, new CreateClipCommand(twitchApi)}
         };
 
         private Dictionary<string, ICommand> RewardCommands => new()
         {
         };
+
+        public void Setup(ITwitchAPI twitchApi)
+        {
+            this.twitchApi = twitchApi;
+        }
 
         public ICommand Build(ChatMessage chatMessage)
         {
@@ -58,11 +68,18 @@ namespace twitchBot.Commands
 
             return command;
         }
+
+        public IEnumerable<string> GetChatCommandNames()
+        {
+            return ChatCommands.Keys;
+        }
     }
 
     public interface ICommandFactory
     {
+        void Setup(ITwitchAPI twitchApi);
         ICommand Build(ChatMessage chatMessage);
         ICommand Build(RewardRedeemed rewardRedeemed);
+        IEnumerable<string> GetChatCommandNames();
     }
 }

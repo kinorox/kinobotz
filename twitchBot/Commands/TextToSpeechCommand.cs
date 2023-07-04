@@ -1,13 +1,19 @@
 ﻿using twitchBot.Utils;
+using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
 namespace twitchBot.Commands
 {
-    public class TextToSpeechCommand : ICommand
+    public class TextToSpeechCommand : BaseCommand
     {
-        public string Prefix => Commands.TTS;
-        public void Build(ChatMessage chatMessage, string command, string commandContent)
+        public TextToSpeechCommand(ITwitchAPI twitchApi)
+        {
+            TwitchApi = twitchApi;
+        }
+
+        public override string Prefix => Commands.TTS;
+        public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             Voice = commandContent.GetUntilOrEmpty(":").Trim().ToLower();
             Message = commandContent[(commandContent.IndexOf(':') + 1)..];
@@ -16,7 +22,7 @@ namespace twitchBot.Commands
 
         }
 
-        public void Build(RewardRedeemed rewardRedeemed)
+        public override void Build(RewardRedeemed rewardRedeemed)
         {
             Voice = rewardRedeemed.Redemption.UserInput.GetUntilOrEmpty(":").Trim().ToLower();
             Message = rewardRedeemed.Redemption.UserInput[(rewardRedeemed.Redemption.UserInput.IndexOf(':') + 1)..];

@@ -1,18 +1,24 @@
-﻿using TwitchLib.Client.Models;
+﻿using TwitchLib.Api.Interfaces;
+using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
 namespace twitchBot.Commands
 {
-    public class NotifyCommand : ICommand
+    public class NotifyCommand : BaseCommand
     {
-        public string Prefix => Commands.NOTIFY;
+        public NotifyCommand(ITwitchAPI twitchApi)
+        {
+            TwitchApi = twitchApi;
+        }
 
-        public void Build(ChatMessage chatMessage, string command, string commandContent)
+        public override string Prefix => Commands.NOTIFY;
+
+        public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             Username = chatMessage.Username;
         }
 
-        public void Build(RewardRedeemed rewardRedeemed)
+        public override void Build(RewardRedeemed rewardRedeemed)
         {
             throw new System.NotImplementedException();
         }
