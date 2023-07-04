@@ -1,5 +1,5 @@
 build:
   docker:
-    worker: twitchBot/Dockerfile
+    worker: Dockerfile
 run:
   worker: dotnet twitchBot.dll
