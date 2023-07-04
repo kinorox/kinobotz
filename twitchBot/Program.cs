@@ -76,7 +76,7 @@ namespace twitchBot
                     .ConfigureWebHostDefaults(webBuilder =>
                     {
                         webBuilder.UseStartup<Startup>();
-                        webBuilder.UseUrls("http://*:5000");
+                        webBuilder.UseUrls($"http://*:{_configuration["PORT"]}");
                         webBuilder.CaptureStartupErrors(true);
                         webBuilder.UseSetting(WebHostDefaults.DetailedErrorsKey, "true");
                     })
@@ -105,7 +105,7 @@ namespace twitchBot
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<OverlayHub>("/overlay");
+                endpoints.MapHub<OverlayHub>("/overlayHub");
             });
         }
     }

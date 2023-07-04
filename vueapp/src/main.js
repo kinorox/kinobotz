@@ -17,7 +17,7 @@ const router = createRouter({
 });
 
 const connection = new HubConnectionBuilder()
-    .withUrl('https://kinobotz.herokuapp.com/overlay')
+    .withUrl('https://kinobotz.herokuapp.com/overlayHub')
     .build();
 
 createApp(App)
