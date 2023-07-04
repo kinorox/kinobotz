@@ -1,12 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using System.Timers;
 using ElevenLabs;
 using Infrastructure;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,10 +15,7 @@ using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
 using twitchBot.Commands;
 using twitchBot.Hubs;
-using twitchBot.Utils;
 using TwitchLib.Api;
-using TwitchLib.Api.Interfaces;
-using Timer = System.Timers.Timer;
 
 namespace twitchBot
 {
@@ -56,7 +52,7 @@ namespace twitchBot
                                 $"{_configuration["redis_host"]},password={_configuration["redis_password"]},allowAdmin=true"
                         };
                         services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfig);
-                        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+                        services.AddMediatR(typeof(Program));
                         services.AddTransient<IBot, Bot>();
                         
                         var api = new OpenAIAPI();
