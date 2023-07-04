@@ -1,4 +1,5 @@
-﻿using TwitchLib.Api.Interfaces;
+﻿using Entities;
+using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
@@ -6,9 +7,10 @@ namespace twitchBot.Commands
 {
     public class ExistingCommandsCommand : BaseCommand
     {
-        public ExistingCommandsCommand(ITwitchAPI twitchApi)
+        public ExistingCommandsCommand(ITwitchAPI twitchApi, BotConnection botConnection)
         {
             TwitchApi = twitchApi;
+            BotConnection = botConnection;
         }
 
         public override string Prefix => Commands.EXISTING_COMMANDS;

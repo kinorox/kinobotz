@@ -1,5 +1,6 @@
 build:
   docker:
-    worker: Dockerfile
+    web: vueapp.Dockerfile
+    worker: twitchBot.Dockerfile
 run:
   worker: dotnet twitchBot.dll
