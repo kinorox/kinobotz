@@ -13,11 +13,11 @@ namespace twitchBot.Hubs
             this.hubContext = hubContext;
         }
 
-        public async Task SendAudioStream(byte[] audioStream)
+        public async Task SendAudioStream(string id, byte[] audioStream)
         {
             var base64String = Convert.ToBase64String(audioStream);
 
-            await hubContext.Clients.All.SendAsync("1234", base64String);
+            await hubContext.Clients.All.SendAsync(id, base64String);
         }
     }
 }

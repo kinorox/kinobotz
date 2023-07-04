@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Timers;
 using Entities;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +17,6 @@ using TwitchLib.Communication.Models;
 using TwitchLib.PubSub;
 using TwitchLib.PubSub.Events;
 using OnLogArgs = TwitchLib.Client.Events.OnLogArgs;
-using Timer = System.Timers.Timer;
 
 namespace twitchBot
 {
@@ -87,7 +85,7 @@ namespace twitchBot
 
             this.botConnection = botConnection;
 
-            commandFactory.Setup(twitchApi);
+            commandFactory.Setup(twitchApi, botConnection);
 
             var credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["bot_access_token"]);
 

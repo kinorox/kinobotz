@@ -1,4 +1,5 @@
-﻿using twitchBot.Utils;
+﻿using Entities;
+using twitchBot.Utils;
 using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
@@ -7,9 +8,10 @@ namespace twitchBot.Commands
 {
     public class TextToSpeechCommand : BaseCommand
     {
-        public TextToSpeechCommand(ITwitchAPI twitchApi)
+        public TextToSpeechCommand(ITwitchAPI twitchApi, BotConnection botConnection)
         {
             TwitchApi = twitchApi;
+            BotConnection = botConnection;
         }
 
         public override string Prefix => Commands.TTS;
@@ -19,7 +21,6 @@ namespace twitchBot.Commands
             Message = commandContent[(commandContent.IndexOf(':') + 1)..];
             Username = chatMessage.Username;
             Channel = chatMessage.Channel;
-
         }
 
         public override void Build(RewardRedeemed rewardRedeemed)
