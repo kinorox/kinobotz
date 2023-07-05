@@ -16,7 +16,7 @@ namespace twitchBot.Handlers
         
         public override async Task<Response> InternalHandle(CreateClipCommand request, CancellationToken cancellationToken)
         {
-            var createClipResponse = await request.TwitchApi.Helix.Clips.CreateClipAsync("136946918");
+            var createClipResponse = await request.TwitchApi.Helix.Clips.CreateClipAsync(request.BotConnection.ChannelId);
 
             var clipId = createClipResponse.CreatedClips.FirstOrDefault()?.Id;
 
