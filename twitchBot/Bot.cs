@@ -30,7 +30,7 @@ namespace twitchBot
         private readonly ICommandFactory commandFactory;
         private readonly IConfiguration configuration;
         private TwitchAPI twitchApi;
-        private BotConnection botConnection;
+        private BotConnection _botConnection;
 
         public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger, ICommandFactory commandFactory)
         {
@@ -81,26 +81,29 @@ namespace twitchBot
             botConnection.AccessToken = botConnection.AccessToken;
             botConnection.RefreshToken = response.RefreshToken;
 
+            if (string.IsNullOrEmpty(botConnection.ChannelId))
+            {
+                var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { botConnection.Login }).Result;
+
+                botConnection.ChannelId = user.Users[0].Id;
+            }
+
             redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", botConnection);
 
-            this.botConnection = botConnection;
+            _botConnection = botConnection;
 
-            commandFactory.Setup(twitchApi, botConnection);
+            commandFactory.Setup(twitchApi, _botConnection);
 
             var credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["bot_access_token"]);
 
             twitchClient.Initialize(credentials);
-
-            var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { botConnection.Login }).Result;
-
-            var userId = user.Users.FirstOrDefault()?.Id;
-
-            twitchPubSub.ListenToChannelPoints(userId);
-            twitchPubSub.ListenToPredictions(userId);
+            
+            twitchPubSub.ListenToChannelPoints(_botConnection.ChannelId);
+            twitchPubSub.ListenToPredictions(_botConnection.ChannelId);
 
             twitchClient.Connect();
             twitchPubSub.Connect();
-            twitchClient.JoinChannel(botConnection.Login);
+            twitchClient.JoinChannel(_botConnection.Login);
         }
 
         private void TwitchPubSubOnOnPrediction(object sender, OnPredictionArgs e)
@@ -118,7 +121,7 @@ namespace twitchBot
 
         private void OnPubSubServiceConnected(object sender, EventArgs e)
         {
-            twitchPubSub.SendTopics(botConnection.AccessToken);
+            twitchPubSub.SendTopics(_botConnection.AccessToken);
         }
 
         private async void TwitchPubSubChannelPoints(object sender, OnChannelPointsRewardRedeemedArgs e)

@@ -1,4 +1,5 @@
 using Infrastructure;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
 
@@ -13,10 +14,31 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.LoginPath = "/login";
+    })
+    .AddTwitch(options =>
+    {
+        options.ClientId = builder.Configuration["twitch_client_id"] ?? string.Empty;
+        options.ClientSecret = builder.Configuration["twitch_client_secret"] ?? string.Empty;
+        options.Scope.Add("user:read:email");
+        options.SaveTokens = true;
+        options.AccessDeniedPath = "/";
+    });
+
 var redisConfig = new RedisConfiguration()
 {
     ConnectionString = $"{builder.Configuration["redis_host"]},password={builder.Configuration["redis_password"]},allowAdmin=true"
 };
+
 builder.Services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfig);
 
 var app = builder.Build();
@@ -30,10 +52,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+
 app.UseAuthorization();
+app.UseAuthentication();
+app.UseRedisInformation();
 
 app.MapControllers();
-
-app.UseRedisInformation();
 
 app.Run();

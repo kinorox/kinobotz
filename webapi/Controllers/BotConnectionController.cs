@@ -9,45 +9,54 @@ namespace webapi.Controllers;
 [Route("[controller]")]
 public class BotConnectionController : ControllerBase
 {
-
-    private readonly ILogger<BotConnectionController> logger;
     private readonly IRedisClient redisClient;
     
-    public BotConnectionController(ILogger<BotConnectionController> logger, IRedisClient redisClient)
+    public BotConnectionController(IRedisClient redisClient)
     {
-        this.logger = logger;
         this.redisClient = redisClient;
     }
 
-    [HttpGet(Name = "GetBotConnection")]
-    public async Task<IDictionary<string, BotConnection>> Get()
+    [HttpGet]
+    public async Task<ActionResult<IDictionary<string, BotConnection>>> Get()
     {
         var existingKeys = await redisClient.Db0.SearchKeysAsync("botconnection*");
 
         var botConnections = await redisClient.Db0.GetAllAsync<BotConnection>(new HashSet<string>(existingKeys));
 
-        return botConnections;
+        return Ok(botConnections.Values);
     }
 
-    [HttpPut(Name = "UpdateBotConnection")]
-    public async Task<IResult> Put([FromBody] BotConnection botConnection)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Put(string id, [FromBody] BotConnection botConnection)
     {
-        var existing = await redisClient.Db0.GetAsync<BotConnection>($"botconnection:{botConnection.Id}");
-        
+        var existing = await redisClient.Db0.GetAsync<BotConnection>($"botconnection:{id}");
+
+        if (existing == null) return NotFound();
+
+        // update existing property values with the new ones
+        existing.RefreshToken = botConnection.RefreshToken;
+        existing.ChannelId = botConnection.ChannelId;
+        existing.Login = botConnection.Login;
+        existing.AccessToken = botConnection.AccessToken;
+        existing.Active = botConnection.Active;
+        existing.UpdatedAt = DateTime.UtcNow;
+
         await redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", botConnection);
 
-        return Results.Ok();
+        return Ok();
     }
 
-    [HttpPost(Name = "CreateBotConnection")]
-    public async Task<IResult> Post([FromBody] BotConnection botConnection)
+    [HttpPost]
+    public async Task<IActionResult> Post([FromBody] BotConnection botConnection)
     {
         botConnection.Id = Guid.NewGuid();
+        botConnection.CreatedAt = DateTime.UtcNow;
+        botConnection.Active = true;
 
         await redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", botConnection);
 
         await redisClient.Db0.PublishAsync(new RedisChannel("NewBotConnection", RedisChannel.PatternMode.Literal), botConnection.Id.ToString());
 
-        return Results.Ok();
+        return Ok();
     }
 }
