@@ -60,7 +60,7 @@ namespace twitchBot
                         var elevenLabsClient = new ElevenLabsClient(ElevenLabsAuthentication.LoadFromEnv());
 
                         services.AddSingleton(elevenLabsClient);
-                        services.AddSingleton<ICommandFactory, CommandFactory>();
+                        services.AddTransient<ICommandFactory, CommandFactory>();
                         services.AddHostedService<Orchestrator>();
                         services.AddSignalR();
                         services.AddSingleton<OverlayHub>();
@@ -76,7 +76,7 @@ namespace twitchBot
                     .ConfigureWebHostDefaults(webBuilder =>
                     {
                         webBuilder.UseStartup<Startup>();
-                        webBuilder.UseUrls($"http://*:{Environment.GetEnvironmentVariable("PORT")}");
+                        webBuilder.UseUrls($"http://*:{Environment.GetEnvironmentVariable("PORT") ?? "5000"}");
                         webBuilder.CaptureStartupErrors(true);
                         webBuilder.UseSetting(WebHostDefaults.DetailedErrorsKey, "true");
                     })
