@@ -20,7 +20,8 @@ namespace twitchBot.Handlers
             var chat = openAiApi.Chat.CreateConversation();
 
             chat.AppendUserInput(request.Message);
-            
+            chat.AppendUserInput("Responda em menos de 400 caracteres.");
+
             var response = await chat.GetResponseFromChatbotAsync();
 
             return new Response()
