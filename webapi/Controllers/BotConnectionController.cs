@@ -1,6 +1,6 @@
 using Entities;
+using Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using StackExchange.Redis;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 
 namespace webapi.Controllers;
@@ -23,6 +23,16 @@ public class BotConnectionController : ControllerBase
 
         var botConnections = await redisClient.Db0.GetAllAsync<BotConnection>(new HashSet<string>(existingKeys));
 
+        foreach (var connection in botConnections)
+        {
+            if (connection.Value == null) continue;
+
+            connection.Value.RefreshToken = connection.Value.RefreshToken.Mask(0, connection.Value.RefreshToken.Length - 5, '*');
+            connection.Value.AccessToken = connection.Value.AccessToken.Mask(0, connection.Value.AccessToken.Length - 5, '*');
+            connection.Value.DiscordTtsWebhookUrl = connection.Value.DiscordTtsWebhookUrl.Mask(0, connection.Value.DiscordTtsWebhookUrl.Length - 5, '*');
+            connection.Value.DiscordClipsWebhookUrl = connection.Value.DiscordClipsWebhookUrl.Mask(0, connection.Value.DiscordClipsWebhookUrl.Length - 5, '*');
+        }
+
         return Ok(botConnections.Values);
     }
 
@@ -34,11 +44,14 @@ public class BotConnectionController : ControllerBase
         if (existing == null) return NotFound();
 
         // update existing property values with the new ones
-        existing.RefreshToken = botConnection.RefreshToken;
+
+        //existing.RefreshToken = botConnection.RefreshToken;
         existing.ChannelId = botConnection.ChannelId;
         existing.Login = botConnection.Login;
-        existing.AccessToken = botConnection.AccessToken;
+        //existing.AccessToken = botConnection.AccessToken;
         existing.Active = botConnection.Active;
+        //existing.DiscordClipsWebhookUrl = botConnection.DiscordClipsWebhookUrl;
+        //existing.DiscordTtsWebhookUrl = botConnection.DiscordTtsWebhookUrl;
         existing.UpdatedAt = DateTime.UtcNow;
 
         await redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", botConnection);
@@ -55,7 +68,7 @@ public class BotConnectionController : ControllerBase
 
         await redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", botConnection);
 
-        await redisClient.Db0.PublishAsync(new RedisChannel("NewBotConnection", RedisChannel.PatternMode.Literal), botConnection.Id.ToString());
+        //await redisClient.Db0.PublishAsync(new RedisChannel("NewBotConnection", RedisChannel.PatternMode.Literal), botConnection.Id.ToString());
 
         return Ok();
     }

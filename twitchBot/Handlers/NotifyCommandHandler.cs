@@ -18,7 +18,7 @@ namespace twitchBot.Handlers
 
         public override async Task<Response> InternalHandle(NotifyCommand request, CancellationToken cancellationToken)
         {
-            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{request.Prefix}") ?? new NotifyUsers();
+            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{request.BotConnection.Id}:{request.Prefix}") ?? new NotifyUsers();
 
             notifyUsers.Usernames ??= new List<string>();
 
@@ -32,7 +32,7 @@ namespace twitchBot.Handlers
 
             notifyUsers.Usernames.Add(request.Username);
 
-            await redisClient.Db0.AddAsync($"{request.Prefix}", notifyUsers);
+            await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}", notifyUsers);
 
             return new Response()
             {

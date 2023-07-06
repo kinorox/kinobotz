@@ -21,5 +21,8 @@ namespace Entities
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool Active { get; set; }
+
+        public string DiscordClipsWebhookUrl { get; set; }
+        public string DiscordTtsWebhookUrl{ get; set; }
     }
 }
