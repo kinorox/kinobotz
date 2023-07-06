@@ -65,6 +65,8 @@ namespace twitchBot
 
         public void Connect(BotConnection botConnection)
         {
+            _botConnection = botConnection;
+
             twitchApi = new TwitchAPI
             {
                 Settings =
@@ -76,22 +78,21 @@ namespace twitchBot
             };
 
             //refreshing token in case it has expired
-            var response = twitchApi.Auth.RefreshAuthTokenAsync(botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]).Result;
+            var response = twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]).Result;
             
             twitchApi.Settings.AccessToken = response.AccessToken;
-            botConnection.AccessToken = botConnection.AccessToken;
-            botConnection.RefreshToken = response.RefreshToken;
 
-            if (string.IsNullOrEmpty(botConnection.ChannelId))
+            _botConnection.AccessToken = response.AccessToken;
+            _botConnection.RefreshToken = response.RefreshToken;
+
+            if (string.IsNullOrEmpty(_botConnection.ChannelId) || _botConnection.ChannelId == "string")
             {
-                var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { botConnection.Login }).Result;
+                var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { _botConnection.Login }).Result;
 
-                botConnection.ChannelId = user.Users[0].Id;
+                _botConnection.ChannelId = user.Users[0].Id;
             }
 
-            redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", botConnection);
-
-            _botConnection = botConnection;
+            redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", _botConnection);
 
             commandFactory.Setup(twitchApi, _botConnection);
 
@@ -119,6 +120,10 @@ namespace twitchBot
             {
                 logger.LogError($"Couldn't connect to PubSub topic: {e.Topic}");
             }
+            else
+            {
+                logger.LogInformation($"Successfully connected to PubSub topic: {e.Topic}");
+            }
         }
 
         private void OnPubSubServiceConnected(object sender, EventArgs e)
@@ -140,7 +145,7 @@ namespace twitchBot
 
         private async void TwitchPubSubOnOnStreamDown(object sender, OnStreamDownArgs e)
         {
-            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{Commands.Commands.NOTIFY}");
+            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Commands.Commands.NOTIFY}");
 
             if (notifyUsers?.Usernames == null)
                 return;
@@ -149,12 +154,12 @@ namespace twitchBot
 
             var users = string.Join(", ", notifyUsers.Usernames);
 
-            twitchClient.SendMessage("k1notv", $"K1NOtv stream ended. Notify users: {users}");
+            twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} stream ended. Notifying users: {users}");
         }
 
         private async void TwitchPubSubOnOnStreamUp(object sender, OnStreamUpArgs e)
         {
-            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{Commands.Commands.NOTIFY}");
+            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Commands.Commands.NOTIFY}");
 
             if (notifyUsers?.Usernames == null)
                 return;
@@ -163,7 +168,7 @@ namespace twitchBot
 
             var users = string.Join(", ", notifyUsers.Usernames);
 
-            twitchClient.SendMessage("k1notv", $"K1NOtv is live. Notify users: {users}");
+            twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} is live! BloodTrail Notifying users: {users}");
         }
 
         private void TwitchClientOnLog(object sender, OnLogArgs e)
@@ -178,7 +183,7 @@ namespace twitchBot
 
         private void TwitchClientOnUserBanned(object sender, OnUserBannedArgs e)
         {
-            twitchClient.SendMessage(e.UserBan.Channel, "xbn pepeLaugh");
+
         }
 
         private void TwitchClientOnMessageReceived(object sender, OnMessageReceivedArgs e)

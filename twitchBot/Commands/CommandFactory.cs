@@ -40,11 +40,20 @@ namespace twitchBot.Commands
             if (!message.StartsWith("%"))
                 return null;
 
-            // Retrieve command prefix from message
-            string commandPrefix = message
-                .Substring(0, ChatCommands.Keys.Max(k => k.Length) + 1)
-                .Split(' ')[0]
-                .Replace("%", string.Empty);
+            var prefixStart = message.IndexOf('%');
+            var prefixEnd = message.IndexOf(' ');
+
+            string commandPrefix;
+            if (prefixEnd > 0)
+            {
+                commandPrefix = message
+                    .Substring(prefixStart, prefixEnd - prefixStart)
+                    .Replace("%", string.Empty);
+            }
+            else
+            {
+                commandPrefix = message.Replace("%", string.Empty);
+            }
 
             if (!ChatCommands.TryGetValue(commandPrefix, out var command)) return null;
             command.Build(chatMessage, commandPrefix, message.Split($"%{commandPrefix}")[1]);

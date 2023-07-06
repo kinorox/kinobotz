@@ -47,10 +47,13 @@ namespace twitchBot.Handlers
             
             var resultMessage = string.Format("Clip created: {0}", resultClip.Url);
 
-            var discordWebhookClient = new DiscordWebhookClient("https://discord.com/api/webhooks/1125475466480988230/Ve6mejjbqn3fni5wQ8imXM6yifgFanykuHLArKoVczIBV3G3ygA182C7wINuVZllHJj-");
-            
-            await discordWebhookClient.SendMessageAsync(resultClip.Url);
+            if (!string.IsNullOrEmpty(request.BotConnection.DiscordClipsWebhookUrl))
+            {
+                var discordWebhookClient = new DiscordWebhookClient(request.BotConnection.DiscordClipsWebhookUrl);
 
+                await discordWebhookClient.SendMessageAsync(resultClip.Url);
+            }
+            
             return new Response()
             {
                 Message = resultMessage
