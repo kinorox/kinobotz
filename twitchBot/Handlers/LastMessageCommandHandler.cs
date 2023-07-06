@@ -29,7 +29,7 @@ namespace twitchBot.Handlers
 
             if (string.Equals(request.Username.ToLower(), "kinobotz"))
             {
-                response.Message = string.Format("{0}, I can't tell you that.", request.ChatMessage.Username);
+                response.Message = "I can't tell you that.";
                 return response;
             }
 
