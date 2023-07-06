@@ -23,8 +23,7 @@ namespace twitchBot.Commands
         {
             throw new System.NotImplementedException();
         }
-
-        public ChatMessage ChatMessage { get; set; }
+        
         public string Username { get; set; }
     }
 }
