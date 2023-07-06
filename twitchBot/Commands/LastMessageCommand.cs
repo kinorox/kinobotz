@@ -16,7 +16,7 @@ namespace twitchBot.Commands
         public override string Prefix => Commands.LAST_MESSAGE;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
-            Username = commandContent;
+            Username = commandContent.Trim();
         }
 
         public override void Build(RewardRedeemed rewardRedeemed)
