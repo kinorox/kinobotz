@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using twitchBot.Entities;
@@ -31,16 +32,18 @@ namespace twitchBot.Handlers
                 response.Message = string.Format("{0}, I can't tell you that.", request.ChatMessage.Username);
                 return response;
             }
-            
-            var userLastMessage = await redisClient.Db0.GetAsync<SimplifiedChatMessage>($"{request.Prefix}:{request.Username.ToLower()}".Trim());
+
+            var key = $"{request.Prefix}:{request.Username.ToLower()}";
+
+            var userLastMessage = await redisClient.Db0.GetAsync<SimplifiedChatMessage>(key);
 
             if (userLastMessage != null)
             {
                 response.Message = string.Format(
-                    "Last message found for {0} was '{1}' sent at {2} on the channel {3}.",
+                    "(channel: {3}, {2}) {0}: {1}.",
                     request.Username,
                     userLastMessage.Message,
-                    userLastMessage.TmiSentTs.ConvertTimestampToDateTime(),
+                    userLastMessage.TmiSentTs.ConvertTimestampToDateTime().GetPrettyDate(),
                     userLastMessage.Channel);
 
                 return response;
