@@ -19,9 +19,7 @@ namespace twitchBot.Handlers
         public override async Task<Response> InternalHandle(GptCommand request, CancellationToken cancellationToken)
         {
             var chat = openAiApi.Chat.CreateConversation();
-
-            chat.Model = Model.GPT4;
-
+            
             chat.AppendUserInput(request.Message);
             chat.AppendUserInput("Responda em menos de 400 caracteres.");
 
