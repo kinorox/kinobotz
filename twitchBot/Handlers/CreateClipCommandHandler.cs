@@ -18,9 +18,9 @@ namespace twitchBot.Handlers
         {
             var createClipResponse = await request.TwitchApi.Helix.Clips.CreateClipAsync(request.BotConnection.ChannelId);
 
-            var clipId = createClipResponse.CreatedClips.FirstOrDefault()?.Id;
-
-            if(string.IsNullOrEmpty(clipId))
+            var createdClip = createClipResponse.CreatedClips.FirstOrDefault();
+            
+            if(string.IsNullOrEmpty(createdClip?.Id))
                 return new Response()
                 {
                     Message = "Couldn't create clip."
@@ -33,7 +33,7 @@ namespace twitchBot.Handlers
             Clip resultClip = null;
             while (queryClip && resultClip == null)
             {
-                var response = await request.TwitchApi.Helix.Clips.GetClipsAsync(new List<string>() { clipId });
+                var response = await request.TwitchApi.Helix.Clips.GetClipsAsync(new List<string>() { createdClip.Id });
                 resultClip = response.Clips.FirstOrDefault();
             }
 

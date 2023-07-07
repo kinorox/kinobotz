@@ -222,8 +222,20 @@ namespace twitchBot
                     return;
 
                 var response = await mediator.Send(command);
-                
-                twitchClient.SendReply(message.Channel, message.Id, !response.Error ? response.Message : response.Exception?.Message);
+
+                switch (response.Type)
+                {
+                    case ResponseTypeEnum.Reply:
+                    default:
+                        twitchClient.SendReply(message.Channel, message.Id, response.Message);
+                        break;
+                    case ResponseTypeEnum.Message:
+                        twitchClient.SendMessage(message.Channel, response.Message);
+                        break;
+                    case ResponseTypeEnum.Whisper:
+                        twitchClient.SendWhisper(message.Username, response.Message);
+                        break;
+                }
             }
             catch (Exception e)
             {
