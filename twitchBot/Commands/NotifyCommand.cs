@@ -7,11 +7,7 @@ namespace twitchBot.Commands
 {
     public class NotifyCommand : BaseCommand
     {
-        public NotifyCommand(ITwitchAPI twitchApi, BotConnection botConnection)
-        {
-            TwitchApi = twitchApi;
-            BotConnection = botConnection;
-        }
+        public NotifyCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection) { }
 
         public override string Prefix => Commands.NOTIFY;
 

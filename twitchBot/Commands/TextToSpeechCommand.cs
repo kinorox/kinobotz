@@ -8,11 +8,7 @@ namespace twitchBot.Commands
 {
     public class TextToSpeechCommand : BaseCommand
     {
-        public TextToSpeechCommand(ITwitchAPI twitchApi, BotConnection botConnection)
-        {
-            TwitchApi = twitchApi;
-            BotConnection = botConnection;
-        }
+        public TextToSpeechCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection) { }
 
         public override string Prefix => Commands.TTS;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)

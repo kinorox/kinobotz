@@ -7,11 +7,7 @@ namespace twitchBot.Commands
 {
     public class GptCommand : BaseCommand
     {
-        public GptCommand(ITwitchAPI twitchApi, BotConnection botConnection)
-        {
-            TwitchApi = twitchApi;
-            BotConnection = botConnection;
-        }
+        public GptCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection) { }
 
         public override string Prefix => Commands.GPT;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)

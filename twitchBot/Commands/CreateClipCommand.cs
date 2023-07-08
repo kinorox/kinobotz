@@ -7,11 +7,7 @@ namespace twitchBot.Commands
 {
     internal class CreateClipCommand : BaseCommand
     {
-        public CreateClipCommand(ITwitchAPI twitchApi, BotConnection botConnection)
-        {
-            TwitchApi = twitchApi;
-            BotConnection = botConnection;
-        }
+        public CreateClipCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection) { }
 
         public override string Prefix => Commands.CREATE_CLIP;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)

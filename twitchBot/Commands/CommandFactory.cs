@@ -19,7 +19,8 @@ namespace twitchBot.Commands
             {Commands.NOTIFY, new NotifyCommand(twitchApi, botConnection)},
             {Commands.TTS, new TextToSpeechCommand(twitchApi, botConnection)},
             {Commands.EXISTING_COMMANDS, new ExistingCommandsCommand(twitchApi, botConnection)},
-            {Commands.CREATE_CLIP, new CreateClipCommand(twitchApi, botConnection)}
+            {Commands.CREATE_CLIP, new CreateClipCommand(twitchApi, botConnection)},
+            {Commands.COMMAND, new CommandCommand(twitchApi, botConnection)}
         };
 
         private Dictionary<string, ICommand> RewardCommands => new()
