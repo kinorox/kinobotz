@@ -7,11 +7,7 @@ namespace twitchBot.Commands
 {
     public class LastMessageCommand : BaseCommand
     {
-        public LastMessageCommand(ITwitchAPI twitchApi, BotConnection botConnection)
-        {
-            TwitchApi = twitchApi;
-            BotConnection = botConnection;
-        }
+        public LastMessageCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection) { }
 
         public override string Prefix => Commands.LAST_MESSAGE;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
