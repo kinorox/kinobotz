@@ -1,4 +1,4 @@
-﻿namespace twitchBot.Commands
+﻿namespace Entities
 {
     public class Commands
     {

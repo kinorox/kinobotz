@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Entities;
 using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
@@ -14,13 +13,13 @@ namespace twitchBot.Commands
 
         private Dictionary<string, ICommand> ChatCommands => new()
         {
-            {Commands.LAST_MESSAGE, new LastMessageCommand(twitchApi, botConnection)},
-            {Commands.GPT, new GptCommand(twitchApi, botConnection)},
-            {Commands.NOTIFY, new NotifyCommand(twitchApi, botConnection)},
-            {Commands.TTS, new TextToSpeechCommand(twitchApi, botConnection)},
-            {Commands.EXISTING_COMMANDS, new ExistingCommandsCommand(twitchApi, botConnection)},
-            {Commands.CREATE_CLIP, new CreateClipCommand(twitchApi, botConnection)},
-            {Commands.COMMAND, new CommandCommand(twitchApi, botConnection)}
+            {Entities.Commands.LAST_MESSAGE, new LastMessageCommand(twitchApi, botConnection)},
+            {Entities.Commands.GPT, new GptCommand(twitchApi, botConnection)},
+            {Entities.Commands.NOTIFY, new NotifyCommand(twitchApi, botConnection)},
+            {Entities.Commands.TTS, new TextToSpeechCommand(twitchApi, botConnection)},
+            {Entities.Commands.EXISTING_COMMANDS, new ExistingCommandsCommand(twitchApi, botConnection)},
+            {Entities.Commands.CREATE_CLIP, new CreateClipCommand(twitchApi, botConnection)},
+            {Entities.Commands.COMMAND, new CommandCommand(twitchApi, botConnection)}
         };
 
         private Dictionary<string, ICommand> RewardCommands => new()

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace twitchBot.Entities
+﻿namespace Entities
 {
     public class Response
     {

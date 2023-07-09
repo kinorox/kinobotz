@@ -9,7 +9,7 @@ namespace twitchBot.Commands
     {
         public FirstFollowCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection) { }
 
-        public override string Prefix => Commands.FIRST_FOLLOW;
+        public override string Prefix => Entities.Commands.FIRST_FOLLOW;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             throw new System.NotImplementedException();

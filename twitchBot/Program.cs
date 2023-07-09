@@ -3,6 +3,8 @@ using System.IO;
 using System.Threading.Tasks;
 using ElevenLabs;
 using Infrastructure;
+using Infrastructure.Hubs;
+using Infrastructure.Repository;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,7 +16,6 @@ using Serilog;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
 using twitchBot.Commands;
-using twitchBot.Hubs;
 
 namespace twitchBot
 {
@@ -63,7 +64,7 @@ namespace twitchBot
                         services.AddTransient<ICommandFactory, CommandFactory>();
                         services.AddHostedService<Orchestrator>();
                         services.AddSignalR();
-                        services.AddSingleton<OverlayHub>();
+                        services.AddSingleton<IOverlayHub, OverlayHub>();
                         services.AddCors(options => options.AddPolicy("CorsPolicy",
                             builder =>
                             {
@@ -72,6 +73,7 @@ namespace twitchBot
                                     .SetIsOriginAllowed((_) => true)
                                     .AllowCredentials();
                             }));
+                        services.AddTransient<ICommandRepository, CommandRepository>();
                     })
                     .ConfigureWebHostDefaults(webBuilder =>
                     {

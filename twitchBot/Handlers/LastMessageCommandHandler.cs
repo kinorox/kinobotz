@@ -1,10 +1,9 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Infrastructure;
+using Entities;
+using Infrastructure.Extensions;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
-using twitchBot.Entities;
-using twitchBot.Extensions;
 
 namespace twitchBot.Handlers
 {

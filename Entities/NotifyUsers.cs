@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace twitchBot.Entities
+﻿namespace Entities
 {
     public class NotifyUsers
     {

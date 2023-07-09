@@ -1,5 +1,5 @@
 using Entities;
-using Infrastructure;
+using Infrastructure.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 

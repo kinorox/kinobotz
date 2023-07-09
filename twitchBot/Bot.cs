@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Entities;
+using Entities.Exceptions;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
-using twitchBot.Entities;
 using TwitchLib.Api;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -16,7 +16,9 @@ using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
 using TwitchLib.PubSub;
 using TwitchLib.PubSub.Events;
+using TwitchLib.PubSub.Models.Responses;
 using OnLogArgs = TwitchLib.Client.Events.OnLogArgs;
+using Response = Entities.Response;
 
 namespace twitchBot
 {
@@ -144,7 +146,7 @@ namespace twitchBot
 
         private async void TwitchPubSubOnOnStreamDown(object sender, OnStreamDownArgs e)
         {
-            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Commands.Commands.NOTIFY}");
+            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Entities.Commands.NOTIFY}");
 
             if (notifyUsers?.Usernames == null)
                 return;
@@ -158,7 +160,7 @@ namespace twitchBot
 
         private async void TwitchPubSubOnOnStreamUp(object sender, OnStreamUpArgs e)
         {
-            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Commands.Commands.NOTIFY}");
+            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Entities.Commands.NOTIFY}");
 
             if (notifyUsers?.Usernames == null)
                 return;
@@ -208,7 +210,7 @@ namespace twitchBot
                 Id = message.Id
             };
 
-            redisClient.Db0.AddAsync($"{Commands.Commands.LAST_MESSAGE}:{message.Username.ToLower()}", simplifiedChatMessage);
+            redisClient.Db0.AddAsync($"{Entities.Commands.LAST_MESSAGE}:{message.Username.ToLower()}", simplifiedChatMessage);
         }
 
         private async void ExecuteCommand(ChatMessage message)
@@ -222,23 +224,32 @@ namespace twitchBot
 
                 var response = await mediator.Send(command);
 
-                switch (response.Type)
-                {
-                    case ResponseTypeEnum.Reply:
-                    default:
-                        twitchClient.SendReply(message.Channel, message.Id, response.Message);
-                        break;
-                    case ResponseTypeEnum.Message:
-                        twitchClient.SendMessage(message.Channel, response.Message);
-                        break;
-                    case ResponseTypeEnum.Whisper:
-                        twitchClient.SendWhisper(message.Username, response.Message);
-                        break;
-                }
+                SendMessage(message, response);
+            }
+            catch (InvalidCommandException e)
+            {
+                twitchClient.SendMessage(message.Channel, e.Message);
             }
             catch (Exception e)
             {
                 logger.LogError(e, e.Message);
+            }
+        }
+
+        private void SendMessage(ChatMessage message, Response response)
+        {
+            switch (response.Type)
+            {
+                case ResponseTypeEnum.Reply:
+                default:
+                    twitchClient.SendReply(message.Channel, message.Id, response.Message);
+                    break;
+                case ResponseTypeEnum.Message:
+                    twitchClient.SendMessage(message.Channel, response.Message);
+                    break;
+                case ResponseTypeEnum.Whisper:
+                    twitchClient.SendWhisper(message.Username, response.Message);
+                    break;
             }
         }
     }
