@@ -9,7 +9,7 @@ namespace twitchBot.Commands
     {
         public CreateClipCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection) { }
 
-        public override string Prefix => Commands.CREATE_CLIP;
+        public override string Prefix => Entities.Commands.CREATE_CLIP;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
         }

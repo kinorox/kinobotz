@@ -1,4 +1,4 @@
-﻿namespace Infrastructure
+﻿namespace Infrastructure.Extensions
 {
     public static class StringExtensions
     {
@@ -29,6 +29,21 @@
             string unMaskEnd = source.Substring(start + maskLength, source.Length - maskLength);
 
             return unMaskStart + mask + unMaskEnd;
+        }
+        public static DateTime ConvertTimestampToDateTime(this string s)
+        {
+            // Unix timestamp is seconds past epoch
+            DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            double d = double.Parse(s);
+            dtDateTime = dtDateTime.AddMilliseconds(d).ToLocalTime();
+            return dtDateTime;
+        }
+        public static string GetUntilOrEmpty(this string text, string stopAt = "-")
+        {
+            if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+            var charLocation = text.IndexOf(stopAt, StringComparison.Ordinal);
+
+            return charLocation > 0 ? text[..charLocation] : string.Empty;
         }
     }
 }

@@ -1,9 +1,8 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Entities;
 using OpenAI_API;
-using OpenAI_API.Models;
 using twitchBot.Commands;
-using twitchBot.Entities;
 
 namespace twitchBot.Handlers
 {

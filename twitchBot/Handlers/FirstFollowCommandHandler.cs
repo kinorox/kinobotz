@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Entities;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
-using twitchBot.Entities;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 
 namespace twitchBot.Handlers

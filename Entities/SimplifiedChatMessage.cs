@@ -1,4 +1,4 @@
-﻿namespace twitchBot.Entities
+﻿namespace Entities
 {
     public class SimplifiedChatMessage
     {

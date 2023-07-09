@@ -9,7 +9,7 @@ namespace twitchBot.Commands
     {
         public LastMessageCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection) { }
 
-        public override string Prefix => Commands.LAST_MESSAGE;
+        public override string Prefix => Entities.Commands.LAST_MESSAGE;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             Username = commandContent.Trim();

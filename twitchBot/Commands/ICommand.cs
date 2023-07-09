@@ -1,5 +1,5 @@
-﻿using MediatR;
-using twitchBot.Entities;
+﻿using Entities;
+using MediatR;
 using TwitchLib.Api.Interfaces;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 using ChatMessage = TwitchLib.Client.Models.ChatMessage;

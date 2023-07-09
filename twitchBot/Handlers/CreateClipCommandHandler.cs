@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using Entities;
 using twitchBot.Commands;
-using twitchBot.Entities;
 using TwitchLib.Api.Helix.Models.Clips.GetClips;
 
 namespace twitchBot.Handlers

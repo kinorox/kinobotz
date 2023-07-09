@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 using Discord.Webhook;
 using ElevenLabs;
 using ElevenLabs.Voices;
+using Entities;
+using Infrastructure.Hubs;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
-using twitchBot.Entities;
-using twitchBot.Hubs;
 
 namespace twitchBot.Handlers
 {
@@ -24,9 +24,9 @@ namespace twitchBot.Handlers
         private readonly ElevenLabsClient elevenLabsClient;
         private readonly IRedisClient redisClient;
         private readonly IConfiguration configuration;
-        private readonly OverlayHub overlayHub;
+        private readonly IOverlayHub overlayHub;
 
-        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, OverlayHub overlayHub)
+        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IOverlayHub overlayHub)
         {
             this.elevenLabsClient = elevenLabsClient;
             this.redisClient = redisClient;

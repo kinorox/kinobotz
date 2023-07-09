@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Threading.Tasks;
 
-namespace twitchBot.Hubs
+namespace Infrastructure.Hubs
 {
-    public class OverlayHub : Hub
+    public class OverlayHub : Hub, IOverlayHub
     {
         private readonly IHubContext<OverlayHub> hubContext;
 
@@ -19,5 +17,10 @@ namespace twitchBot.Hubs
 
             await hubContext.Clients.All.SendAsync(id, base64String);
         }
+    }
+
+    public interface IOverlayHub
+    {
+        Task SendAudioStream(string id, byte[] audioStream);
     }
 }

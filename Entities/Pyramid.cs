@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using TwitchLib.Client.Models;
+﻿using TwitchLib.Client.Models;
 
-namespace twitchBot.Entities
+namespace Entities
 {
     public class Pyramid
     {

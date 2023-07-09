@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Entities;
 using twitchBot.Commands;
-using twitchBot.Entities;
 
 namespace twitchBot.Handlers
 {
