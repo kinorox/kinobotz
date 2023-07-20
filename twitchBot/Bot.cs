@@ -160,6 +160,14 @@ namespace twitchBot
 
         private async void TwitchPubSubOnOnStreamUp(object sender, OnStreamUpArgs e)
         {
+            if (e == null)
+            {
+                logger.LogInformation("OnStreamUpArgs is null");
+                return;
+            }
+
+            logger.LogInformation($"stream up | channelId: {e.ChannelId} playDelay: {e.PlayDelay} serverTime: {e.ServerTime}");
+
             var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Entities.Commands.NOTIFY}");
 
             if (notifyUsers?.Usernames == null)
@@ -170,6 +178,8 @@ namespace twitchBot
             var users = string.Join(", ", notifyUsers.Usernames);
 
             twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} is live! BloodTrail Notifying users: {users}");
+
+            logger.LogInformation("end notifying");
         }
 
         private void TwitchClientOnLog(object sender, OnLogArgs e)
