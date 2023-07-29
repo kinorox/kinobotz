@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 using Entities;
 using Entities.Exceptions;
 using MediatR;
@@ -16,7 +17,6 @@ using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
 using TwitchLib.PubSub;
 using TwitchLib.PubSub.Events;
-using TwitchLib.PubSub.Models.Responses;
 using OnLogArgs = TwitchLib.Client.Events.OnLogArgs;
 using Response = Entities.Response;
 
@@ -61,7 +61,7 @@ namespace twitchBot
             twitchPubSub.OnChannelPointsRewardRedeemed += TwitchPubSubChannelPoints;
             twitchPubSub.OnPubSubServiceConnected += OnPubSubServiceConnected;
             twitchPubSub.OnListenResponse += OnListenResponse;
-            twitchPubSub.OnPrediction += TwitchPubSubOnOnPrediction;
+            twitchPubSub.OnPubSubServiceError += OnPubSubServiceError;
         }
 
         public void Connect(BotConnection botConnection)
@@ -107,12 +107,25 @@ namespace twitchBot
 
             twitchClient.Connect();
             twitchPubSub.Connect();
+            
             twitchClient.JoinChannel(_botConnection.Login);
+
+            var aTimer = new Timer(TimeSpan.FromSeconds(response.ExpiresIn).TotalMilliseconds);
+            aTimer.Elapsed += OnOAuthTokenRefreshTimer;
+            aTimer.AutoReset = true;
+            aTimer.Enabled = true;
         }
 
-        private void TwitchPubSubOnOnPrediction(object sender, OnPredictionArgs e)
+        private void OnOAuthTokenRefreshTimer(object sender, ElapsedEventArgs e)
         {
-            
+            RefreshAccessToken();
+        }
+
+        private void OnPubSubServiceError(object sender, OnPubSubServiceErrorArgs e)
+        {
+            logger.LogError(e.Exception, "Error on PubSub");
+
+            RefreshAccessToken();
         }
 
         private void OnListenResponse(object sender, OnListenResponseArgs e)
@@ -260,6 +273,31 @@ namespace twitchBot
                 case ResponseTypeEnum.Whisper:
                     twitchClient.SendWhisper(message.Username, response.Message);
                     break;
+            }
+        }
+
+        private async void RefreshAccessToken()
+        {
+            try
+            {
+                logger.LogInformation($"{_botConnection.Login} - refreshing access token");
+
+                _botConnection = await redisClient.Db0.GetAsync<BotConnection>($"botconnection:{_botConnection.Id}");
+
+                var response = twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]).Result;
+
+                twitchApi.Settings.AccessToken = response.AccessToken;
+
+                _botConnection.AccessToken = response.AccessToken;
+                _botConnection.RefreshToken = response.RefreshToken;
+
+                await redisClient.Db0.AddAsync($"botconnection:{_botConnection.Id}", _botConnection);
+
+                logger.LogInformation($"{_botConnection.Login} - refreshing access token completed");
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, $"{_botConnection.Login} - Error occurred trying to refresh access token.");
             }
         }
     }
