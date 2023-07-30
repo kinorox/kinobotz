@@ -5,6 +5,7 @@ using System.Timers;
 using Entities;
 using Entities.Exceptions;
 using MediatR;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
@@ -78,42 +79,48 @@ namespace twitchBot
                 }
             };
 
-            //refreshing token in case it has expired
-            var response = twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]).Result;
-            
-            twitchApi.Settings.AccessToken = response.AccessToken;
-
-            _botConnection.AccessToken = response.AccessToken;
-            _botConnection.RefreshToken = response.RefreshToken;
-
-            if (string.IsNullOrEmpty(_botConnection.ChannelId) || _botConnection.ChannelId == "string")
+            if (!string.IsNullOrEmpty(botConnection.RefreshToken))
             {
-                var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { _botConnection.Login }).Result;
+                //refreshing token in case it has expired
+                var response = twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]).Result;
 
-                _botConnection.ChannelId = user.Users[0].Id;
+                twitchApi.Settings.AccessToken = response.AccessToken;
+
+                _botConnection.AccessToken = response.AccessToken;
+                _botConnection.RefreshToken = response.RefreshToken;
+
+                if (string.IsNullOrEmpty(_botConnection.ChannelId) || _botConnection.ChannelId == "string")
+                {
+                    var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { _botConnection.Login }).Result;
+
+                    _botConnection.ChannelId = user.Users[0].Id;
+                }
+
+                redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", _botConnection);
+
+                var aTimer = new Timer(TimeSpan.FromSeconds(response.ExpiresIn).TotalMilliseconds);
+                aTimer.Elapsed += OnOAuthTokenRefreshTimer;
+                aTimer.AutoReset = true;
+                aTimer.Enabled = true;
             }
-
-            redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", _botConnection);
 
             commandFactory.Setup(twitchApi, _botConnection);
 
             var credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["bot_access_token"]);
 
             twitchClient.Initialize(credentials);
-            
-            twitchPubSub.ListenToChannelPoints(_botConnection.ChannelId);
-            twitchPubSub.ListenToPredictions(_botConnection.ChannelId);
-            twitchPubSub.ListenToVideoPlayback(_botConnection.ChannelId);
+
+            if (!string.IsNullOrEmpty(_botConnection.ChannelId))
+            {
+                twitchPubSub.ListenToChannelPoints(_botConnection.ChannelId);
+                twitchPubSub.ListenToPredictions(_botConnection.ChannelId);
+                twitchPubSub.ListenToVideoPlayback(_botConnection.ChannelId);
+            }
 
             twitchClient.Connect();
             twitchPubSub.Connect();
             
             twitchClient.JoinChannel(_botConnection.Login);
-
-            var aTimer = new Timer(TimeSpan.FromSeconds(response.ExpiresIn).TotalMilliseconds);
-            aTimer.Elapsed += OnOAuthTokenRefreshTimer;
-            aTimer.AutoReset = true;
-            aTimer.Enabled = true;
         }
 
         private void OnOAuthTokenRefreshTimer(object sender, ElapsedEventArgs e)
