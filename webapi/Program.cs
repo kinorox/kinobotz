@@ -1,8 +1,8 @@
 using Infrastructure;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 DotEnv.Load();
 
@@ -14,12 +14,22 @@ var scopes = new Dictionary<string, string>()
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddCors(o => o.AddPolicy("AllowAnyOrigin",
+    corsPolicyBuilder =>
+    {
+        corsPolicyBuilder.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    }));
+
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "kinobotz API v1.0", Version = "v1" });
+
     c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme()
     {
         Type = SecuritySchemeType.OAuth2,
@@ -34,37 +44,24 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-    {
+    c.AddSecurityRequirement(
+        new OpenApiSecurityRequirement
         {
-            new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "oauth2"
+                new OpenApiSecurityScheme{
+                    Reference = new OpenApiReference{
+                        Id = "oauth2", //The name of the previously defined security scheme.
+                        Type = ReferenceType.SecurityScheme
+                    }
                 },
-                Scheme = "oauth2",
-                Name = "oauth2",
-                In = ParameterLocation.Header
-            },
-            new List<string>()
-        }
-    });
+                new List<string>()
+            }
+        });
 
 });
 
 builder.Services
-    .AddAuthentication(options =>
-    {
-        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    })
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-    {
-        options.LoginPath = "/login";
-    })
+    .AddAuthentication()
     .AddTwitch(options =>
     {
         options.ClientId = builder.Configuration["twitch_client_id"] ?? string.Empty;
@@ -76,8 +73,6 @@ builder.Services
         }
 
         options.SaveTokens = true;
-        options.AuthorizationEndpoint = "https://localhost/";
-        
     });
 
 var redisConfig = new RedisConfiguration()
@@ -89,25 +84,28 @@ builder.Services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConf
 
 var app = builder.Build();
 
+app.UseCors("AllowAnyOrigin");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
+    
     app.UseSwaggerUI(c =>
     {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "kinobotz API v1.0");
+        c.DocumentTitle = "kinobotz API";
+        c.DocExpansion(DocExpansion.None);
         c.OAuthClientId(builder.Configuration["twitch_client_id"]);
         c.OAuthClientSecret(builder.Configuration["twitch_client_secret"]);
-        c.OAuthUseBasicAuthenticationWithAccessCodeGrant();
+        c.OAuthAppName("kinobotz API");
+        c.OAuthScopeSeparator(",");
     });
 }
 
 app.UseHttpsRedirection();
-
-
-app.UseAuthorization();
+//app.UseAuthorization();
 app.UseAuthentication();
 app.UseRedisInformation();
-
 app.MapControllers();
-
 app.Run();
