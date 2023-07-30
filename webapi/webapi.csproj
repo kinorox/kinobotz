@@ -8,7 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Twitch" Version="7.0.2" />
+    <PackageReference Include="AspNetCore.Proxy" Version="4.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.7" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="2.13.1" />
     <PackageReference Include="StackExchange.Redis.Extensions.AspNetCore" Version="9.1.0" />
     <PackageReference Include="StackExchange.Redis.Extensions.Newtonsoft" Version="9.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
