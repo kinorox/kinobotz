@@ -69,7 +69,12 @@ builder.Services
     {
         options.ClientId = builder.Configuration["twitch_client_id"] ?? string.Empty;
         options.ClientSecret = builder.Configuration["twitch_client_secret"] ?? string.Empty;
-        options.Scope.Add("user:read:email");
+
+        foreach (var scope in scopes.Keys)
+        {
+            options.Scope.Add(scope);
+        }
+
         options.SaveTokens = true;
         options.AuthorizationEndpoint = "https://localhost/";
         
