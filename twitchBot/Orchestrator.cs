@@ -30,7 +30,7 @@ namespace twitchBot
 
             var botConnections = await redisClient.Db0.GetAllAsync<BotConnection>(new HashSet<string>(existingKeys));
 
-            foreach (var botConnection in botConnections.Values.Where(b => b.Active))
+            foreach (var botConnection in botConnections.Values.Where(b => b.Active.HasValue && b.Active.Value))
             {
                 try
                 {
