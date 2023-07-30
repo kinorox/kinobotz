@@ -72,4 +72,20 @@ public class BotConnectionController : ControllerBase
 
         return Ok();
     }
+
+    [HttpPost("{login}")]
+    public async Task<IActionResult> CreateFromLogin(string login)
+    {
+        var botConnection = new BotConnection()
+        {
+            Id = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            Active = true,
+            Login = login
+        };
+
+        await redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", botConnection);
+
+        return Ok();
+    }
 }
