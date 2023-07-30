@@ -1,9 +1,15 @@
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.OpenApi.Models;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
 
 DotEnv.Load();
+
+var scopes = new Dictionary<string, string>()
+{
+    {"user:read:email", "Description"}
+};
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +18,41 @@ builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme()
+    {
+        Type = SecuritySchemeType.OAuth2,
+        Flows = new OpenApiOAuthFlows()
+        {
+            Implicit = new OpenApiOAuthFlow()
+            {
+                AuthorizationUrl = new Uri("https://id.twitch.tv/oauth2/authorize"),
+                TokenUrl = new Uri("https://id.twitch.tv/oauth2/authorize?response_type=token"),
+                Scopes = scopes
+            }
+        }
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "oauth2"
+                },
+                Scheme = "oauth2",
+                Name = "oauth2",
+                In = ParameterLocation.Header
+            },
+            new List<string>()
+        }
+    });
+
+});
 
 builder.Services
     .AddAuthentication(options =>
@@ -31,7 +71,8 @@ builder.Services
         options.ClientSecret = builder.Configuration["twitch_client_secret"] ?? string.Empty;
         options.Scope.Add("user:read:email");
         options.SaveTokens = true;
-        options.AccessDeniedPath = "/";
+        options.AuthorizationEndpoint = "https://localhost/";
+        
     });
 
 var redisConfig = new RedisConfiguration()
@@ -47,7 +88,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.OAuthClientId(builder.Configuration["twitch_client_id"]);
+        c.OAuthClientSecret(builder.Configuration["twitch_client_secret"]);
+        c.OAuthUseBasicAuthenticationWithAccessCodeGrant();
+    });
 }
 
 app.UseHttpsRedirection();

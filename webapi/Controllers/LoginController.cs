@@ -1,4 +1,5 @@
 ﻿using AspNet.Security.OAuth.Twitch;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
 namespace webapi.Controllers
@@ -10,7 +11,7 @@ namespace webapi.Controllers
         [HttpGet("~/login")]
         public IActionResult Login()
         {
-            return Challenge(TwitchAuthenticationDefaults.AuthenticationScheme);
+            return Challenge(new AuthenticationProperties { RedirectUri = "/" }, TwitchAuthenticationDefaults.AuthenticationScheme);
         }
     }
 }
