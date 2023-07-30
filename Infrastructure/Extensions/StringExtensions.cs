@@ -9,6 +9,9 @@
 
         public static string Mask(this string source, int start, int maskLength, char maskCharacter)
         {
+            if (string.IsNullOrEmpty(source))
+                return source;
+
             if (start > source.Length - 1)
             {
                 throw new ArgumentException("Start position is greater than string length");
