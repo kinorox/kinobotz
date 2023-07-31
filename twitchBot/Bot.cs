@@ -5,7 +5,6 @@ using System.Timers;
 using Entities;
 using Entities.Exceptions;
 using MediatR;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
@@ -81,27 +80,32 @@ namespace twitchBot
 
             if (!string.IsNullOrEmpty(botConnection.RefreshToken))
             {
-                //refreshing token in case it has expired
-                var response = twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]).Result;
-
-                twitchApi.Settings.AccessToken = response.AccessToken;
-
-                _botConnection.AccessToken = response.AccessToken;
-                _botConnection.RefreshToken = response.RefreshToken;
-
-                if (string.IsNullOrEmpty(_botConnection.ChannelId) || _botConnection.ChannelId == "string")
+                try
                 {
-                    var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { _botConnection.Login }).Result;
+                    //refreshing token in case it has expired
+                    var response = twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]).Result;
+                    twitchApi.Settings.AccessToken = response.AccessToken;
+                    _botConnection.AccessToken = response.AccessToken;
+                    _botConnection.RefreshToken = response.RefreshToken;
 
-                    _botConnection.ChannelId = user.Users[0].Id;
+                    if (string.IsNullOrEmpty(_botConnection.ChannelId) || _botConnection.ChannelId == "string")
+                    {
+                        var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { _botConnection.Login }).Result;
+
+                        _botConnection.ChannelId = user.Users[0].Id;
+                    }
+
+                    redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", _botConnection);
+
+                    var aTimer = new Timer(TimeSpan.FromSeconds(response.ExpiresIn).TotalMilliseconds);
+                    aTimer.Elapsed += OnOAuthTokenRefreshTimer;
+                    aTimer.AutoReset = true;
+                    aTimer.Enabled = true;
                 }
-
-                redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", _botConnection);
-
-                var aTimer = new Timer(TimeSpan.FromSeconds(response.ExpiresIn).TotalMilliseconds);
-                aTimer.Elapsed += OnOAuthTokenRefreshTimer;
-                aTimer.AutoReset = true;
-                aTimer.Enabled = true;
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Error when trying to refresh access token");
+                }
             }
 
             commandFactory.Setup(twitchApi, _botConnection);
