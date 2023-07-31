@@ -1,3 +1,4 @@
+using AspNet.Security.OAuth.Twitch;
 using Infrastructure;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis.Extensions.Core.Configuration;
@@ -14,14 +15,7 @@ var scopes = new Dictionary<string, string>()
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddCors(o => o.AddPolicy("AllowAnyOrigin",
-    corsPolicyBuilder =>
-    {
-        corsPolicyBuilder.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
-    }));
-
+builder.Services.AddCors();
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -84,27 +78,22 @@ builder.Services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConf
 
 var app = builder.Build();
 
-app.UseCors("AllowAnyOrigin");
+app.UseCors(a => a.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "kinobotz API v1.0");
-        c.DocumentTitle = "kinobotz API";
-        c.DocExpansion(DocExpansion.None);
-        c.OAuthClientId(builder.Configuration["twitch_client_id"]);
-        c.OAuthClientSecret(builder.Configuration["twitch_client_secret"]);
-        c.OAuthAppName("kinobotz API");
-        c.OAuthScopeSeparator(",");
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "kinobotz API v1.0");
+    c.DocumentTitle = "kinobotz API";
+    c.DocExpansion(DocExpansion.None);
+    c.OAuthClientId(builder.Configuration["twitch_client_id"]);
+    c.OAuthClientSecret(builder.Configuration["twitch_client_secret"]);
+    c.OAuthAppName("kinobotz API");
+    c.OAuthScopeSeparator(",");
+});
 
 app.UseHttpsRedirection();
-//app.UseAuthorization();
 app.UseAuthentication();
 app.UseRedisInformation();
 app.MapControllers();

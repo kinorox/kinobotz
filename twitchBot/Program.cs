@@ -12,10 +12,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenAI_API;
+using Quartz;
 using Serilog;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
 using twitchBot.Commands;
+using twitchBot.Jobs;
 
 namespace twitchBot
 {
@@ -33,11 +35,13 @@ namespace twitchBot
                     .ConfigureServices(services =>
                     {
                         // Build configuration
-                        _configuration = new ConfigurationBuilder()
-                            .SetBasePath(Directory.GetParent(AppContext.BaseDirectory).FullName)
-                            .AddJsonFile("appsettings.json", false)
-                            .AddEnvironmentVariables()
-                            .Build();
+                        var fullName = Directory.GetParent(AppContext.BaseDirectory)?.FullName;
+                        if (fullName != null)
+                            _configuration = new ConfigurationBuilder()
+                                .SetBasePath(fullName)
+                                .AddJsonFile("appsettings.json", false)
+                                .AddEnvironmentVariables()
+                                .Build();
 
                         var logger = new LoggerConfiguration()
                             .WriteTo.Console()
@@ -62,7 +66,8 @@ namespace twitchBot
 
                         services.AddSingleton(elevenLabsClient);
                         services.AddTransient<ICommandFactory, CommandFactory>();
-                        services.AddHostedService<Orchestrator>();
+                        services.AddSingleton<Orchestrator>();
+                        services.AddHostedService(p => p.GetRequiredService<Orchestrator>());
                         services.AddSignalR();
                         services.AddSingleton<IOverlayHub, OverlayHub>();
                         services.AddCors(options => options.AddPolicy("CorsPolicy",
@@ -74,6 +79,19 @@ namespace twitchBot
                                     .AllowCredentials();
                             }));
                         services.AddTransient<ICommandRepository, CommandRepository>();
+                        services.AddQuartz(q =>
+                        {
+                            q.UseMicrosoftDependencyInjectionJobFactory();
+                            var jobKey = new JobKey("RefreshConnectionsJob");
+                            
+                            q.AddJob<RefreshConnectionsJob>(opts => opts.WithIdentity(jobKey));
+                            
+                            q.AddTrigger(opts => opts
+                                .ForJob(jobKey) 
+                                .WithIdentity("RefreshConnectionsJob-trigger")
+                                .WithCronSchedule("0/30 * * * * ?"));
+                        });
+                        services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
                     })
                     .ConfigureWebHostDefaults(webBuilder =>
                     {
