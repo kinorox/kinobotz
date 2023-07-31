@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Entities;
 using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
@@ -37,8 +38,17 @@ namespace twitchBot.Commands
             var message = chatMessage.Message;
 
             // Check if message has the default command prefix
-            if (!message.StartsWith("%"))
-                return null;
+            if (!message.StartsWith("%") && !message.StartsWith("@kinobotz")) return null;
+            if (message.StartsWith("@kinobotz"))
+            {
+                var messageContent = message.Split("@kinobotz")[1];
+
+                var gptCommand = ChatCommands[Entities.Commands.GPT];
+
+                gptCommand.Build(chatMessage, Entities.Commands.GPT, messageContent);
+
+                return gptCommand;
+            }
 
             var prefixStart = message.IndexOf('%');
             var prefixEnd = message.IndexOf(' ');
@@ -58,6 +68,7 @@ namespace twitchBot.Commands
             if (!ChatCommands.TryGetValue(commandPrefix, out var command)) return null;
             command.Build(chatMessage, commandPrefix, message.Split($"%{commandPrefix}")[1]);
             return command;
+
         }
 
         public ICommand Build(RewardRedeemed rewardRedeemed)
