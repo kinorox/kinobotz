@@ -37,6 +37,8 @@ namespace twitchBot.Handlers
                     chat.AppendSystemMessage(behavior);
                 }
 
+                chat.AppendSystemMessage("Responda sempre em frases curtas, de preferência em menos de 500 caracteres.");
+
                 chat.AppendUserInput(request.Message);
 
                 response = await chat.GetResponseFromChatbotAsync();
