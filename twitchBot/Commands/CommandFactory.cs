@@ -20,7 +20,9 @@ namespace twitchBot.Commands
             {Entities.Commands.TTS, new TextToSpeechCommand(twitchApi, botConnection)},
             {Entities.Commands.EXISTING_COMMANDS, new ExistingCommandsCommand(twitchApi, botConnection)},
             {Entities.Commands.CREATE_CLIP, new CreateClipCommand(twitchApi, botConnection)},
-            {Entities.Commands.COMMAND, new CommandCommand(twitchApi, botConnection)}
+            {Entities.Commands.COMMAND, new CommandCommand(twitchApi, botConnection)},
+            {Entities.Commands.GPT_BEHAVIOR, new GptBehaviorCommand(twitchApi, botConnection)},
+            {Entities.Commands.GPT_BEHAVIOR_DEFINITION, new GptBehaviorDefinitionCommand(twitchApi, botConnection)}
         };
 
         private Dictionary<string, ICommand> RewardCommands => new()

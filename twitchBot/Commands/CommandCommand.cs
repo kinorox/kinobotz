@@ -17,6 +17,8 @@ namespace twitchBot.Commands
 
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
+            Username = chatMessage.Username;
+
             if (string.IsNullOrEmpty(commandContent))
                 throw new InvalidCommandException(errorMessage);
 

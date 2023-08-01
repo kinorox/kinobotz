@@ -12,6 +12,7 @@ namespace twitchBot.Commands
         public override string Prefix => Entities.Commands.EXISTING_COMMANDS;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
+            Username = chatMessage.Username;
         }
         public override void Build(RewardRedeemed rewardRedeemed)
         {

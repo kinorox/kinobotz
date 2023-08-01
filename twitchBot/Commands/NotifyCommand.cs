@@ -20,7 +20,5 @@ namespace twitchBot.Commands
         {
             throw new System.NotImplementedException();
         }
-        
-        public string Username { get; set; }
     }
 }
