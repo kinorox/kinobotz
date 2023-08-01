@@ -15,7 +15,7 @@ namespace twitchBot
         private readonly IRedisClient redisClient;
         private readonly IServiceProvider serviceProvider;
         private readonly ILogger<Orchestrator> logger;
-        private readonly Dictionary<Guid, BotConnection> connections = new();
+        public readonly Dictionary<Guid, BotConnection> Connections = new();
 
         public Orchestrator(IRedisClient redisClient, IServiceProvider serviceProvider, ILogger<Orchestrator> logger)
         {
@@ -47,12 +47,12 @@ namespace twitchBot
             {
                 try
                 {
-                    if (connections.ContainsKey(botConnection.Id)) continue;
+                    if (Connections.ContainsKey(botConnection.Id)) continue;
 
                     var bot = (IBot)serviceProvider.GetService(typeof(IBot));
                     bot?.Connect(botConnection);
 
-                    connections.Add(botConnection.Id, botConnection);
+                    Connections.Add(botConnection.Id, botConnection);
                 }
                 catch (Exception e)
                 {

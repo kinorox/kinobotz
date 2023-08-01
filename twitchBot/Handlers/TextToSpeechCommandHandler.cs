@@ -36,6 +36,16 @@ namespace twitchBot.Handlers
 
         public override async Task<Response> InternalHandle(TextToSpeechCommand request, CancellationToken cancellationToken)
         {
+            var characterCount = await redisClient.Db0.GetAsync<int?>($"{request.BotConnection.Id}:{request.Prefix}:{DateTime.UtcNow.Date}:{request.Username}:characters");
+
+            if (characterCount > 3000)
+            {
+                return new Response()
+                {
+                    Message = "3000 characters limit exceeded. Wait 24 hours to use the TTS again."
+                };
+            }
+
             var lastExecutionTime = await redisClient.Db0.GetAsync<DateTime>($"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}");
 
             if (lastExecutionTime.AddMinutes(5) > DateTime.UtcNow)
@@ -59,7 +69,7 @@ namespace twitchBot.Handlers
                 {
                     return new Response()
                     {
-                        Message = "Sem vozes disponíveis."
+                        Message = "No available voices."
                     };
                 }
 
@@ -67,12 +77,13 @@ namespace twitchBot.Handlers
 
                 if (matchVoice == null)
                 {
-                    matchVoice = allVoices.FirstOrDefault();
+                    return new Response()
+                    {
+                        Message = $"Wrong voice/syntax. Correct syntax: '<voiceName>: <message>'. Available voices: {string.Join(", ", allVoices.Where(v => string.Equals(v.Category, "cloned")).Select(v => v.Name))}."
+                    };
                 }
-                else
-                {
-                    await redisClient.Db0.AddAsync($"{request.Prefix}:{request.Voice}", matchVoice.Id);
-                }
+
+                await redisClient.Db0.AddAsync($"{request.Prefix}:{request.Voice}", matchVoice.Id);
             }
             else
             {
@@ -119,9 +130,13 @@ namespace twitchBot.Handlers
             //adding last execution time to redis
             await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}", DateTime.UtcNow);
 
+            characterCount = characterCount.HasValue ? characterCount + request.Message.Length : request.Message.Length;
+
+            await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:{DateTime.UtcNow.Date}:{request.Username}:characters", characterCount, expiresIn: TimeSpan.FromHours(24));
+
             return new Response
             {
-                Message = "TTS enviado, em breve tocará na stream."
+                Message = $"TTS successfully sent. It will play on stream shortly. Remaining daily characters: {3000 - characterCount}."
             };
         }
     }

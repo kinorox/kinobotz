@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 using Entities;
 using Entities.Exceptions;
@@ -64,7 +65,7 @@ namespace twitchBot
             twitchPubSub.OnPubSubServiceError += OnPubSubServiceError;
         }
 
-        public void Connect(BotConnection botConnection)
+        public Task Connect(BotConnection botConnection)
         {
             _botConnection = botConnection;
 
@@ -125,6 +126,8 @@ namespace twitchBot
             twitchPubSub.Connect();
             
             twitchClient.JoinChannel(_botConnection.Login);
+
+            return Task.CompletedTask;
         }
 
         private void OnOAuthTokenRefreshTimer(object sender, ElapsedEventArgs e)
@@ -315,6 +318,6 @@ namespace twitchBot
 
     public interface IBot
     {
-        void Connect(BotConnection botConnection);
+        Task Connect(BotConnection botConnection);
     }
 }
