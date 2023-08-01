@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Entities;
+using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using TwitchLib.Api.Helix.Models.Clips.GetClips;
 
@@ -13,7 +14,11 @@ namespace twitchBot.Handlers
     internal class CreateClipCommandHandler : BaseCommandHandler<CreateClipCommand>
     {
         private bool queryClip = true;
-        
+
+        public CreateClipCommandHandler(IRedisClient redisClient) : base(redisClient)
+        {
+        }
+
         public override async Task<Response> InternalHandle(CreateClipCommand request, CancellationToken cancellationToken)
         {
             var createClipResponse = await request.TwitchApi.Helix.Clips.CreateClipAsync(request.BotConnection.ChannelId);

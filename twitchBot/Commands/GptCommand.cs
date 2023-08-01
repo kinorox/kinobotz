@@ -12,7 +12,8 @@ namespace twitchBot.Commands
         public override string Prefix => Entities.Commands.GPT;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
-            Message = commandContent;
+            Message = commandContent; 
+            Username = chatMessage.Username;
         }
 
         public override void Build(RewardRedeemed rewardRedeemed)

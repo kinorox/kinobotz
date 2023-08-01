@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Entities;
 using Entities.Exceptions;
 using Infrastructure.Repository;
+using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 
 namespace twitchBot.Handlers
@@ -11,10 +12,12 @@ namespace twitchBot.Handlers
     public class CommandCommandHandler : BaseCommandHandler<CommandCommand>
     {
         private readonly ICommandRepository _commandRepository;
-
-        public CommandCommandHandler(ICommandRepository commandRepository)
+        private readonly IRedisClient _redisClient;
+            
+        public CommandCommandHandler(ICommandRepository commandRepository, IRedisClient redisClient) : base(redisClient)
         {
             _commandRepository = commandRepository;
+            _redisClient = redisClient;
         }
 
         public override async Task<Response> InternalHandle(CommandCommand request, CancellationToken cancellationToken)

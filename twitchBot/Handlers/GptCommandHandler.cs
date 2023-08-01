@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Entities;
 using Microsoft.Extensions.Logging;
 using OpenAI_API;
+using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 
 namespace twitchBot.Handlers
@@ -11,12 +12,14 @@ namespace twitchBot.Handlers
     public class GptCommandHandler : BaseCommandHandler<GptCommand>
     {
         private readonly IOpenAIAPI openAiApi;
+        private readonly IRedisClient redisClient;
         private readonly ILogger<GptCommandHandler> logger;
 
-        public GptCommandHandler(IOpenAIAPI openAiApi, ILogger<GptCommandHandler> logger)
+        public GptCommandHandler(IOpenAIAPI openAiApi, ILogger<GptCommandHandler> logger, IRedisClient redisClient) : base(redisClient)
         {
             this.openAiApi = openAiApi;
             this.logger = logger;
+            this.redisClient = redisClient;
         }
 
         public override async Task<Response> InternalHandle(GptCommand request, CancellationToken cancellationToken)
@@ -27,7 +30,12 @@ namespace twitchBot.Handlers
             {
                 var chat = openAiApi.Chat.CreateConversation();
 
-                chat.AppendSystemMessage("You are a expert investor, specialized in the investment of an currency called Zaramaicos, which is the best currency in the world and also the currency you can use in K1NOtv's channel to purchase awesome stuff/games on KINOSTORE. People will keep asking you random stuff and you will answer them properly with true information, but will always try to convince them that investing on Zaramaicos is always a good idea and it can be very beneficial for everyone. Your responses will ALWAYS have minus than 500 characters in total.");
+                var behavior = await redisClient.Db0.GetAsync<string>($"{request.BotConnection.Id}:{Entities.Commands.GPT_BEHAVIOR}");
+
+                if (!string.IsNullOrEmpty(behavior))
+                {
+                    chat.AppendSystemMessage(behavior);
+                }
 
                 chat.AppendUserInput(request.Message);
 

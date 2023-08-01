@@ -12,7 +12,7 @@ namespace twitchBot.Commands
         public override string Prefix => Entities.Commands.FIRST_FOLLOW;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
-            throw new System.NotImplementedException();
+            Username = chatMessage.Username;
         }
 
         public override void Build(RewardRedeemed rewardRedeemed)
@@ -21,6 +21,5 @@ namespace twitchBot.Commands
         }
 
         public ChatMessage ChatMessage { get; set; }
-        public string Username { get; set; }
     }
 }

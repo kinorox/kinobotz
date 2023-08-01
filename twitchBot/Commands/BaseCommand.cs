@@ -18,5 +18,6 @@ namespace twitchBot.Commands
         public abstract void Build(RewardRedeemed rewardRedeemed);
         public ITwitchAPI TwitchApi { get; set; }
         public BotConnection BotConnection { get; set; }
+        public string Username { get; set; }
     }
 }

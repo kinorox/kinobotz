@@ -13,7 +13,7 @@ namespace twitchBot.Handlers
     {
         private readonly IRedisClient redisClient;
 
-        public FirstFollowCommandHandler(IRedisClient redisClient)
+        public FirstFollowCommandHandler(IRedisClient redisClient) : base(redisClient)
         {
             this.redisClient = redisClient;
         }

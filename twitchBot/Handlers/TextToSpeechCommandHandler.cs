@@ -26,13 +26,16 @@ namespace twitchBot.Handlers
         private readonly IConfiguration configuration;
         private readonly IOverlayHub overlayHub;
 
-        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IOverlayHub overlayHub)
+        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IOverlayHub overlayHub) : base(redisClient)
         {
             this.elevenLabsClient = elevenLabsClient;
             this.redisClient = redisClient;
             this.configuration = configuration;
             this.overlayHub = overlayHub;
         }
+
+        public override int Cooldown => 5;
+        public override bool GlobalCooldown => false;
 
         public override async Task<Response> InternalHandle(TextToSpeechCommand request, CancellationToken cancellationToken)
         {
@@ -43,18 +46,6 @@ namespace twitchBot.Handlers
                 return new Response()
                 {
                     Message = "3000 characters limit exceeded. Wait 24 hours to use the TTS again."
-                };
-            }
-
-            var lastExecutionTime = await redisClient.Db0.GetAsync<DateTime>($"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}");
-
-            if (lastExecutionTime.AddMinutes(5) > DateTime.UtcNow)
-            {
-                var difference = lastExecutionTime.AddMinutes(5) - DateTime.UtcNow;
-
-                return new Response()
-                {
-                    Message = $"Wait {(difference.Minutes == 0 ? difference.Seconds + "s" : difference.Minutes + "min")} to execute this command again."
                 };
             }
 
@@ -126,10 +117,7 @@ namespace twitchBot.Handlers
 
             //sending audio stream to signalR hub
             await overlayHub.SendAudioStream(request.BotConnection.Id.ToString(), audioStreamData);
-
-            //adding last execution time to redis
-            await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}", DateTime.UtcNow);
-
+            
             characterCount = characterCount.HasValue ? characterCount + request.Message.Length : request.Message.Length;
 
             await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:{DateTime.UtcNow.Date}:{request.Username}:characters", characterCount, expiresIn: TimeSpan.FromHours(24));

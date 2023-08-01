@@ -11,7 +11,7 @@ namespace twitchBot.Handlers
     {
         private readonly IRedisClient redisClient;
 
-        public LastMessageCommandHandler(IRedisClient redisClient)
+        public LastMessageCommandHandler(IRedisClient redisClient) : base(redisClient)
         {
             this.redisClient = redisClient;
         }
@@ -23,16 +23,16 @@ namespace twitchBot.Handlers
                 Error = false
             };
 
-            if (string.IsNullOrEmpty(request.Username))
+            if (string.IsNullOrEmpty(request.TargetUsername))
                 return null;
 
-            if (string.Equals(request.Username.ToLower(), "kinobotz"))
+            if (string.Equals(request.TargetUsername.ToLower(), "kinobotz"))
             {
                 response.Message = "I can't tell you that.";
                 return response;
             }
 
-            var key = $"{request.Prefix}:{request.Username.ToLower()}";
+            var key = $"{request.Prefix}:{request.TargetUsername.ToLower()}";
 
             var userLastMessage = await redisClient.Db0.GetAsync<SimplifiedChatMessage>(key);
 
@@ -40,7 +40,7 @@ namespace twitchBot.Handlers
             {
                 response.Message = string.Format(
                     "(channel: {3}, {2}) {0}: {1}.",
-                    request.Username,
+                    request.TargetUsername,
                     userLastMessage.Message,
                     userLastMessage.TmiSentTs.ConvertTimestampToDateTime().GetPrettyDate(),
                     userLastMessage.Channel);
@@ -48,7 +48,7 @@ namespace twitchBot.Handlers
                 return response;
             }
 
-            response.Message = string.Format("No messages found for the user {0}.", request.Username);
+            response.Message = string.Format("No messages found for the user {0}.", request.TargetUsername);
             return response;
         }
     }
