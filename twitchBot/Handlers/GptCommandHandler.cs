@@ -1,6 +1,8 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Entities;
+using Microsoft.Extensions.Logging;
 using OpenAI_API;
 using twitchBot.Commands;
 
@@ -9,20 +11,38 @@ namespace twitchBot.Handlers
     public class GptCommandHandler : BaseCommandHandler<GptCommand>
     {
         private readonly IOpenAIAPI openAiApi;
+        private readonly ILogger<GptCommandHandler> logger;
 
-        public GptCommandHandler(IOpenAIAPI openAiApi)
+        public GptCommandHandler(IOpenAIAPI openAiApi, ILogger<GptCommandHandler> logger)
         {
             this.openAiApi = openAiApi;
+            this.logger = logger;
         }
 
         public override async Task<Response> InternalHandle(GptCommand request, CancellationToken cancellationToken)
         {
-            var chat = openAiApi.Chat.CreateConversation();
-            
-            chat.AppendUserInput(request.Message);
-            chat.AppendUserInput("Responda em menos de 400 caracteres.");
+            string response;
 
-            var response = await chat.GetResponseFromChatbotAsync();
+            try
+            {
+                var chat = openAiApi.Chat.CreateConversation();
+
+                chat.AppendSystemMessage("You are a expert investor, specialized in the investment of an currency called Zaramaicos. People will keep asking you random stuff and you will answer them properly with true information, but will always try to convince them that investing on Zaramaicos is always a good idea and it can be very beneficial for everyone. Your responses will ALWAYS have minus than 500 characters in total.");
+
+                chat.AppendUserInput(request.Message);
+
+                response = await chat.GetResponseFromChatbotAsync();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error during GPT execution.");
+
+                return new Response()
+                {
+                    Error = true,
+                    Message = $"Error during GPT execution: {e.Message}"
+                };
+            }
 
             return new Response()
             {
