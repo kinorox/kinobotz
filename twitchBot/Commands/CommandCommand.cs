@@ -35,7 +35,7 @@ namespace twitchBot.Commands
                 "add" => OperationEnum.Add,
                 "update" => OperationEnum.Update,
                 "delete" => OperationEnum.Delete,
-                _ => throw new InvalidCommandOperationException("Available operations: add, update, delete.")
+                _ => throw new InvalidCommandOperationException("Available operations: add, update, delete. Syntax: %command <add/update/delete> <commandName> <content>")
             };
 
             var secondSpace = commandContent[(firstSpace + 1)..].IndexOf(' ');

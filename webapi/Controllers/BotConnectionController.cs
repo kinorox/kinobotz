@@ -7,7 +7,7 @@ using StackExchange.Redis.Extensions.Core.Abstractions;
 namespace webapi.Controllers;
 
 [ApiController]
-[Authorize]
+//[Authorize]
 [Route("[controller]")]
 public class BotConnectionController : ControllerBase
 {
