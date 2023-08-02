@@ -24,50 +24,50 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "kinobotz API v1.0", Version = "v1" });
 
-    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme()
-    {
-        Type = SecuritySchemeType.OAuth2,
-        Flows = new OpenApiOAuthFlows()
-        {
-            Implicit = new OpenApiOAuthFlow()
-            {
-                AuthorizationUrl = new Uri("https://id.twitch.tv/oauth2/authorize"),
-                TokenUrl = new Uri("https://id.twitch.tv/oauth2/authorize?response_type=token"),
-                Scopes = scopes
-            }
-        }
-    });
+    //c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme()
+    //{
+    //    Type = SecuritySchemeType.OAuth2,
+    //    Flows = new OpenApiOAuthFlows()
+    //    {
+    //        Implicit = new OpenApiOAuthFlow()
+    //        {
+    //            AuthorizationUrl = new Uri("https://id.twitch.tv/oauth2/authorize"),
+    //            TokenUrl = new Uri("https://id.twitch.tv/oauth2/authorize?response_type=token"),
+    //            Scopes = scopes
+    //        }
+    //    }
+    //});
 
-    c.AddSecurityRequirement(
-        new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecurityScheme{
-                    Reference = new OpenApiReference{
-                        Id = "oauth2", //The name of the previously defined security scheme.
-                        Type = ReferenceType.SecurityScheme
-                    }
-                },
-                new List<string>()
-            }
-        });
+    //c.AddSecurityRequirement(
+    //    new OpenApiSecurityRequirement
+    //    {
+    //        {
+    //            new OpenApiSecurityScheme{
+    //                Reference = new OpenApiReference{
+    //                    Id = "oauth2", //The name of the previously defined security scheme.
+    //                    Type = ReferenceType.SecurityScheme
+    //                }
+    //            },
+    //            new List<string>()
+    //        }
+    //    });
 
 });
 
-builder.Services
-    .AddAuthentication()
-    .AddTwitch(options =>
-    {
-        options.ClientId = builder.Configuration["twitch_client_id"] ?? string.Empty;
-        options.ClientSecret = builder.Configuration["twitch_client_secret"] ?? string.Empty;
+//builder.Services
+//    .AddAuthentication()
+//    .AddTwitch(options =>
+//    {
+//        options.ClientId = builder.Configuration["twitch_client_id"] ?? string.Empty;
+//        options.ClientSecret = builder.Configuration["twitch_client_secret"] ?? string.Empty;
 
-        foreach (var scope in scopes.Keys)
-        {
-            options.Scope.Add(scope);
-        }
+//        foreach (var scope in scopes.Keys)
+//        {
+//            options.Scope.Add(scope);
+//        }
 
-        options.SaveTokens = true;
-    });
+//        options.SaveTokens = true;
+//    });
 
 var redisConfig = new RedisConfiguration()
 {
@@ -86,15 +86,15 @@ app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "kinobotz API v1.0");
     c.DocumentTitle = "kinobotz API";
-    c.DocExpansion(DocExpansion.None);
-    c.OAuthClientId(builder.Configuration["twitch_client_id"]);
-    c.OAuthClientSecret(builder.Configuration["twitch_client_secret"]);
-    c.OAuthAppName("kinobotz API");
-    c.OAuthScopeSeparator(",");
+    //c.DocExpansion(DocExpansion.None);
+    //c.OAuthClientId(builder.Configuration["twitch_client_id"]);
+    //c.OAuthClientSecret(builder.Configuration["twitch_client_secret"]);
+    //c.OAuthAppName("kinobotz API");
+    //c.OAuthScopeSeparator(",");
 });
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
+//app.UseAuthentication();
 app.UseRedisInformation();
 app.MapControllers();
 app.Run();

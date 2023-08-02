@@ -40,10 +40,10 @@ namespace twitchBot.Commands
             var message = chatMessage.Message;
 
             // Check if message has the default command prefix
-            if (!message.StartsWith("%") && !message.StartsWith("@kinobotz")) return null;
-            if (message.StartsWith("@kinobotz"))
+            if (!message.StartsWith("%") && !message.Contains("@kinobotz")) return null;
+            if (message.Contains("@kinobotz"))
             {
-                var messageContent = message.Split("@kinobotz")[1];
+                var messageContent = message.Replace("@kinobotz", string.Empty);
 
                 var gptCommand = ChatCommands[Entities.Commands.GPT];
 

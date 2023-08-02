@@ -12,12 +12,10 @@ namespace twitchBot.Handlers
     public class CommandCommandHandler : BaseCommandHandler<CommandCommand>
     {
         private readonly ICommandRepository _commandRepository;
-        private readonly IRedisClient _redisClient;
-            
+
         public CommandCommandHandler(ICommandRepository commandRepository, IRedisClient redisClient) : base(redisClient)
         {
             _commandRepository = commandRepository;
-            _redisClient = redisClient;
         }
 
         public override async Task<Response> InternalHandle(CommandCommand request, CancellationToken cancellationToken)
