@@ -35,6 +35,8 @@ namespace twitchBot.Handlers
                 {
                     var response = await InternalHandle(request, cancellationToken);
 
+                    if (!response.WasExecuted) return response;
+
                     var timeNow = DateTime.UtcNow;
 
                     await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:lastexecution", timeNow);

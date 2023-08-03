@@ -30,7 +30,11 @@ namespace twitchBot.Handlers
                         Username = request.Username
                     };
 
-                return await mediator.Send(gptBehaviorDefinitionCommand, cancellationToken);
+                var response = await mediator.Send(gptBehaviorDefinitionCommand, cancellationToken);
+
+                response.WasExecuted = false;
+
+                return response;
             }
 
             await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:definedby", request.Username);
