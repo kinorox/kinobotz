@@ -261,7 +261,10 @@ namespace twitchBot
 
                 var response = await mediator.Send(command);
 
-                SendMessage(message, response);
+                if (!string.IsNullOrEmpty(response.Message))
+                {
+                    SendMessage(message, response);
+                }
             }
             catch (InvalidCommandException e)
             {
