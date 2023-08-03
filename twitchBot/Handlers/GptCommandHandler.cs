@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Entities;
 using Microsoft.Extensions.Logging;
 using OpenAI_API;
+using OpenAI_API.Chat;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 
@@ -36,10 +37,10 @@ namespace twitchBot.Handlers
                 {
                     chat.AppendSystemMessage(behavior);
                 }
-
+                
                 chat.AppendSystemMessage("Responda sempre em frases curtas, de preferência em menos de 500 caracteres.");
 
-                chat.AppendUserInput(request.Message);
+                chat.AppendUserInputWithName(request.Username, request.Message);
 
                 response = await chat.GetResponseFromChatbotAsync();
             }
