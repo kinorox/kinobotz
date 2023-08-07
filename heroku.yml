@@ -1,4 +1,4 @@
 build:
   docker:
-    # web: vueapp.Dockerfile
+    kinobotz-api: webapi.Dockerfile
     web: twitchBot.Dockerfile
