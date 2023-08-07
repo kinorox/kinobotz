@@ -1,6 +1,5 @@
 using Entities;
 using Infrastructure.Extensions;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 
