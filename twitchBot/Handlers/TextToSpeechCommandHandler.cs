@@ -12,6 +12,7 @@ using ElevenLabs;
 using ElevenLabs.Voices;
 using Entities;
 using Infrastructure.Hubs;
+using Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using StackExchange.Redis.Extensions.Core.Abstractions;
@@ -24,14 +25,14 @@ namespace twitchBot.Handlers
         private readonly ElevenLabsClient elevenLabsClient;
         private readonly IRedisClient redisClient;
         private readonly IConfiguration configuration;
-        private readonly IOverlayHub overlayHub;
+        private readonly IKinobotzService kinobotzService;
 
-        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IOverlayHub overlayHub) : base(redisClient)
+        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService) : base(redisClient)
         {
             this.elevenLabsClient = elevenLabsClient;
             this.redisClient = redisClient;
             this.configuration = configuration;
-            this.overlayHub = overlayHub;
+            this.kinobotzService = kinobotzService;
         }
 
         public override int Cooldown => 5;
@@ -116,7 +117,7 @@ namespace twitchBot.Handlers
             }
 
             //sending audio stream to signalR hub
-            await overlayHub.SendAudioStream(request.BotConnection.Id.ToString(), audioStreamData);
+            await kinobotzService.SendAudioStream(request.BotConnection.Id.ToString(), audioStreamData);
             
             characterCount = characterCount.HasValue ? characterCount + request.Message.Length : request.Message.Length;
 

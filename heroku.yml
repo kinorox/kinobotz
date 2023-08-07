@@ -1,4 +1,4 @@
 build:
   docker:
-    kinobotz-api: webapi.Dockerfile
-    web: twitchBot.Dockerfile
+    web: webapi.Dockerfile
+    kinobotz: twitchBot.Dockerfile

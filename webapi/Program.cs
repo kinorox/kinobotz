@@ -1,10 +1,12 @@
-using AspNet.Security.OAuth.Twitch;
 using Infrastructure;
+using Infrastructure.Hubs;
 using Infrastructure.Repository;
+using Infrastructure.Services;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using webapi.Formatters;
 
 DotEnv.Load();
 
@@ -14,13 +16,18 @@ var scopes = new Dictionary<string, string>()
 };
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddCors();
-builder.Services.AddControllers();
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IOverlayHub, OverlayHub>();
+builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
+    corsPolicyBuilder =>
+    {
+        corsPolicyBuilder.AllowAnyHeader()
+            .AllowAnyMethod()
+            .SetIsOriginAllowed((_) => true)
+            .AllowCredentials();
+    }));
+builder.Services.AddControllers(options => options.InputFormatters.Add(new ByteArrayInputFormatter()));
 builder.Services.AddTransient<IGptRepository, GptRepository>();
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -80,23 +87,22 @@ builder.Services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConf
 
 var app = builder.Build();
 
-app.UseCors(a => a.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-
+app.UseCors("CorsPolicy");
 app.UseSwagger();
-
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "kinobotz API v1.0");
     c.DocumentTitle = "kinobotz API";
-    //c.DocExpansion(DocExpansion.None);
+    c.DocExpansion(DocExpansion.None);
+    //c.OAuthScopeSeparator(",");
     //c.OAuthClientId(builder.Configuration["twitch_client_id"]);
     //c.OAuthClientSecret(builder.Configuration["twitch_client_secret"]);
     //c.OAuthAppName("kinobotz API");
-    //c.OAuthScopeSeparator(",");
 });
-
+app.UseRouting();
+//app.UseAuthorization();
+app.MapHub<OverlayHub>("/overlayHub");
 app.UseHttpsRedirection();
-//app.UseAuthentication();
 app.UseRedisInformation();
 app.MapControllers();
 app.Run();
