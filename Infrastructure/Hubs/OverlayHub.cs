@@ -13,9 +13,9 @@ namespace Infrastructure.Hubs
 
         public async Task SendAudioStream(string id, byte[] audioStream)
         {
-            var base64String = Convert.ToBase64String(audioStream);
+            var audioStreamBase64 = Convert.ToBase64String(audioStream);
 
-            await hubContext.Clients.All.SendAsync(id, base64String);
+            await hubContext.Clients.All.SendAsync(id, audioStreamBase64);
         }
     }
 

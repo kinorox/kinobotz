@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
@@ -11,6 +12,11 @@ namespace twitchBot.Handlers
     public abstract class BaseCommandHandler<T> : IRequestHandler<T, Response> where T : BaseCommand
     {
         private readonly IRedisClient redisClient;
+
+        private readonly Dictionary<string, UserAccessLevelEnum> userAccessLevels = new()
+        {
+            { "k1notv", UserAccessLevelEnum.Admin }
+        };
 
         protected BaseCommandHandler(IRedisClient redisClient)
         {
@@ -27,11 +33,13 @@ namespace twitchBot.Handlers
         {
             try
             {
+                var accessLevel = userAccessLevels.TryGetValue(request.Username.ToLower(), out var level) ? level : UserAccessLevelEnum.Everyone;
+                
                 var lastExecutionTime = GlobalCooldown ?
                     await redisClient.Db0.GetAsync<DateTime>($"{request.BotConnection.Id}:{request.Prefix}:lastexecution") :
                     await redisClient.Db0.GetAsync<DateTime>($"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}");
 
-                if (lastExecutionTime.AddMinutes(Cooldown) <= DateTime.UtcNow)
+                if (lastExecutionTime.AddMinutes(Cooldown) <= DateTime.UtcNow || accessLevel == UserAccessLevelEnum.Admin)
                 {
                     var response = await InternalHandle(request, cancellationToken);
 
@@ -58,5 +66,14 @@ namespace twitchBot.Handlers
                 throw;
             }
         }
+    }
+
+    internal enum UserAccessLevelEnum
+    {
+        Everyone,
+        Subscriber,
+        Moderator,
+        Broadcaster,
+        Admin
     }
 }
