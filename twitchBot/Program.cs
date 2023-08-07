@@ -79,6 +79,7 @@ namespace twitchBot
                                     .AllowCredentials();
                             }));
                         services.AddTransient<ICommandRepository, CommandRepository>();
+                        services.AddTransient<IGptRepository, GptRepository>();
                         services.AddQuartz(q =>
                         {
                             q.UseMicrosoftDependencyInjectionJobFactory();

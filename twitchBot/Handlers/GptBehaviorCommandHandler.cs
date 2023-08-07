@@ -1,6 +1,8 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure.Repository;
 using MediatR;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
@@ -9,13 +11,13 @@ namespace twitchBot.Handlers
 {
     public class GptBehaviorCommandHandler : BaseCommandHandler<GptBehaviorCommand>
     {
-        private readonly IRedisClient redisClient;
         private readonly IMediator mediator;
+        private readonly IGptRepository gptRepository;
 
-        public GptBehaviorCommandHandler(IRedisClient redisClient, IMediator mediator) : base(redisClient)
+        public GptBehaviorCommandHandler(IRedisClient redisClient, IMediator mediator, IGptRepository gptRepository) : base(redisClient)
         {
-            this.redisClient = redisClient;
             this.mediator = mediator;
+            this.gptRepository = gptRepository;
         }
         public override int Cooldown => 10;
         public override bool GlobalCooldown => true;
@@ -37,8 +39,8 @@ namespace twitchBot.Handlers
                 return response;
             }
 
-            await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:definedby", request.Username);
-            await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}", request.Behavior);
+            await gptRepository.SetGptBehaviorDefinedBy(request.BotConnection.Id.ToString(), request.Username);
+            await gptRepository.SetGptBehavior(request.BotConnection.Id.ToString(), new BehaviorDefinition(request.Behavior, request.Username, DateTime.UtcNow, request.Channel));
 
             return new Response()
             {

@@ -2,9 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure.Repository;
 using Microsoft.Extensions.Logging;
 using OpenAI_API;
-using OpenAI_API.Chat;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 
@@ -13,14 +13,14 @@ namespace twitchBot.Handlers
     public class GptCommandHandler : BaseCommandHandler<GptCommand>
     {
         private readonly IOpenAIAPI openAiApi;
-        private readonly IRedisClient redisClient;
         private readonly ILogger<GptCommandHandler> logger;
+        private readonly IGptRepository gptRepository;
 
-        public GptCommandHandler(IOpenAIAPI openAiApi, ILogger<GptCommandHandler> logger, IRedisClient redisClient) : base(redisClient)
+        public GptCommandHandler(IOpenAIAPI openAiApi, ILogger<GptCommandHandler> logger, IRedisClient redisClient, IGptRepository gptRepository) : base(redisClient)
         {
             this.openAiApi = openAiApi;
             this.logger = logger;
-            this.redisClient = redisClient;
+            this.gptRepository = gptRepository;
         }
 
         public override async Task<Response> InternalHandle(GptCommand request, CancellationToken cancellationToken)
@@ -31,7 +31,7 @@ namespace twitchBot.Handlers
             {
                 var chat = openAiApi.Chat.CreateConversation();
 
-                var behavior = await redisClient.Db0.GetAsync<string>($"{request.BotConnection.Id}:{Entities.Commands.GPT_BEHAVIOR}");
+                var behavior = await gptRepository.GetGptBehavior(request.BotConnection.Id.ToString());
 
                 if (!string.IsNullOrEmpty(behavior))
                 {
