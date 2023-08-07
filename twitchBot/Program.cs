@@ -5,6 +5,7 @@ using ElevenLabs;
 using Infrastructure;
 using Infrastructure.Hubs;
 using Infrastructure.Repository;
+using Infrastructure.Services;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -64,12 +65,13 @@ namespace twitchBot
 
                         var elevenLabsClient = new ElevenLabsClient(ElevenLabsAuthentication.LoadFromEnv());
 
+                        services.AddHttpClient();
+                        services.AddHttpClient<KinobotzService>();
                         services.AddSingleton(elevenLabsClient);
                         services.AddTransient<ICommandFactory, CommandFactory>();
                         services.AddSingleton<Orchestrator>();
                         services.AddHostedService(p => p.GetRequiredService<Orchestrator>());
                         services.AddSignalR();
-                        services.AddSingleton<IOverlayHub, OverlayHub>();
                         services.AddCors(options => options.AddPolicy("CorsPolicy",
                             builder =>
                             {
@@ -80,6 +82,7 @@ namespace twitchBot
                             }));
                         services.AddTransient<ICommandRepository, CommandRepository>();
                         services.AddTransient<IGptRepository, GptRepository>();
+                        services.AddTransient<IKinobotzService, KinobotzService>();
                         services.AddQuartz(q =>
                         {
                             q.UseMicrosoftDependencyInjectionJobFactory();
