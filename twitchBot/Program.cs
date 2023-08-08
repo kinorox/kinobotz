@@ -3,12 +3,9 @@ using System.IO;
 using System.Threading.Tasks;
 using ElevenLabs;
 using Infrastructure;
-using Infrastructure.Hubs;
 using Infrastructure.Repository;
 using Infrastructure.Services;
 using MediatR;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -72,14 +69,6 @@ namespace twitchBot
                         services.AddSingleton<Orchestrator>();
                         services.AddHostedService(p => p.GetRequiredService<Orchestrator>());
                         services.AddSignalR();
-                        services.AddCors(options => options.AddPolicy("CorsPolicy",
-                            builder =>
-                            {
-                                builder.AllowAnyHeader()
-                                    .AllowAnyMethod()
-                                    .SetIsOriginAllowed((_) => true)
-                                    .AllowCredentials();
-                            }));
                         services.AddTransient<ICommandRepository, CommandRepository>();
                         services.AddTransient<IGptRepository, GptRepository>();
                         services.AddTransient<IKinobotzService, KinobotzService>();
@@ -97,13 +86,6 @@ namespace twitchBot
                         });
                         services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
                     })
-                    .ConfigureWebHostDefaults(webBuilder =>
-                    {
-                        webBuilder.UseStartup<Startup>();
-                        webBuilder.UseUrls($"http://*:{Environment.GetEnvironmentVariable("PORT") ?? "5000"}");
-                        webBuilder.CaptureStartupErrors(true);
-                        webBuilder.UseSetting(WebHostDefaults.DetailedErrorsKey, "true");
-                    })
                     .Build()
                     .RunAsync();
             }
@@ -111,26 +93,6 @@ namespace twitchBot
             {
                 Console.WriteLine(e.Message);
             }
-        }
-    }
-
-    class Startup
-    {
-        public IConfiguration Configuration { get; }
-
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            app.UseCors("CorsPolicy");
-            app.UseRouting();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapHub<OverlayHub>("/overlayHub");
-            });
         }
     }
 }
