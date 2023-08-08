@@ -16,6 +16,14 @@ var scopes = new Dictionary<string, string>()
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSignalR();
+builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
+    corsPolicyBuilder =>
+    {
+        corsPolicyBuilder.AllowAnyHeader()
+            .AllowAnyMethod()
+            .SetIsOriginAllowed((_) => true)
+            .AllowCredentials();
+    }));
 builder.Services.AddSingleton<IOverlayHub, OverlayHub>();
 builder.Services.AddControllers(options =>
 {
@@ -46,7 +54,7 @@ app.UseSwaggerUI(c =>
     c.DocumentTitle = "kinobotz API";
     c.DocExpansion(DocExpansion.None);
 });
-
+app.UseCors("CorsPolicy");
 app.MapHub<OverlayHub>("/overlayHub");
 app.UseHttpsRedirection();
 app.MapControllers();
