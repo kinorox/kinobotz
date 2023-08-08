@@ -26,7 +26,7 @@ namespace Infrastructure.Repository
 
         public async Task<string?> GetGptBehavior(string botConnectionId)
         {
-            return await redisClient.Db0.GetAsync<string>($"{botConnectionId}:{Commands.GPT_BEHAVIOR}");
+            return await redisClient.Db0.GetAsync<string>($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:current");
         }
 
         public async Task<string?> GetGptBehaviorDefinedBy(string botConnectionId)
