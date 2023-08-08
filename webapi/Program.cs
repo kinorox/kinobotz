@@ -34,6 +34,9 @@ var redisConfig = new RedisConfiguration()
 };
 
 builder.Services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfig);
+builder.WebHost.UseUrls($"http://*:{Environment.GetEnvironmentVariable("PORT") ?? "5000"}");
+builder.WebHost.CaptureStartupErrors(true);
+builder.WebHost.UseSetting(WebHostDefaults.DetailedErrorsKey, "true");
 
 var app = builder.Build();
 app.UseSwagger();
