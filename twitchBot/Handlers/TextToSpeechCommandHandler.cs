@@ -11,7 +11,6 @@ using Discord.Webhook;
 using ElevenLabs;
 using ElevenLabs.Voices;
 using Entities;
-using Infrastructure.Hubs;
 using Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
