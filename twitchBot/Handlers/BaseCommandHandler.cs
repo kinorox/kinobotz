@@ -33,8 +33,24 @@ namespace twitchBot.Handlers
         {
             try
             {
-                var accessLevel = userAccessLevels.TryGetValue(request.Username.ToLower(), out var level) ? level : UserAccessLevelEnum.Everyone;
-                
+                var accessLevel = UserAccessLevelEnum.Everyone;
+
+                if (userAccessLevels.ContainsKey(request.Username.ToLower()))
+                {
+                    accessLevel = userAccessLevels[request.Username.ToLower()];
+                } else if (string.Equals(request.Username.ToLower(), request.BotConnection.Login))
+                {
+                    accessLevel = UserAccessLevelEnum.Broadcaster;
+                }
+
+                if (!request.AccessLevels.Contains(accessLevel))
+                {
+                    return new Response()
+                    {
+                        Message = "You don't have access to this command."
+                    };
+                }
+
                 var lastExecutionTime = GlobalCooldown ?
                     await redisClient.Db0.GetAsync<DateTime>($"{request.BotConnection.Id}:{request.Prefix}:lastexecution") :
                     await redisClient.Db0.GetAsync<DateTime>($"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}");
@@ -68,7 +84,7 @@ namespace twitchBot.Handlers
         }
     }
 
-    internal enum UserAccessLevelEnum
+    public enum UserAccessLevelEnum
     {
         Everyone,
         Subscriber,

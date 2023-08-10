@@ -1,4 +1,6 @@
-﻿using Entities;
+﻿using System.Collections.Generic;
+using Entities;
+using twitchBot.Handlers;
 using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
@@ -19,5 +21,13 @@ namespace twitchBot.Commands
         public ITwitchAPI TwitchApi { get; set; }
         public BotConnection BotConnection { get; set; }
         public string Username { get; set; }
+        public virtual List<UserAccessLevelEnum> AccessLevels { get; } = new()
+        {
+            UserAccessLevelEnum.Everyone,
+            UserAccessLevelEnum.Admin,
+            UserAccessLevelEnum.Broadcaster,
+            UserAccessLevelEnum.Moderator,
+            UserAccessLevelEnum.Subscriber
+        };
     }
 }

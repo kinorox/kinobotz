@@ -2,6 +2,8 @@
 {
     public class Commands
     {
+        public const string RANDOM_STREAM_TITLE = "rtitle";
+        public const string UPDATE_STREAM_TITLE = "title";
         public const string COMMAND = "command";
         public const string EXISTING_COMMANDS = "commands";
         public const string LAST_MESSAGE = "lm";
