@@ -13,5 +13,8 @@ WORKDIR /usr/share/nginx/html
 # Copy the built application files from the 'public' directory to the NGINX serving directory
 COPY public .
 
+# Expose the default NGINX port
+EXPOSE $PORT
+
 # Start NGINX
 CMD ["nginx", "-g", "daemon off;"]
