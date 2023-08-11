@@ -16,6 +16,9 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.13.1" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.32.1" />
+    <PackageReference Include="Serilog" Version="3.0.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
     <PackageReference Include="StackExchange.Redis.Extensions.AspNetCore" Version="9.1.0" />
     <PackageReference Include="StackExchange.Redis.Extensions.Newtonsoft" Version="9.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
