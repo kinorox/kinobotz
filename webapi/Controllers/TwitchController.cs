@@ -14,12 +14,14 @@ namespace webapi.Controllers
         private readonly IConfiguration _configuration;
         private readonly IJwtService _jwtService;
         private readonly IBotConnectionRepository _botConnectionRepository;
+        private readonly ILogger<TwitchController> _logger;
 
-        public TwitchController(IConfiguration configuration, IJwtService jwtService, IBotConnectionRepository botConnectionRepository)
+        public TwitchController(IConfiguration configuration, IJwtService jwtService, IBotConnectionRepository botConnectionRepository, ILogger<TwitchController> logger)
         {
             _configuration = configuration;
             _jwtService = jwtService;
             _botConnectionRepository = botConnectionRepository;
+            _logger = logger;
         }
 
         [HttpPost("login")]
@@ -65,6 +67,7 @@ namespace webapi.Controllers
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Error during twitch authentication.");
                 return new TwitchTokenValidationResult { IsValid = false };
             }
         }

@@ -6,9 +6,9 @@ using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
-using Swashbuckle.AspNetCore.SwaggerUI;
 using webapi.Formatters;
 
 DotEnv.Load();
@@ -27,6 +27,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+
+var logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
+
+builder.Services.AddLogging(config => config.AddSerilog(logger, true));
 builder.Services.AddSignalR();
 builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
     corsPolicyBuilder =>
