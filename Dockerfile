@@ -13,8 +13,7 @@ WORKDIR /usr/share/nginx/html
 # Copy the built application files from the 'public' directory to the NGINX serving directory
 COPY public .
 
-# Expose the default NGINX port
-EXPOSE $PORT
+COPY default.conf.template /etc/nginx/conf.d/default.conf.template
 
 # Start NGINX
-CMD ["nginx", "-g", "daemon off;"]
+CMD /bin/bash -c "envsubst '\$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf" && nginx -g 'daemon off;'
