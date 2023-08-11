@@ -22,15 +22,9 @@
 
 <template>
     <nav class="navbar navbar-expand-lg">
-        <a class="navbar-brand anaglyph" href="#" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" style="font-size: 10em;">k1no.tv</a>
+        <router-link aria-current="page" to="/" class="navbar-brand anaglyph" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" style="font-size: 10em;">k1no.tv</router-link>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <router-link class="nav-link active" aria-current="page" to="/">home</router-link>
-                </li>
-                <li v-if="!userLoggedIn" class="nav-item">
-                    <TwitchLogin/>
-                </li>
                 <li v-if="userLoggedIn" class="nav-item">
                     <router-link class="nav-link active" aria-current="page" to="/gptbehavior">gpt behavior</router-link>
                 </li>
@@ -41,6 +35,9 @@
                     <button @click="logoff()">Logout</button>
                 </li>
             </ul>
+        </div>
+        <div v-if="!userLoggedIn">
+            <TwitchLogin/>
         </div>
     </nav>
 </template>
