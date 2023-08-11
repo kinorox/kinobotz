@@ -30,5 +30,8 @@ namespace Entities
             { Entities.Commands.TTS, false },
             { Entities.Commands.NOTIFY, true }
         };
+
+        public string ProfileImageUrl { get; set; }
+        public string Email { get; set; }
     }
 }

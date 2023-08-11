@@ -12,15 +12,15 @@ namespace twitchBot.Handlers
 {
     public class GptCommandHandler : BaseCommandHandler<GptCommand>
     {
-        private readonly IOpenAIAPI openAiApi;
-        private readonly ILogger<GptCommandHandler> logger;
-        private readonly IGptRepository gptRepository;
+        private readonly IOpenAIAPI _openAiApi;
+        private readonly ILogger<GptCommandHandler> _logger;
+        private readonly IGptRepository _gptRepository;
 
         public GptCommandHandler(IOpenAIAPI openAiApi, ILogger<GptCommandHandler> logger, IRedisClient redisClient, IGptRepository gptRepository) : base(redisClient)
         {
-            this.openAiApi = openAiApi;
-            this.logger = logger;
-            this.gptRepository = gptRepository;
+            _openAiApi = openAiApi;
+            _logger = logger;
+            _gptRepository = gptRepository;
         }
 
         public override async Task<Response> InternalHandle(GptCommand request, CancellationToken cancellationToken)
@@ -29,9 +29,9 @@ namespace twitchBot.Handlers
 
             try
             {
-                var chat = openAiApi.Chat.CreateConversation();
+                var chat = _openAiApi.Chat.CreateConversation();
 
-                var behavior = await gptRepository.GetGptBehavior(request.BotConnection.Id.ToString());
+                var behavior = await _gptRepository.GetGptBehavior(request.BotConnection.Id.ToString());
 
                 if (!string.IsNullOrEmpty(behavior))
                 {
@@ -46,7 +46,7 @@ namespace twitchBot.Handlers
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error during GPT execution.");
+                _logger.LogError(e, "Error during GPT execution.");
 
                 return new Response()
                 {

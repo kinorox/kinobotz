@@ -21,17 +21,17 @@ namespace twitchBot.Handlers
 {
     public class TextToSpeechCommandHandler : BaseCommandHandler<TextToSpeechCommand>
     {
-        private readonly ElevenLabsClient elevenLabsClient;
-        private readonly IRedisClient redisClient;
-        private readonly IConfiguration configuration;
-        private readonly IKinobotzService kinobotzService;
+        private readonly ElevenLabsClient _elevenLabsClient;
+        private readonly IRedisClient _redisClient;
+        private readonly IConfiguration _configuration;
+        private readonly IKinobotzService _kinobotzService;
 
         public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService) : base(redisClient)
         {
-            this.elevenLabsClient = elevenLabsClient;
-            this.redisClient = redisClient;
-            this.configuration = configuration;
-            this.kinobotzService = kinobotzService;
+            _elevenLabsClient = elevenLabsClient;
+            _redisClient = redisClient;
+            _configuration = configuration;
+            _kinobotzService = kinobotzService;
         }
 
         public override int Cooldown => 5;
@@ -39,7 +39,7 @@ namespace twitchBot.Handlers
 
         public override async Task<Response> InternalHandle(TextToSpeechCommand request, CancellationToken cancellationToken)
         {
-            var characterCount = await redisClient.Db0.GetAsync<int?>($"{request.BotConnection.Id}:{request.Prefix}:{DateTime.UtcNow.Date}:{request.Username}:characters");
+            var characterCount = await _redisClient.Db0.GetAsync<int?>($"{request.BotConnection.Id}:{request.Prefix}:{DateTime.UtcNow.Date}:{request.Username}:characters");
 
             if (characterCount > 3000)
             {
@@ -49,12 +49,12 @@ namespace twitchBot.Handlers
                 };
             }
 
-            var existingVoiceId = await redisClient.Db0.GetAsync<string>($"{request.Prefix}:{request.Voice}");
+            var existingVoiceId = await _redisClient.Db0.GetAsync<string>($"{request.Prefix}:{request.Voice}");
 
             Voice matchVoice;
             if (string.IsNullOrEmpty(existingVoiceId))
             {
-                var allVoices = await elevenLabsClient.VoicesEndpoint.GetAllVoicesAsync(cancellationToken);
+                var allVoices = await _elevenLabsClient.VoicesEndpoint.GetAllVoicesAsync(cancellationToken);
 
                 if (!allVoices.Any())
                 {
@@ -74,11 +74,11 @@ namespace twitchBot.Handlers
                     };
                 }
 
-                await redisClient.Db0.AddAsync($"{request.Prefix}:{request.Voice}", matchVoice.Id);
+                await _redisClient.Db0.AddAsync($"{request.Prefix}:{request.Voice}", matchVoice.Id);
             }
             else
             {
-                matchVoice = await elevenLabsClient.VoicesEndpoint.GetVoiceAsync(existingVoiceId, cancellationToken: cancellationToken);
+                matchVoice = await _elevenLabsClient.VoicesEndpoint.GetVoiceAsync(existingVoiceId, cancellationToken: cancellationToken);
             }
 
             var audioStreamingRequest = new TtsAudioStreamingRequest()
@@ -95,7 +95,7 @@ namespace twitchBot.Handlers
             using HttpClient client = new HttpClient { BaseAddress = new Uri("https://api.elevenlabs.io/v1/") };
             
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
-            client.DefaultRequestHeaders.Add("xi-api-key", configuration["ELEVEN_LABS_API_KEY"]);
+            client.DefaultRequestHeaders.Add("xi-api-key", _configuration["ELEVEN_LABS_API_KEY"]);
 
             var json = JsonConvert.SerializeObject(audioStreamingRequest);
 
@@ -116,11 +116,11 @@ namespace twitchBot.Handlers
             }
 
             //sending audio stream to signalR hub
-            await kinobotzService.SendAudioStream(request.BotConnection.Id.ToString(), audioStreamData);
+            await _kinobotzService.SendAudioStream(request.BotConnection.Id.ToString(), audioStreamData);
             
             characterCount = characterCount.HasValue ? characterCount + request.Message.Length : request.Message.Length;
 
-            await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:{DateTime.UtcNow.Date}:{request.Username}:characters", characterCount, expiresIn: TimeSpan.FromHours(24));
+            await _redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:{DateTime.UtcNow.Date}:{request.Username}:characters", characterCount, expiresIn: TimeSpan.FromHours(24));
 
             return new Response
             {

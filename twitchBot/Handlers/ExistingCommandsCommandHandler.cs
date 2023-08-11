@@ -8,20 +8,20 @@ namespace twitchBot.Handlers
 {
     public class ExistingCommandsCommandHandler : BaseCommandHandler<ExistingCommandsCommand>
     {
-        private readonly ICommandFactory commandFactory;
-        private readonly IRedisClient redisClient;
+        private readonly ICommandFactory _commandFactory;
+        private readonly IRedisClient _redisClient;
 
         public ExistingCommandsCommandHandler(ICommandFactory commandFactory, IRedisClient redisClient) : base(redisClient)
         {
-            this.commandFactory = commandFactory;
-            this.redisClient = redisClient;
+            _commandFactory = commandFactory;
+            _redisClient = redisClient;
         }
 
         public override Task<Response> InternalHandle(ExistingCommandsCommand request, CancellationToken cancellationToken)
         {
             return Task.FromResult(new Response()
             {
-                Message = $"List of available commands: {string.Join(", ", commandFactory.GetChatCommandNames())}"
+                Message = $"List of available commands: {string.Join(", ", _commandFactory.GetChatCommandNames())}"
             });
         }
     }

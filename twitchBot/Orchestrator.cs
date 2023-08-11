@@ -4,24 +4,24 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure.Repository;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using StackExchange.Redis.Extensions.Core.Abstractions;
 
 namespace twitchBot
 {
     public class Orchestrator : IHostedService, IOrchestrator
     {
-        private readonly IRedisClient redisClient;
-        private readonly IServiceProvider serviceProvider;
-        private readonly ILogger<Orchestrator> logger;
+        private readonly IBotConnectionRepository _botConnectionRepository;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<Orchestrator> _logger;
         public readonly Dictionary<Guid, BotConnection> Connections = new();
 
-        public Orchestrator(IRedisClient redisClient, IServiceProvider serviceProvider, ILogger<Orchestrator> logger)
+        public Orchestrator(IServiceProvider serviceProvider, ILogger<Orchestrator> logger, IBotConnectionRepository botConnectionRepository)
         {
-            this.redisClient = redisClient;
-            this.serviceProvider = serviceProvider;
-            this.logger = logger;
+            _serviceProvider = serviceProvider;
+            _logger = logger;
+            _botConnectionRepository = botConnectionRepository;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -41,33 +41,24 @@ namespace twitchBot
 
         private async Task Connect()
         {
-            var botConnections = await GetConnections();
+            var botConnections = await _botConnectionRepository.GetAll();
 
-            foreach (var botConnection in botConnections.Values.Where(b => b.Active.HasValue && b.Active.Value))
+            foreach (var botConnection in botConnections.Where(b => b.Active.HasValue && b.Active.Value))
             {
                 try
                 {
                     if (Connections.ContainsKey(botConnection.Id)) continue;
 
-                    var bot = (IBot)serviceProvider.GetService(typeof(IBot));
+                    var bot = (IBot)_serviceProvider.GetService(typeof(IBot));
                     bot?.Connect(botConnection);
 
                     Connections.Add(botConnection.Id, botConnection);
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, $"Couldn't connect to {botConnection.Id}.");
+                    _logger.LogError(e, $"Couldn't connect to {botConnection.Id}.");
                 }
             }
-        }
-
-        private async Task<IDictionary<string, BotConnection>> GetConnections()
-        {
-            var existingKeys = await redisClient.Db0.SearchKeysAsync("botconnection*");
-
-            var botConnections = await redisClient.Db0.GetAllAsync<BotConnection>(new HashSet<string>(existingKeys));
-
-            return botConnections;
         }
     }
 
