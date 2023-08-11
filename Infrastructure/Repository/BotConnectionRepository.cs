@@ -12,19 +12,43 @@ namespace Infrastructure.Repository
             _redisClient = redisClient;
         }
 
+        public async Task<ICollection<BotConnection>> GetAll()
+        {
+            var existingKeys = await _redisClient.Db0.SearchKeysAsync("botconnection:*:*:*");
+
+            var botConnections = await _redisClient.Db0.GetAllAsync<BotConnection>(new HashSet<string>(existingKeys));
+
+            return botConnections.Values;
+        }
+
         public async Task<BotConnection?> GetById(string id)
         {
-            return await _redisClient.Db0.GetAsync<BotConnection>($"botconnection:{id}:*:*");
+            var existingKeys = await _redisClient.Db0.SearchKeysAsync($"botconnection:{id}:*:*");
+            
+            if(!existingKeys.Any())
+                return null;
+
+            return await _redisClient.Db0.GetAsync<BotConnection>(existingKeys.FirstOrDefault());
         }
 
         public async Task<BotConnection?> GetByChannelId(string channelId)
         {
-            return await _redisClient.Db0.GetAsync<BotConnection>($"botconnection:*:{channelId}:*");
+            var existingKeys = await _redisClient.Db0.SearchKeysAsync($"botconnection:*:{channelId}:*");
+
+            if (!existingKeys.Any())
+                return null;
+
+            return await _redisClient.Db0.GetAsync<BotConnection>(existingKeys.FirstOrDefault());
         }
 
         public async Task<BotConnection?> GetByLogin(string login)
         {
-            return await _redisClient.Db0.GetAsync<BotConnection>($"botconnection:*:*:{login}");
+            var existingKeys = await _redisClient.Db0.SearchKeysAsync($"botconnection:*:*:{login}");
+
+            if (!existingKeys.Any())
+                return null;
+
+            return await _redisClient.Db0.GetAsync<BotConnection>(existingKeys.FirstOrDefault());
         }
 
         public async Task SaveOrUpdate(BotConnection botConnection)
@@ -35,6 +59,7 @@ namespace Infrastructure.Repository
 
     public interface IBotConnectionRepository
     {
+        Task<ICollection<BotConnection>> GetAll();
         Task<BotConnection?> GetById(string id);
         Task<BotConnection?> GetByChannelId(string channelId);
         Task<BotConnection?> GetByLogin(string login);

@@ -30,10 +30,12 @@ namespace webapi.Controllers
             if (!tokenValidationResult.IsValid) return Unauthorized();
 
             var user = await AssociateOrCreateUser(tokenValidationResult.User, tokenValidationResult);
-
             var sessionToken = GenerateSessionToken(user);
-
-            return Ok(new { AccessToken = sessionToken });
+            
+            return Ok(new
+            {
+                AccessToken = sessionToken
+            });
         }
 
         private async Task<TwitchTokenValidationResult> VerifyTwitchToken(TwitchAccessTokenModel request)
@@ -48,10 +50,18 @@ namespace webapi.Controllers
                 var accessTokenResponse = await twitchApi.Auth.GetAccessTokenFromCodeAsync(clientId: twitchClientId, code: request.AccessToken, clientSecret: twitchClientSecret, redirectUri: request.RedirectUri);
 
                 twitchApi.Settings.AccessToken = accessTokenResponse.AccessToken;
-                
+                twitchApi.Settings.ClientId= twitchClientId;
+                twitchApi.Settings.Secret = twitchClientSecret;
+
                 var userResponse = await twitchApi.Helix.Users.GetUsersAsync(accessToken: accessTokenResponse.AccessToken);
                 
-                return new TwitchTokenValidationResult { IsValid = true, User = userResponse.Users[0] };
+                return new TwitchTokenValidationResult
+                {
+                    IsValid = true,
+                    User = userResponse.Users[0],
+                    AccessToken = accessTokenResponse.AccessToken,
+                    RefreshToken = accessTokenResponse.RefreshToken
+                };
             }
             catch (Exception e)
             {
@@ -61,8 +71,6 @@ namespace webapi.Controllers
 
         private async Task<BotConnection> AssociateOrCreateUser(User user, TwitchTokenValidationResult twitchTokenValidationResult)
         {
-            // Example: Lookup user by Twitch ID or create a new user
-            // Replace this with your actual user lookup logic
             var existingUser = await _botConnectionRepository.GetByChannelId(user.Id);
 
             if (existingUser != null)
@@ -78,7 +86,9 @@ namespace webapi.Controllers
                 ChannelId = user.Id,
                 Login = user.Login,
                 AccessToken = twitchTokenValidationResult.AccessToken,
-                RefreshToken = twitchTokenValidationResult.RefreshToken
+                RefreshToken = twitchTokenValidationResult.RefreshToken,
+                Email = user.Email,
+                ProfileImageUrl = user.ProfileImageUrl
             };
 
             await _botConnectionRepository.SaveOrUpdate(newBotConnection);
@@ -88,8 +98,6 @@ namespace webapi.Controllers
 
         private string GenerateSessionToken(BotConnection user)
         {
-            // Example: Generate a JWT token or set an authentication cookie
-            // Replace this with your actual session token generation logic
             var token = _jwtService.GenerateToken(user);
 
             return token;

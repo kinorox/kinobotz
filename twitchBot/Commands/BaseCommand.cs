@@ -23,7 +23,7 @@ namespace twitchBot.Commands
         public string Username { get; set; }
         public virtual List<UserAccessLevelEnum> AccessLevels { get; } = new()
         {
-            UserAccessLevelEnum.Everyone,
+            UserAccessLevelEnum.Default,
             UserAccessLevelEnum.Admin,
             UserAccessLevelEnum.Broadcaster,
             UserAccessLevelEnum.Moderator,

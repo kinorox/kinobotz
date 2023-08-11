@@ -25,23 +25,23 @@ namespace twitchBot
 {
     public class Bot : IBot
     {
-        private readonly TwitchClient twitchClient;
-        private readonly TwitchPubSub twitchPubSub;
-        private readonly IRedisClient redisClient;
-        private readonly IMediator mediator;
-        private readonly ILogger<Bot> logger;
-        private readonly ICommandFactory commandFactory;
-        private readonly IConfiguration configuration;
-        private TwitchAPI twitchApi;
+        private readonly TwitchClient _twitchClient;
+        private readonly TwitchPubSub _twitchPubSub;
+        private readonly IRedisClient _redisClient;
+        private readonly IMediator _mediator;
+        private readonly ILogger<Bot> _logger;
+        private readonly ICommandFactory _commandFactory;
+        private readonly IConfiguration _configuration;
+        private TwitchAPI _twitchApi;
         private BotConnection _botConnection;
 
         public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger, ICommandFactory commandFactory)
         {
-            this.configuration = configuration;
-            this.redisClient = redisClient;
-            this.mediator = mediator;
-            this.logger = logger;
-            this.commandFactory = commandFactory;
+            _configuration = configuration;
+            _redisClient = redisClient;
+            _mediator = mediator;
+            _logger = logger;
+            _commandFactory = commandFactory;
             
             var clientOptions = new ClientOptions
             {
@@ -50,31 +50,31 @@ namespace twitchBot
             };
 
             var customClient = new WebSocketClient(clientOptions);
-            twitchClient = new TwitchClient(customClient);
-            twitchClient.OnLog += TwitchClientOnLog;
-            twitchClient.OnConnected += TwitchClientOnConnected;
-            twitchClient.OnUserBanned += TwitchClientOnUserBanned;
-            twitchClient.OnMessageReceived += TwitchClientOnMessageReceived;
+            _twitchClient = new TwitchClient(customClient);
+            _twitchClient.OnLog += TwitchClientOnLog;
+            _twitchClient.OnConnected += TwitchClientOnConnected;
+            _twitchClient.OnUserBanned += TwitchClientOnUserBanned;
+            _twitchClient.OnMessageReceived += TwitchClientOnMessageReceived;
 
-            twitchPubSub = new TwitchPubSub();
-            twitchPubSub.OnStreamUp += TwitchPubSubOnOnStreamUp;
-            twitchPubSub.OnStreamDown += TwitchPubSubOnOnStreamDown;
-            twitchPubSub.OnChannelPointsRewardRedeemed += TwitchPubSubChannelPoints;
-            twitchPubSub.OnPubSubServiceConnected += OnPubSubServiceConnected;
-            twitchPubSub.OnListenResponse += OnListenResponse;
-            twitchPubSub.OnPubSubServiceError += OnPubSubServiceError;
+            _twitchPubSub = new TwitchPubSub();
+            _twitchPubSub.OnStreamUp += TwitchPubSubOnOnStreamUp;
+            _twitchPubSub.OnStreamDown += TwitchPubSubOnOnStreamDown;
+            _twitchPubSub.OnChannelPointsRewardRedeemed += TwitchPubSubChannelPoints;
+            _twitchPubSub.OnPubSubServiceConnected += OnPubSubServiceConnected;
+            _twitchPubSub.OnListenResponse += OnListenResponse;
+            _twitchPubSub.OnPubSubServiceError += OnPubSubServiceError;
         }
 
         public Task Connect(BotConnection botConnection)
         {
             _botConnection = botConnection;
 
-            twitchApi = new TwitchAPI
+            _twitchApi = new TwitchAPI
             {
                 Settings =
                 {
-                    ClientId = configuration["client_id"],
-                    Secret = configuration["client_secret"],
+                    ClientId = _configuration["client_id"],
+                    Secret = _configuration["client_secret"],
                     AccessToken = botConnection.AccessToken
                 }
             };
@@ -84,19 +84,19 @@ namespace twitchBot
                 try
                 {
                     //refreshing token in case it has expired
-                    var response = twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]).Result;
-                    twitchApi.Settings.AccessToken = response.AccessToken;
+                    var response = _twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, _configuration["client_secret"], _configuration["client_id"]).Result;
+                    _twitchApi.Settings.AccessToken = response.AccessToken;
                     _botConnection.AccessToken = response.AccessToken;
                     _botConnection.RefreshToken = response.RefreshToken;
 
                     if (string.IsNullOrEmpty(_botConnection.ChannelId) || _botConnection.ChannelId == "string")
                     {
-                        var user = twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { _botConnection.Login }).Result;
+                        var user = _twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { _botConnection.Login }).Result;
 
                         _botConnection.ChannelId = user.Users[0].Id;
                     }
 
-                    redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", _botConnection);
+                    _redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", _botConnection);
 
                     var aTimer = new Timer(TimeSpan.FromSeconds(response.ExpiresIn).TotalMilliseconds);
                     aTimer.Elapsed += OnOAuthTokenRefreshTimer;
@@ -105,27 +105,27 @@ namespace twitchBot
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Error when trying to refresh access token");
+                    _logger.LogError(e, "Error when trying to refresh access token");
                 }
             }
 
-            commandFactory.Setup(twitchApi, _botConnection);
+            _commandFactory.Setup(_twitchApi, _botConnection);
 
-            var credentials = new ConnectionCredentials(configuration["twitch_username"], configuration["bot_access_token"]);
+            var credentials = new ConnectionCredentials(_configuration["twitch_username"], _configuration["bot_access_token"]);
 
-            twitchClient.Initialize(credentials);
+            _twitchClient.Initialize(credentials);
 
             if (!string.IsNullOrEmpty(_botConnection.ChannelId))
             {
-                twitchPubSub.ListenToChannelPoints(_botConnection.ChannelId);
-                twitchPubSub.ListenToPredictions(_botConnection.ChannelId);
-                twitchPubSub.ListenToVideoPlayback(_botConnection.ChannelId);
+                _twitchPubSub.ListenToChannelPoints(_botConnection.ChannelId);
+                _twitchPubSub.ListenToPredictions(_botConnection.ChannelId);
+                _twitchPubSub.ListenToVideoPlayback(_botConnection.ChannelId);
             }
 
-            twitchClient.Connect();
-            twitchPubSub.Connect();
+            _twitchClient.Connect();
+            _twitchPubSub.Connect();
             
-            twitchClient.JoinChannel(_botConnection.Login);
+            _twitchClient.JoinChannel(_botConnection.Login);
 
             return Task.CompletedTask;
         }
@@ -137,7 +137,7 @@ namespace twitchBot
 
         private void OnPubSubServiceError(object sender, OnPubSubServiceErrorArgs e)
         {
-            logger.LogError(e.Exception, "Error on PubSub");
+            _logger.LogError(e.Exception, "Error on PubSub");
 
             RefreshAccessToken();
         }
@@ -146,34 +146,34 @@ namespace twitchBot
         {
             if (!e.Successful)
             {
-                logger.LogError($"Couldn't connect to PubSub topic: {e.Topic}");
+                _logger.LogError($"Couldn't connect to PubSub topic: {e.Topic}");
             }
             else
             {
-                logger.LogInformation($"Successfully connected to PubSub topic: {e.Topic}");
+                _logger.LogInformation($"Successfully connected to PubSub topic: {e.Topic}");
             }
         }
 
         private void OnPubSubServiceConnected(object sender, EventArgs e)
         {
-            twitchPubSub.SendTopics(_botConnection.AccessToken);
+            _twitchPubSub.SendTopics(_botConnection.AccessToken);
         }
 
         private async void TwitchPubSubChannelPoints(object sender, OnChannelPointsRewardRedeemedArgs e)
         {
-            var ttsCommand = commandFactory.Build(e.RewardRedeemed);
+            var ttsCommand = _commandFactory.Build(e.RewardRedeemed);
 
             if (ttsCommand == null)
                 return;
 
-            var response = await mediator.Send(ttsCommand);
+            var response = await _mediator.Send(ttsCommand);
 
-            logger.LogInformation(response.Message);
+            _logger.LogInformation(response.Message);
         }
 
         private async void TwitchPubSubOnOnStreamDown(object sender, OnStreamDownArgs e)
         {
-            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Entities.Commands.NOTIFY}");
+            var notifyUsers = await _redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Entities.Commands.NOTIFY}");
 
             if (notifyUsers?.Usernames == null)
                 return;
@@ -182,20 +182,20 @@ namespace twitchBot
 
             var users = string.Join(", ", notifyUsers.Usernames);
 
-            twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} stream ended. Notifying users: {users}");
+            _twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} stream ended. Notifying users: {users}");
         }
 
         private async void TwitchPubSubOnOnStreamUp(object sender, OnStreamUpArgs e)
         {
             if (e == null)
             {
-                logger.LogInformation("OnStreamUpArgs is null");
+                _logger.LogInformation("OnStreamUpArgs is null");
                 return;
             }
 
-            logger.LogInformation($"stream up | channelId: {e.ChannelId} playDelay: {e.PlayDelay} serverTime: {e.ServerTime}");
+            _logger.LogInformation($"stream up | channelId: {e.ChannelId} playDelay: {e.PlayDelay} serverTime: {e.ServerTime}");
 
-            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Entities.Commands.NOTIFY}");
+            var notifyUsers = await _redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Entities.Commands.NOTIFY}");
 
             if (notifyUsers?.Usernames == null)
                 return;
@@ -204,19 +204,19 @@ namespace twitchBot
 
             var users = string.Join(", ", notifyUsers.Usernames);
 
-            twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} is live! BloodTrail Notifying users: {users}");
+            _twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} is live! BloodTrail Notifying users: {users}");
 
-            logger.LogInformation("end notifying");
+            _logger.LogInformation("end notifying");
         }
 
         private void TwitchClientOnLog(object sender, OnLogArgs e)
         {
-            logger.LogInformation($"{e.DateTime}: {e.BotUsername} - {e.Data}");
+            _logger.LogInformation($"{e.DateTime}: {e.BotUsername} - {e.Data}");
         }
 
         private void TwitchClientOnConnected(object sender, OnConnectedArgs e)
         {
-            logger.LogInformation($"Connected to {e.AutoJoinChannel}");
+            _logger.LogInformation($"Connected to {e.AutoJoinChannel}");
         }
 
         private void TwitchClientOnUserBanned(object sender, OnUserBannedArgs e)
@@ -229,7 +229,7 @@ namespace twitchBot
             var pyramidMessageResponse = Pyramid.Check(e.ChatMessage);
 
             if(!string.IsNullOrEmpty(pyramidMessageResponse))
-                twitchClient.SendMessage(e.ChatMessage.Channel, pyramidMessageResponse);
+                _twitchClient.SendMessage(e.ChatMessage.Channel, pyramidMessageResponse);
 
             StoreMessage(e.ChatMessage);
 
@@ -247,19 +247,19 @@ namespace twitchBot
                 Id = message.Id
             };
 
-            redisClient.Db0.AddAsync($"{Entities.Commands.LAST_MESSAGE}:{message.Username.ToLower()}", simplifiedChatMessage);
+            _redisClient.Db0.AddAsync($"{Entities.Commands.LAST_MESSAGE}:{message.Username.ToLower()}", simplifiedChatMessage);
         }
 
         private async void ExecuteCommand(ChatMessage message)
         {
             try
             {
-                var command = commandFactory.Build(message);
+                var command = _commandFactory.Build(message);
 
                 if (command == null)
                     return;
 
-                var response = await mediator.Send(command);
+                var response = await _mediator.Send(command);
 
                 if (!string.IsNullOrEmpty(response.Message))
                 {
@@ -268,11 +268,11 @@ namespace twitchBot
             }
             catch (InvalidCommandException e)
             {
-                twitchClient.SendMessage(message.Channel, e.Message);
+                _twitchClient.SendMessage(message.Channel, e.Message);
             }
             catch (Exception e)
             {
-                logger.LogError(e, e.Message);
+                _logger.LogError(e, e.Message);
             }
         }
 
@@ -282,13 +282,13 @@ namespace twitchBot
             {
                 case ResponseTypeEnum.Reply:
                 default:
-                    twitchClient.SendReply(message.Channel, message.Id, response.Message);
+                    _twitchClient.SendReply(message.Channel, message.Id, response.Message);
                     break;
                 case ResponseTypeEnum.Message:
-                    twitchClient.SendMessage(message.Channel, response.Message);
+                    _twitchClient.SendMessage(message.Channel, response.Message);
                     break;
                 case ResponseTypeEnum.Whisper:
-                    twitchClient.SendWhisper(message.Username, response.Message);
+                    _twitchClient.SendWhisper(message.Username, response.Message);
                     break;
             }
         }
@@ -297,24 +297,24 @@ namespace twitchBot
         {
             try
             {
-                logger.LogInformation($"{_botConnection.Login} - refreshing access token");
+                _logger.LogInformation($"{_botConnection.Login} - refreshing access token");
 
-                _botConnection = await redisClient.Db0.GetAsync<BotConnection>($"botconnection:{_botConnection.Id}");
+                _botConnection = await _redisClient.Db0.GetAsync<BotConnection>($"botconnection:{_botConnection.Id}");
 
-                var response = twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, configuration["client_secret"], configuration["client_id"]).Result;
+                var response = _twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, _configuration["client_secret"], _configuration["client_id"]).Result;
 
-                twitchApi.Settings.AccessToken = response.AccessToken;
+                _twitchApi.Settings.AccessToken = response.AccessToken;
 
                 _botConnection.AccessToken = response.AccessToken;
                 _botConnection.RefreshToken = response.RefreshToken;
 
-                await redisClient.Db0.AddAsync($"botconnection:{_botConnection.Id}", _botConnection);
+                await _redisClient.Db0.AddAsync($"botconnection:{_botConnection.Id}", _botConnection);
 
-                logger.LogInformation($"{_botConnection.Login} - refreshing access token completed");
+                _logger.LogInformation($"{_botConnection.Login} - refreshing access token completed");
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"{_botConnection.Login} - Error occurred trying to refresh access token.");
+                _logger.LogError(e, $"{_botConnection.Login} - Error occurred trying to refresh access token.");
             }
         }
     }

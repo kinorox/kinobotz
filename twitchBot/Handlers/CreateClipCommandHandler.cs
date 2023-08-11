@@ -13,7 +13,7 @@ namespace twitchBot.Handlers
 {
     internal class CreateClipCommandHandler : BaseCommandHandler<CreateClipCommand>
     {
-        private bool queryClip = true;
+        private bool _queryClip = true;
 
         public CreateClipCommandHandler(IRedisClient redisClient) : base(redisClient)
         {
@@ -36,7 +36,7 @@ namespace twitchBot.Handlers
             timer.Enabled = true;
 
             Clip resultClip = null;
-            while (queryClip && resultClip == null)
+            while (_queryClip && resultClip == null)
             {
                 var response = await request.TwitchApi.Helix.Clips.GetClipsAsync(new List<string>() { createdClip.Id });
                 resultClip = response.Clips.FirstOrDefault();
@@ -52,13 +52,16 @@ namespace twitchBot.Handlers
             
             var resultMessage = string.Format("Clip created: {0}", resultClip.Url);
 
-            if (!string.IsNullOrEmpty(request.BotConnection.DiscordClipsWebhookUrl))
-            {
-                var discordWebhookClient = new DiscordWebhookClient(request.BotConnection.DiscordClipsWebhookUrl);
+            if (string.IsNullOrEmpty(request.BotConnection.DiscordClipsWebhookUrl))
+                return new Response()
+                {
+                    Message = resultMessage
+                };
 
-                await discordWebhookClient.SendMessageAsync(resultClip.Url);
-            }
-            
+            var discordWebhookClient = new DiscordWebhookClient(request.BotConnection.DiscordClipsWebhookUrl);
+
+            await discordWebhookClient.SendMessageAsync(resultClip.Url);
+
             return new Response()
             {
                 Message = resultMessage
@@ -67,7 +70,7 @@ namespace twitchBot.Handlers
 
         private void OnTimedEvent(object sender, ElapsedEventArgs e)
         {
-            queryClip = false;
+            _queryClip = false;
         }
     }
 }
