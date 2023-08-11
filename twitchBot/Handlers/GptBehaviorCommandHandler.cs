@@ -11,13 +11,13 @@ namespace twitchBot.Handlers
 {
     public class GptBehaviorCommandHandler : BaseCommandHandler<GptBehaviorCommand>
     {
-        private readonly IMediator mediator;
-        private readonly IGptRepository gptRepository;
+        private readonly IMediator _mediator;
+        private readonly IGptRepository _gptRepository;
 
         public GptBehaviorCommandHandler(IRedisClient redisClient, IMediator mediator, IGptRepository gptRepository) : base(redisClient)
         {
-            this.mediator = mediator;
-            this.gptRepository = gptRepository;
+            _mediator = mediator;
+            _gptRepository = gptRepository;
         }
         public override int Cooldown => 10;
         public override bool GlobalCooldown => true;
@@ -32,15 +32,15 @@ namespace twitchBot.Handlers
                         Username = request.Username
                     };
 
-                var response = await mediator.Send(gptBehaviorDefinitionCommand, cancellationToken);
+                var response = await _mediator.Send(gptBehaviorDefinitionCommand, cancellationToken);
 
                 response.WasExecuted = false;
 
                 return response;
             }
 
-            await gptRepository.SetGptBehaviorDefinedBy(request.BotConnection.Id.ToString(), request.Username);
-            await gptRepository.SetGptBehavior(request.BotConnection.Id.ToString(), new BehaviorDefinition(request.Behavior, request.Username, DateTime.UtcNow, request.Channel));
+            await _gptRepository.SetGptBehaviorDefinedBy(request.BotConnection.Id.ToString(), request.Username);
+            await _gptRepository.SetGptBehavior(request.BotConnection.Id.ToString(), new BehaviorDefinition(request.Behavior, request.Username, DateTime.UtcNow, request.Channel));
 
             return new Response()
             {

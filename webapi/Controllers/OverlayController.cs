@@ -6,17 +6,17 @@ namespace webapi.Controllers
     [ApiController]
     public class OverlayController : ControllerBase
     {
-        private readonly IOverlayHub overlayHub;
+        private readonly IOverlayHub _overlayHub;
 
         public OverlayController(IOverlayHub overlayHub)
         {
-            this.overlayHub = overlayHub;
+            _overlayHub = overlayHub;
         }
 
         [HttpPost("~/overlay/audio/{botConnectionId}")]
         public async Task<IActionResult> Post(string botConnectionId, [FromBody] byte[] audioStream)
         {
-            await overlayHub.SendAudioStream(botConnectionId, audioStream);
+            await _overlayHub.SendAudioStream(botConnectionId, audioStream);
 
             return Ok();
         }

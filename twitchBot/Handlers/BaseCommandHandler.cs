@@ -11,16 +11,16 @@ namespace twitchBot.Handlers
 {
     public abstract class BaseCommandHandler<T> : IRequestHandler<T, Response> where T : BaseCommand
     {
-        private readonly IRedisClient redisClient;
+        private readonly IRedisClient _redisClient;
 
-        private readonly Dictionary<string, UserAccessLevelEnum> userAccessLevels = new()
+        private readonly Dictionary<string, UserAccessLevelEnum> _userAccessLevels = new()
         {
             { "k1notv", UserAccessLevelEnum.Admin }
         };
 
         protected BaseCommandHandler(IRedisClient redisClient)
         {
-            this.redisClient = redisClient;
+            _redisClient = redisClient;
         }
 
         public virtual int Cooldown => 0;
@@ -35,13 +35,17 @@ namespace twitchBot.Handlers
             {
                 if (!IsCommandEnabled(request, out var commandDisabledResponse)) return commandDisabledResponse;
 
-                if (!UserHasAccess(request, out var accessLevel, out var accessDeniedResponse)) return accessDeniedResponse;
+                if (!UserHasAccess(request, out var accessLevel, out var accessDeniedResponse))
+                    return accessDeniedResponse;
 
-                var lastExecutionTime = GlobalCooldown ?
-                    await redisClient.Db0.GetAsync<DateTime>($"{request.BotConnection.Id}:{request.Prefix}:lastexecution") :
-                    await redisClient.Db0.GetAsync<DateTime>($"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}");
+                var lastExecutionTime = GlobalCooldown
+                    ? await _redisClient.Db0.GetAsync<DateTime>(
+                        $"{request.BotConnection.Id}:{request.Prefix}:lastexecution")
+                    : await _redisClient.Db0.GetAsync<DateTime>(
+                        $"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}");
 
-                if (lastExecutionTime.AddMinutes(Cooldown) <= DateTime.UtcNow || accessLevel == UserAccessLevelEnum.Admin)
+                if (lastExecutionTime.AddMinutes(Cooldown) <= DateTime.UtcNow ||
+                    accessLevel == UserAccessLevelEnum.Admin)
                 {
                     var response = await InternalHandle(request, cancellationToken);
 
@@ -49,8 +53,10 @@ namespace twitchBot.Handlers
 
                     var timeNow = DateTime.UtcNow;
 
-                    await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:lastexecution", timeNow);
-                    await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}", timeNow);
+                    await _redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:lastexecution",
+                        timeNow);
+                    await _redisClient.Db0.AddAsync(
+                        $"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}", timeNow);
 
                     return response;
                 }
@@ -59,7 +65,8 @@ namespace twitchBot.Handlers
 
                 return new Response()
                 {
-                    Message = $"Wait {(difference.Minutes == 0 ? difference.Seconds + "s" : difference.Minutes + "min")} to execute this command again."
+                    Message =
+                        $"Wait {(difference.Minutes == 0 ? difference.Seconds + "s" : difference.Minutes + "min")} to execute this command again."
                 };
             }
             catch (Exception e)
@@ -76,11 +83,11 @@ namespace twitchBot.Handlers
                 Message = "You don't have access to this command."
             };
 
-            accessLevel = UserAccessLevelEnum.Everyone;
+            accessLevel = UserAccessLevelEnum.Default;
 
-            if (userAccessLevels.ContainsKey(request.Username.ToLower()))
+            if (_userAccessLevels.ContainsKey(request.Username.ToLower()))
             {
-                accessLevel = userAccessLevels[request.Username.ToLower()];
+                accessLevel = _userAccessLevels[request.Username.ToLower()];
             }
             else if (string.Equals(request.Username.ToLower(), request.BotConnection.Login))
             {
@@ -107,14 +114,5 @@ namespace twitchBot.Handlers
                 return false;
             }
         }
-    }
-
-    public enum UserAccessLevelEnum
-    {
-        Everyone,
-        Subscriber,
-        Moderator,
-        Broadcaster,
-        Admin
     }
 }

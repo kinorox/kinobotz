@@ -11,11 +11,11 @@ namespace twitchBot.Handlers
 {
     internal class FirstFollowCommandHandler : BaseCommandHandler<FirstFollowCommand>
     {
-        private readonly IRedisClient redisClient;
+        private readonly IRedisClient _redisClient;
 
         public FirstFollowCommandHandler(IRedisClient redisClient) : base(redisClient)
         {
-            this.redisClient = redisClient;
+            this._redisClient = redisClient;
         }
 
         public override async Task<Response> InternalHandle(FirstFollowCommand request, CancellationToken cancellationToken)
@@ -25,7 +25,7 @@ namespace twitchBot.Handlers
                 Error = false
             };
 
-            var userFirstFollower = await redisClient.Db0.GetAsync<string>($"{request.Prefix}:{request.Username.ToLower()}");
+            var userFirstFollower = await _redisClient.Db0.GetAsync<string>($"{request.Prefix}:{request.Username.ToLower()}");
 
             if (userFirstFollower != null)
             {
@@ -74,7 +74,7 @@ namespace twitchBot.Handlers
                 return response;
             }
 
-            await redisClient.Db0.AddAsync($"{request.Prefix}:{request.Username.ToLower()}", firstFollow.ToUserName);
+            await _redisClient.Db0.AddAsync($"{request.Prefix}:{request.Username.ToLower()}", firstFollow.ToUserName);
 
             response.Message = string.Format("The first channel {0} followed was {1}", request.Username, firstFollow.ToUserName);
 

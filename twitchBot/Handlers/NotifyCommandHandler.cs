@@ -9,16 +9,16 @@ namespace twitchBot.Handlers
 {
     public class NotifyCommandHandler : BaseCommandHandler<NotifyCommand>
     {
-        private readonly IRedisClient redisClient;
+        private readonly IRedisClient _redisClient;
 
         public NotifyCommandHandler(IRedisClient redisClient) : base(redisClient)
         {
-            this.redisClient = redisClient;
+            _redisClient = redisClient;
         }
 
         public override async Task<Response> InternalHandle(NotifyCommand request, CancellationToken cancellationToken)
         {
-            var notifyUsers = await redisClient.Db0.GetAsync<NotifyUsers>($"{request.BotConnection.Id}:{request.Prefix}") ?? new NotifyUsers(new List<string>());
+            var notifyUsers = await _redisClient.Db0.GetAsync<NotifyUsers>($"{request.BotConnection.Id}:{request.Prefix}") ?? new NotifyUsers(new List<string>());
             
             if (notifyUsers.Usernames.Contains(request.Username))
             {
@@ -30,7 +30,7 @@ namespace twitchBot.Handlers
 
             notifyUsers.Usernames.Add(request.Username);
 
-            await redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}", notifyUsers);
+            await _redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}", notifyUsers);
 
             return new Response()
             {

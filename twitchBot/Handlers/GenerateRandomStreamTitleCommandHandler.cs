@@ -13,15 +13,18 @@ namespace twitchBot.Handlers
 {
     public class GenerateRandomStreamTitleCommandHandler : BaseCommandHandler<GenerateRandomStreamTitleCommand>
     {
-        private readonly IOpenAIAPI openAiApi;
-        private readonly ILogger<GenerateRandomStreamTitleCommandHandler> logger;
-        private readonly IGptRepository gptRepository;
+        private readonly IOpenAIAPI _openAiApi;
+        private readonly ILogger<GenerateRandomStreamTitleCommandHandler> _logger;
+        private readonly IGptRepository _gptRepository;
 
-        public GenerateRandomStreamTitleCommandHandler(IRedisClient redisClient, IOpenAIAPI openAiApi, IGptRepository gptRepository, ILogger<GenerateRandomStreamTitleCommandHandler> logger) : base(redisClient)
+        public GenerateRandomStreamTitleCommandHandler(IRedisClient redisClient,
+            IOpenAIAPI openAiApi,
+            IGptRepository gptRepository,
+            ILogger<GenerateRandomStreamTitleCommandHandler> logger) : base(redisClient)
         {
-            this.openAiApi = openAiApi;
-            this.gptRepository = gptRepository;
-            this.logger = logger;
+            _openAiApi = openAiApi;
+            _gptRepository = gptRepository;
+            _logger = logger;
         }
 
         public override async Task<Response> InternalHandle(GenerateRandomStreamTitleCommand request, CancellationToken cancellationToken)
@@ -30,9 +33,9 @@ namespace twitchBot.Handlers
 
             try
             {
-                var chat = openAiApi.Chat.CreateConversation();
+                var chat = _openAiApi.Chat.CreateConversation();
 
-                var behavior = await gptRepository.GetGptBehavior(request.BotConnection.Id.ToString());
+                var behavior = await _gptRepository.GetGptBehavior(request.BotConnection.Id.ToString());
 
                 if (!string.IsNullOrEmpty(behavior))
                 {
@@ -53,7 +56,7 @@ namespace twitchBot.Handlers
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error during GPT execution.");
+                _logger.LogError(e, "Error during GPT execution.");
 
                 return new Response()
                 {
