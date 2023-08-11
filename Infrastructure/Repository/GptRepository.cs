@@ -6,44 +6,43 @@ namespace Infrastructure.Repository
 {
     public class GptRepository : IGptRepository
     {
-        private readonly IRedisClient redisClient;
+        private readonly IRedisClient _redisClient;
 
         public GptRepository(IRedisClient redisClient)
         {
-            this.redisClient = redisClient;
+            _redisClient = redisClient;
+        }
+        
+        public async Task<BehaviorDefinition[]> GetGptBehaviors(string botConnectionId)
+        {
+            return await _redisClient.Db0.SetMembersAsync<BehaviorDefinition>($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:hist");
         }
 
-        public async Task<BehaviorDefinition[]> GetAllGptBehaviors(string? botConnectionId)
+        public async Task<BehaviorDefinition[]> GetAllGptBehaviors()
         {
-            var key = string.IsNullOrEmpty(botConnectionId)
-                ? $"{Commands.GPT_BEHAVIOR}:hist"
-                : $"{botConnectionId}:{Commands.GPT_BEHAVIOR}:hist";
-
-            var result = await redisClient.Db0.SetMembersAsync<BehaviorDefinition>(key);
-
-            return result;
+            return await _redisClient.Db0.SetMembersAsync<BehaviorDefinition>($"{Commands.GPT_BEHAVIOR}:hist");
         }
 
         public async Task<string?> GetGptBehavior(string botConnectionId)
         {
-            return await redisClient.Db0.GetAsync<string>($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:current");
+            return await _redisClient.Db0.GetAsync<string>($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:current");
         }
 
         public async Task<string?> GetGptBehaviorDefinedBy(string botConnectionId)
         {
-            return await redisClient.Db0.GetAsync<string>($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:definedby");
+            return await _redisClient.Db0.GetAsync<string>($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:definedby");
         }
 
         public async Task SetGptBehavior(string botConnectionId, BehaviorDefinition behaviorDefinition)
         {
-            await redisClient.Db0.AddAsync($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:current", behaviorDefinition.Behavior);
-            await redisClient.Db0.SetAddAsync($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:hist", behaviorDefinition);
-            await redisClient.Db0.SetAddAsync($"{Commands.GPT_BEHAVIOR}:hist", behaviorDefinition);
+            await _redisClient.Db0.AddAsync($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:current", behaviorDefinition.Behavior);
+            await _redisClient.Db0.SetAddAsync($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:hist", behaviorDefinition);
+            await _redisClient.Db0.SetAddAsync($"{Commands.GPT_BEHAVIOR}:hist", behaviorDefinition);
         }
 
         public async Task SetGptBehaviorDefinedBy(string botConnectionId, string username)
         {
-            await redisClient.Db0.AddAsync($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:definedby", username);
+            await _redisClient.Db0.AddAsync($"{botConnectionId}:{Commands.GPT_BEHAVIOR}:definedby", username);
         }
     }
 
@@ -65,7 +64,8 @@ namespace Infrastructure.Repository
 
     public interface IGptRepository
     {
-        Task<BehaviorDefinition[]> GetAllGptBehaviors(string? botConnectionId);
+        Task<BehaviorDefinition[]> GetGptBehaviors(string botConnectionId);
+        Task<BehaviorDefinition[]> GetAllGptBehaviors();
         Task<string?> GetGptBehavior(string botConnectionId);
         Task<string?> GetGptBehaviorDefinedBy(string botConnectionId);
         Task SetGptBehavior(string botConnectionId, BehaviorDefinition behaviorDefinition);

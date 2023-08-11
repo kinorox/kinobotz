@@ -1,98 +1,88 @@
 using Entities;
-using Infrastructure.Extensions;
+using Infrastructure.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using StackExchange.Redis.Extensions.Core.Abstractions;
+using System.Security.Claims;
+using AutoMapper;
+using webapi.Dto;
 
 namespace webapi.Controllers;
 
 [ApiController]
-//[Authorize]
+[Authorize]
 [Route("[controller]")]
 public class BotConnectionController : ControllerBase
 {
-    private readonly IRedisClient redisClient;
+    private readonly IBotConnectionRepository _botConnectionRepository;
+    private readonly IMapper _mapper;
     
-    public BotConnectionController(IRedisClient redisClient)
+    public BotConnectionController(IBotConnectionRepository botConnectionRepository, IMapper mapper)
     {
-        this.redisClient = redisClient;
+        _botConnectionRepository = botConnectionRepository;
+        _mapper = mapper;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IDictionary<string, BotConnection>>> Get()
+    public async Task<ActionResult<ICollection<BotConnectionDto>>> Get()
     {
-        var existingKeys = await redisClient.Db0.SearchKeysAsync("botconnection*");
+        var botConnections = await _botConnectionRepository.GetAll();
 
-        var botConnections = await redisClient.Db0.GetAllAsync<BotConnection>(new HashSet<string>(existingKeys));
+        if (!botConnections.Any())
+            return NotFound();
 
-        foreach (var connection in botConnections)
-        {
-            if (connection.Value == null) continue;
+        var mapped = _mapper.Map<ICollection<BotConnectionDto>>(botConnections);
 
-            if(!string.IsNullOrEmpty(connection.Value.RefreshToken))
-                connection.Value.RefreshToken = connection.Value.RefreshToken.Mask(0, connection.Value.RefreshToken.Length - 5, '*');
-
-            if (!string.IsNullOrEmpty(connection.Value.AccessToken))
-                connection.Value.AccessToken = connection.Value.AccessToken.Mask(0, connection.Value.AccessToken.Length - 5, '*');
-
-            if (!string.IsNullOrEmpty(connection.Value.DiscordTtsWebhookUrl))
-                connection.Value.DiscordTtsWebhookUrl = connection.Value.DiscordTtsWebhookUrl.Mask(0, connection.Value.DiscordTtsWebhookUrl.Length - 5, '*');
-            
-            if (!string.IsNullOrEmpty(connection.Value.DiscordClipsWebhookUrl))
-                connection.Value.DiscordClipsWebhookUrl = connection.Value.DiscordClipsWebhookUrl.Mask(0, connection.Value.DiscordClipsWebhookUrl.Length - 5, '*');
-        }
-
-        return Ok(botConnections.Values);
+        return Ok(mapped);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Put(string id, [FromBody] BotConnection botConnection)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<BotConnectionDto>> Get(string id)
     {
-        var existing = await redisClient.Db0.GetAsync<BotConnection>($"botconnection:{id}");
+        var botConnection = await _botConnectionRepository.GetById(id);
 
-        if (existing == null) return NotFound();
+        if (botConnection == null)
+            return NotFound();
 
-        // update existing property values with the new ones
+        var mapped = _mapper.Map<BotConnectionDto>(botConnection);
+        
+        return Ok(mapped);
+    }
 
-        if(!string.IsNullOrEmpty(botConnection.RefreshToken))
-            existing.RefreshToken = botConnection.RefreshToken;
+    [HttpGet("profile")]
+    public async Task<ActionResult<BotConnectionDto>> GetProfile()
+    {
+        var claimsPrincipal = HttpContext.User;
+        
+        var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (!string.IsNullOrEmpty(botConnection.ChannelId))
-            existing.ChannelId = botConnection.ChannelId;
+        var botConnection = await _botConnectionRepository.GetById(userId);
+        
+        if (botConnection == null)
+            return NotFound();
 
-        if (!string.IsNullOrEmpty(botConnection.Login))
-            existing.Login = botConnection.Login;
+        var mapped = _mapper.Map<BotConnectionDto>(botConnection);
+        
+        return Ok(mapped);
+    }
 
-        if (!string.IsNullOrEmpty(botConnection.AccessToken))
-            existing.AccessToken = botConnection.AccessToken;
+    [HttpPut]
+    public async Task<IActionResult> Update([FromBody] UpdateBotConnection botConnection)
+    {
+        var claimsPrincipal = HttpContext.User;
 
-        if (botConnection.Active != null)
-            existing.Active = botConnection.Active;
+        var id = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (!string.IsNullOrEmpty(botConnection.DiscordClipsWebhookUrl))
-            existing.DiscordClipsWebhookUrl = botConnection.DiscordClipsWebhookUrl;
+        var existing = await _botConnectionRepository.GetById(id);
 
-        if (!string.IsNullOrEmpty(botConnection.DiscordTtsWebhookUrl))
-            existing.DiscordTtsWebhookUrl = botConnection.DiscordTtsWebhookUrl;
+        if (existing == null)
+            return NotFound();
 
+        existing.Active = botConnection.Active;
+        existing.DiscordClipsWebhookUrl = botConnection.DiscordClipsWebhookUrl;
+        existing.DiscordTtsWebhookUrl = botConnection.DiscordTtsWebhookUrl;
         existing.Commands = botConnection.Commands;
 
-        existing.UpdatedAt = DateTime.UtcNow;
-
-        await redisClient.Db0.AddAsync($"botconnection:{id}", existing);
-
-        return Ok();
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Post([FromBody] BotConnection botConnection)
-    {
-        botConnection.Id = Guid.NewGuid();
-        botConnection.CreatedAt = DateTime.UtcNow;
-        botConnection.Active = true;
-
-        await redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", botConnection);
-
-        //await redisClient.Db0.PublishAsync(new RedisChannel("NewBotConnection", RedisChannel.PatternMode.Literal), botConnection.Id.ToString());
+        await _botConnectionRepository.SaveOrUpdate(existing);
 
         return Ok();
     }
@@ -108,16 +98,16 @@ public class BotConnectionController : ControllerBase
             Login = login
         };
 
-        await redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", botConnection);
+        await _botConnectionRepository.SaveOrUpdate(botConnection);
 
         return Ok();
     }
+}
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(string id)
-    {
-        await redisClient.Db0.RemoveAsync($"botconnection:{id}");
-
-        return Ok();
-    }
+public class UpdateBotConnection
+{
+    public bool? Active { get; set; }
+    public string? DiscordClipsWebhookUrl { get; set; }
+    public string? DiscordTtsWebhookUrl { get; set; }
+    public Dictionary<string, bool> Commands { get; set; }
 }

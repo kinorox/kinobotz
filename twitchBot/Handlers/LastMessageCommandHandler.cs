@@ -9,11 +9,11 @@ namespace twitchBot.Handlers
 {
     public class LastMessageCommandHandler : BaseCommandHandler<LastMessageCommand>
     {
-        private readonly IRedisClient redisClient;
+        private readonly IRedisClient _redisClient;
 
         public LastMessageCommandHandler(IRedisClient redisClient) : base(redisClient)
         {
-            this.redisClient = redisClient;
+            _redisClient = redisClient;
         }
 
         public override async Task<Response> InternalHandle(LastMessageCommand request, CancellationToken cancellationToken)
@@ -34,7 +34,7 @@ namespace twitchBot.Handlers
 
             var key = $"{request.Prefix}:{request.TargetUsername.ToLower()}";
 
-            var userLastMessage = await redisClient.Db0.GetAsync<SimplifiedChatMessage>(key);
+            var userLastMessage = await _redisClient.Db0.GetAsync<SimplifiedChatMessage>(key);
 
             if (userLastMessage != null)
             {

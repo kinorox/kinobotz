@@ -70,6 +70,7 @@ namespace twitchBot
                         services.AddHostedService(p => p.GetRequiredService<Orchestrator>());
                         services.AddSignalR();
                         services.AddTransient<ICommandRepository, CommandRepository>();
+                        services.AddTransient<IBotConnectionRepository, BotConnectionRepository>();
                         services.AddTransient<IGptRepository, GptRepository>();
                         services.AddTransient<IKinobotzService, KinobotzService>();
                         services.AddQuartz(q =>

@@ -15,13 +15,11 @@ namespace Infrastructure.Services
 
     public class JwtService : IJwtService
     {
-        private readonly IConfiguration _configuration;
         private readonly SymmetricSecurityKey _key;
 
         public JwtService(IConfiguration configuration)
         {
-            _configuration = configuration;
-            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwt"]));
+            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["jwt"]));
         }
 
         public string GenerateToken(BotConnection user)
@@ -30,7 +28,6 @@ namespace Infrastructure.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Login)
-                // Add more claims as needed for authorization
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -53,8 +50,8 @@ namespace Infrastructure.Services
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = _key,
-                ValidateIssuer = false, // Set to true if you have an issuer to validate
-                ValidateAudience = false, // Set to true if you have an audience to validate
+                ValidateIssuer = false,
+                ValidateAudience = false,
                 ClockSkew = TimeSpan.Zero
             }, out var validatedToken);
 
