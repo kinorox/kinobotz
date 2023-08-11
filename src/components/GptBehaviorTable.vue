@@ -1,7 +1,7 @@
 <script>
     import TableLite from 'vue3-table-lite'
     import { reactive } from 'vue'
-    import axios from 'axios';
+    import axiosInstance from '@/scripts/axios-instance';
 
     export default {
         name: 'GptBehaviorTable',        
@@ -45,21 +45,20 @@
               }
             })
 
-            /**
+        /**
        * Table search event
        */
        const doSearch = (order, sort) => {
         table.isLoading = true;
   
         // Start use axios to get data from Server
-        let url = 'https://kinobotz.herokuapp.com/behaviors';
-        axios.get(url)
-        .then((response) => {
-          table.rows = response.data;
-          table.totalRecordCount = response.data.length;
-          table.sortable.order = order;
-          table.sortable.sort = sort;
-        });
+        axiosInstance.get('/behaviors')
+          .then(response => {
+            table.rows = response.data;
+            table.totalRecordCount = response.data.length;
+            table.sortable.order = order;
+            table.sortable.sort = sort;
+          })
         // End use axios to get data from Server
       };
   

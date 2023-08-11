@@ -3,12 +3,12 @@ body {
 }
   
 .anaglyph {
-box-sizing: content-box;
-border: none;
-font: normal 50px/normal "Chau Philomene One", Helvetica, sans-serif;
-color: rgb(51, 51, 51);
-text-align: center;
-text-overflow: clip;
-letter-spacing: 3px;
-text-shadow: -3px 0 1px rgb(30,242,241) , 3px 0 1px rgb(246,5,10) ;
+    box-sizing: content-box;
+    border: none;
+    font: normal 50px/normal "Chau Philomene One", Helvetica, sans-serif;
+    color: rgb(51, 51, 51);
+    text-align: center;
+    text-overflow: clip;
+    letter-spacing: 3px;
+    text-shadow: -3px 0 1px rgb(30,242,241) , 3px 0 1px rgb(246,5,10) ;
 }
