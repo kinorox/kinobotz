@@ -1,6 +1,5 @@
 <script>
 import NavBar from './components/NavBar.vue';
-import axios from 'axios';
 import router from '@/scripts/router'
 import { mapActions } from 'vuex';
 import Cookies from 'js-cookie';
