@@ -4,6 +4,7 @@ import { VueSignalR } from '@dreamonkey/vue-signalr';
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import router from '@/scripts/router'
 import store from '@/scripts/store'
+import 'bootstrap/dist/css/bootstrap.css';
 
 var url = 'https://kinobotz.herokuapp.com';
 if(process.env.NODE_ENV === 'development') {
