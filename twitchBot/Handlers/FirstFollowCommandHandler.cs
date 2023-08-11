@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure.Repository;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
@@ -13,7 +14,7 @@ namespace twitchBot.Handlers
     {
         private readonly IRedisClient _redisClient;
 
-        public FirstFollowCommandHandler(IRedisClient redisClient) : base(redisClient)
+        public FirstFollowCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository)
         {
             this._redisClient = redisClient;
         }

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Extensions;
+using Infrastructure.Repository;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 
@@ -11,7 +12,7 @@ namespace twitchBot.Handlers
     {
         private readonly IRedisClient _redisClient;
 
-        public LastMessageCommandHandler(IRedisClient redisClient) : base(redisClient)
+        public LastMessageCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository)
         {
             _redisClient = redisClient;
         }

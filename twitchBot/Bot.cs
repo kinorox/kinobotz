@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using Entities;
 using Entities.Exceptions;
+using Infrastructure.Repository;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -34,15 +35,17 @@ namespace twitchBot
         private readonly IConfiguration _configuration;
         private TwitchAPI _twitchApi;
         private BotConnection _botConnection;
+        private readonly IBotConnectionRepository _botConnectionRepository;
 
-        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger, ICommandFactory commandFactory)
+        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger, ICommandFactory commandFactory, IBotConnectionRepository botConnectionRepository)
         {
             _configuration = configuration;
             _redisClient = redisClient;
             _mediator = mediator;
             _logger = logger;
             _commandFactory = commandFactory;
-            
+            _botConnectionRepository = botConnectionRepository;
+
             var clientOptions = new ClientOptions
             {
                 MessagesAllowedInPeriod = 750,
@@ -96,7 +99,7 @@ namespace twitchBot
                         _botConnection.ChannelId = user.Users[0].Id;
                     }
 
-                    _redisClient.Db0.AddAsync($"botconnection:{botConnection.Id}", _botConnection);
+                    _botConnectionRepository.SaveOrUpdate(_botConnection);
 
                     var aTimer = new Timer(TimeSpan.FromSeconds(response.ExpiresIn).TotalMilliseconds);
                     aTimer.Elapsed += OnOAuthTokenRefreshTimer;
@@ -299,7 +302,7 @@ namespace twitchBot
             {
                 _logger.LogInformation($"{_botConnection.Login} - refreshing access token");
 
-                _botConnection = await _redisClient.Db0.GetAsync<BotConnection>($"botconnection:{_botConnection.Id}");
+                _botConnection = await _botConnectionRepository.GetById(_botConnection.Id.ToString());
 
                 var response = _twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, _configuration["client_secret"], _configuration["client_id"]).Result;
 
@@ -308,7 +311,7 @@ namespace twitchBot
                 _botConnection.AccessToken = response.AccessToken;
                 _botConnection.RefreshToken = response.RefreshToken;
 
-                await _redisClient.Db0.AddAsync($"botconnection:{_botConnection.Id}", _botConnection);
+                await _botConnectionRepository.SaveOrUpdate(_botConnection);
 
                 _logger.LogInformation($"{_botConnection.Login} - refreshing access token completed");
             }
