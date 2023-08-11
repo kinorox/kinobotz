@@ -16,7 +16,7 @@ namespace twitchBot.Handlers
         private readonly ILogger<GptCommandHandler> _logger;
         private readonly IGptRepository _gptRepository;
 
-        public GptCommandHandler(IOpenAIAPI openAiApi, ILogger<GptCommandHandler> logger, IRedisClient redisClient, IGptRepository gptRepository) : base(redisClient)
+        public GptCommandHandler(IOpenAIAPI openAiApi, ILogger<GptCommandHandler> logger, IRedisClient redisClient, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository)
         {
             _openAiApi = openAiApi;
             _logger = logger;

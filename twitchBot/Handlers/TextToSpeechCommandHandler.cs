@@ -11,6 +11,7 @@ using Discord.Webhook;
 using ElevenLabs;
 using ElevenLabs.Voices;
 using Entities;
+using Infrastructure.Repository;
 using Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -26,7 +27,7 @@ namespace twitchBot.Handlers
         private readonly IConfiguration _configuration;
         private readonly IKinobotzService _kinobotzService;
 
-        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService) : base(redisClient)
+        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository)
         {
             _elevenLabsClient = elevenLabsClient;
             _redisClient = redisClient;

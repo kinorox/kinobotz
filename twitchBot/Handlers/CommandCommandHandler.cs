@@ -13,7 +13,7 @@ namespace twitchBot.Handlers
     {
         private readonly ICommandRepository _commandRepository;
 
-        public CommandCommandHandler(ICommandRepository commandRepository, IRedisClient redisClient) : base(redisClient)
+        public CommandCommandHandler(ICommandRepository commandRepository, IRedisClient redisClient, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository)
         {
             _commandRepository = commandRepository;
         }

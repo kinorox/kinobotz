@@ -20,7 +20,7 @@ namespace twitchBot.Handlers
         public GenerateRandomStreamTitleCommandHandler(IRedisClient redisClient,
             IOpenAIAPI openAiApi,
             IGptRepository gptRepository,
-            ILogger<GenerateRandomStreamTitleCommandHandler> logger) : base(redisClient)
+            ILogger<GenerateRandomStreamTitleCommandHandler> logger, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository)
         {
             _openAiApi = openAiApi;
             _gptRepository = gptRepository;
