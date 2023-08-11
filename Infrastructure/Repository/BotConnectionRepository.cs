@@ -12,6 +12,11 @@ namespace Infrastructure.Repository
             _redisClient = redisClient;
         }
 
+        public async Task<BotConnection?> Get(string id, string channelId, string login)
+        {
+            return await _redisClient.Db0.GetAsync<BotConnection>($"botconnection:{id}:{channelId}:{login}");
+        }
+
         public async Task<ICollection<BotConnection>> GetAll()
         {
             var existingKeys = await _redisClient.Db0.SearchKeysAsync("botconnection:*:*:*");
@@ -59,6 +64,7 @@ namespace Infrastructure.Repository
 
     public interface IBotConnectionRepository
     {
+        Task<BotConnection?> Get(string id, string channelId, string login);
         Task<ICollection<BotConnection>> GetAll();
         Task<BotConnection?> GetById(string id);
         Task<BotConnection?> GetByChannelId(string channelId);

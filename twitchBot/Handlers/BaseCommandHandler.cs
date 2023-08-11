@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure.Repository;
 using MediatR;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
@@ -12,15 +13,17 @@ namespace twitchBot.Handlers
     public abstract class BaseCommandHandler<T> : IRequestHandler<T, Response> where T : BaseCommand
     {
         private readonly IRedisClient _redisClient;
+        private readonly IBotConnectionRepository _botConnectionRepository;
 
         private readonly Dictionary<string, UserAccessLevelEnum> _userAccessLevels = new()
         {
             { "k1notv", UserAccessLevelEnum.Admin }
         };
 
-        protected BaseCommandHandler(IRedisClient redisClient)
+        protected BaseCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository)
         {
             _redisClient = redisClient;
+            _botConnectionRepository = botConnectionRepository;
         }
 
         public virtual int Cooldown => 0;
@@ -33,6 +36,16 @@ namespace twitchBot.Handlers
         {
             try
             {
+                if (request.BotConnection != null)
+                {
+                    var refreshedBotConnection = await _botConnectionRepository.Get(request.BotConnection.Id.ToString(), request.BotConnection.ChannelId, request.BotConnection.Login);
+
+                    if (refreshedBotConnection != null)
+                    {
+                        request.BotConnection = refreshedBotConnection;
+                    }
+                }
+
                 if (!IsCommandEnabled(request, out var commandDisabledResponse)) return commandDisabledResponse;
 
                 if (!UserHasAccess(request, out var accessLevel, out var accessDeniedResponse))
