@@ -2,7 +2,7 @@ import { createApp } from 'vue';
 import App from '@/App.vue';
 import { VueSignalR } from '@dreamonkey/vue-signalr';
 import { HubConnectionBuilder } from '@microsoft/signalr';
-import 'bootstrap'
+import 'bootstrap/dist/css/bootstrap.css';
 import router from '@/scripts/router'
 import store from '@/scripts/store'
 
