@@ -33,23 +33,9 @@ namespace twitchBot.Handlers
         {
             try
             {
-                var accessLevel = UserAccessLevelEnum.Everyone;
+                if (!IsCommandEnabled(request, out var commandDisabledResponse)) return commandDisabledResponse;
 
-                if (userAccessLevels.ContainsKey(request.Username.ToLower()))
-                {
-                    accessLevel = userAccessLevels[request.Username.ToLower()];
-                } else if (string.Equals(request.Username.ToLower(), request.BotConnection.Login))
-                {
-                    accessLevel = UserAccessLevelEnum.Broadcaster;
-                }
-
-                if (!request.AccessLevels.Contains(accessLevel))
-                {
-                    return new Response()
-                    {
-                        Message = "You don't have access to this command."
-                    };
-                }
+                if (!UserHasAccess(request, out var accessLevel, out var accessDeniedResponse)) return accessDeniedResponse;
 
                 var lastExecutionTime = GlobalCooldown ?
                     await redisClient.Db0.GetAsync<DateTime>($"{request.BotConnection.Id}:{request.Prefix}:lastexecution") :
@@ -80,6 +66,45 @@ namespace twitchBot.Handlers
             {
                 Console.WriteLine(e);
                 throw;
+            }
+        }
+
+        private bool UserHasAccess(T request, out UserAccessLevelEnum accessLevel, out Response accessDeniedResponse)
+        {
+            accessDeniedResponse = new Response()
+            {
+                Message = "You don't have access to this command."
+            };
+
+            accessLevel = UserAccessLevelEnum.Everyone;
+
+            if (userAccessLevels.ContainsKey(request.Username.ToLower()))
+            {
+                accessLevel = userAccessLevels[request.Username.ToLower()];
+            }
+            else if (string.Equals(request.Username.ToLower(), request.BotConnection.Login))
+            {
+                accessLevel = UserAccessLevelEnum.Broadcaster;
+            }
+
+            if (request.AccessLevels.Contains(accessLevel)) return true;
+            {
+                return false;
+            }
+        }
+
+        private static bool IsCommandEnabled(T request, out Response commandDisabledResponse)
+        {
+            commandDisabledResponse = new Response()
+            {
+                Message = "This command is disabled."
+            };
+
+            if (!request.BotConnection.Commands.TryGetValue(request.Prefix, out var commandEnabled)) return false;
+
+            if (commandEnabled) return true;
+            {
+                return false;
             }
         }
     }

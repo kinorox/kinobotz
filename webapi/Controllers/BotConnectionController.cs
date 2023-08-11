@@ -74,6 +74,8 @@ public class BotConnectionController : ControllerBase
         if (!string.IsNullOrEmpty(botConnection.DiscordTtsWebhookUrl))
             existing.DiscordTtsWebhookUrl = botConnection.DiscordTtsWebhookUrl;
 
+        existing.Commands = botConnection.Commands;
+
         existing.UpdatedAt = DateTime.UtcNow;
 
         await redisClient.Db0.AddAsync($"botconnection:{id}", existing);
