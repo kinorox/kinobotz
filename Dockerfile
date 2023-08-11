@@ -1,18 +1,14 @@
-# Use an official NGINX image as the base image
-FROM nginx:alpine
+# Stage 1: Build Vue.js app and generate static files
+FROM node:lts-alpine as build-stage
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
 
-# Remove default NGINX configuration
-RUN rm /etc/nginx/conf.d/default.conf
-
-# Copy custom NGINX configuration
+# Stage 2: Serve static files using NGINX
+FROM nginx:1.23.3
+COPY --from=build-stage /app/dist /usr/share/nginx/html
 COPY default.conf.template /etc/nginx/conf.d/default.conf.template
-# COPY nginx.conf /etc/nginx/conf.d/
-
-# Create a directory to hold the built Vue.js application files
-WORKDIR /usr/share/nginx/html
-
-# Copy the built application files from the 'public' directory to the NGINX serving directory
-COPY public .
-
-# Start NGINX
+COPY nginx.conf /etc/nginx/nginx.conf
 CMD /bin/bash -c "envsubst '\$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf" && nginx -g 'daemon off;'
