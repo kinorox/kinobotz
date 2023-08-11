@@ -10,8 +10,8 @@ COPY nginx.conf /etc/nginx/conf.d/
 # Create a directory to hold the built Vue.js application files
 WORKDIR /usr/share/nginx/html
 
-# Copy the built application files from the 'dist' directory to the NGINX serving directory
-COPY dist .
+# Copy the built application files from the 'public' directory to the NGINX serving directory
+COPY public .
 
 # Expose the default NGINX port
 EXPOSE 80
