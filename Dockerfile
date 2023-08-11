@@ -1,22 +1,20 @@
-FROM node:lts-alpine
+# Use an official NGINX image as the base image
+FROM nginx:alpine
 
-# instala um servidor http simples para servir conteúdo estático
-RUN npm install -g http-server
+# Remove default NGINX configuration
+RUN rm /etc/nginx/conf.d/default.conf
 
-# faz da pasta 'app' o diretório atual de trabalho
-WORKDIR /app
+# Copy custom NGINX configuration
+COPY nginx.conf /etc/nginx/conf.d/
 
-# copia os arquivos 'package.json' e 'package-lock.json' (se disponível)
-COPY package*.json ./
+# Create a directory to hold the built Vue.js application files
+WORKDIR /usr/share/nginx/html
 
-# instala dependências do projeto
-RUN npm install
+# Copy the built application files from the 'dist' directory to the NGINX serving directory
+COPY dist .
 
-# copia arquivos e pastas para o diretório atual de trabalho (pasta 'app')
-COPY . .
+# Expose the default NGINX port
+EXPOSE 80
 
-# compila a aplicação de produção com minificação
-RUN npm run build
-
-EXPOSE 8080
-CMD [ "http-server", "dist" ]
+# Start NGINX
+CMD ["nginx", "-g", "daemon off;"]

@@ -4,6 +4,7 @@ import axios from 'axios';
 import router from '@/scripts/router'
 import { mapActions } from 'vuex';
 import Cookies from 'js-cookie';
+import axiosInstance from '@/scripts/axios-instance';
 
 export default {
     name: "CallbackApp",
@@ -11,17 +12,12 @@ export default {
     mounted() {
         var code = this.extractTokenFromUrl();
         
-        var url = 'https://kinobotz.herokuapp.com';
-        if(process.env.NODE_ENV === 'development') {
-            url = 'https://localhost:44305';
-        }
-
         let redirectUri = 'https://k1no.tv/callback';
         if(process.env.NODE_ENV === 'development') {
             redirectUri = 'http://localhost:8080/callback';
         }
 
-        axios.post(url + '/twitch/login', {
+        axiosInstance.post('/twitch/login', {
             AccessToken: code,
             RedirectUri: redirectUri
         }).then((response) => {
