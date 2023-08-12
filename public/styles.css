@@ -12,3 +12,52 @@ body {
     letter-spacing: 3px;
     text-shadow: -3px 0 1px rgb(30,242,241) , 3px 0 1px rgb(246,5,10) ;
 }
+
+/**
+ * Special thanks to: http://blog.koalite.com/bbg/
+ */
+ .btn-twitch { 
+    color: #FFFFFF !important; 
+    background-color: #6441A5 !important; 
+    border-color: #2F1F4E !important; 
+  } 
+   
+  .btn-twitch:hover, 
+  .btn-twitch:focus, 
+  .btn-twitch:active, 
+  .btn-twitch.active, 
+  .open .dropdown-toggle.btn-twitch { 
+    color: #FFFFFF !important; 
+    background-color: #472e75 !important; 
+    border-color: #2F1F4E !important; 
+  } 
+   
+  .btn-twitch:active, 
+  .btn-twitch.active, 
+  .open .dropdown-toggle.btn-twitch { 
+    background-image: none !important; 
+  } 
+   
+  .btn-twitch.disabled, 
+  .btn-twitch[disabled], 
+  fieldset[disabled] .btn-twitch, 
+  .btn-twitch.disabled:hover, 
+  .btn-twitch[disabled]:hover, 
+  fieldset[disabled] .btn-twitch:hover, 
+  .btn-twitch.disabled:focus, 
+  .btn-twitch[disabled]:focus, 
+  fieldset[disabled] .btn-twitch:focus, 
+  .btn-twitch.disabled:active, 
+  .btn-twitch[disabled]:active, 
+  fieldset[disabled] .btn-twitch:active, 
+  .btn-twitch.disabled.active, 
+  .btn-twitch[disabled].active, 
+  fieldset[disabled] .btn-twitch.active { 
+    background-color: #6441A5 !important; 
+    border-color: #2F1F4E !important; 
+  } 
+   
+  .btn-twitch .badge { 
+    color: #6441A5 !important; 
+    background-color: #FFFFFF !important; 
+  }

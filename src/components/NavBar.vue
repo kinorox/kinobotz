@@ -32,7 +32,7 @@
                     <router-link class="nav-link active" aria-current="page" to="/dashboard">dashboard</router-link>
                 </li>
                 <li v-if="userLoggedIn" class="nav-item">
-                    <button @click="logoff()">Logout</button>
+                    <button type="button" class="btn btn-dark" @click="logoff()">logout</button>
                 </li>
             </ul>
         </div>

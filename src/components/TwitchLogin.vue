@@ -27,6 +27,8 @@
 
 <template>
   <div>
-    <button @click="login">Log in with Twitch</button>
+    <button type="button" class="btn btn-twitch" @click="login">
+      <font-awesome-icon :icon="['fab', 'twitch']" /> Log in with Twitch
+    </button>
   </div>
 </template>

@@ -56,6 +56,7 @@ export default {
             } else if (key === 'active') {
                 return 'checkbox';
             }
+            
             return 'text';
         },
         getFieldClass(key) {
@@ -92,9 +93,9 @@ export default {
             const passwordInput = document.getElementById(key);
             if (passwordInput) {
                 passwordInput.select();
-                document.execCommand('copy');
+                navigator.clipboard.writeText(passwordInput.value);
             }            
-        },
+        }
     }
 }
 </script>
@@ -105,40 +106,42 @@ export default {
         Saved
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-    <div>
+    <div class="mb-3 form-group">
         <label for="overlayId" class="form-label">Overlay</label>
-        <input id="overlayId" class="form-control" :type="showPassword ? 'text' : 'password'" v-model="overlay" readonly disabled>
-        <button class="btn btn-outline-secondary" type="button" @click="toggleShowPassword">{{ showPassword ? 'Hide' : 'Show' }}</button>
-        <button class="btn btn-outline-secondary" type="button" @click="copyPassword(key)">Copy</button>
+        <div class="d-inline-flex p-2 form-control justify-content-between">
+            <input id="overlayId" class="form-control" :type="showPassword ? 'text' : 'password'" v-model="overlay" readonly disabled>
+            <button class="btn btn-outline-secondary" type="button" @click="toggleShowPassword">{{ showPassword ? 'Hide' : 'Show' }}</button>
+            <button class="btn btn-outline-secondary" type="button" @click="copyPassword('overlayId')">Copy</button>
+        </div>
     </div>
     <form @submit.prevent="submitForm" class="needs-validation" novalidate>
-        <div v-for="(value, key) in formData" :key="key" class="mb-3">
-        <label :for="key" class="form-label">{{ key }}</label>
-        <input
-            v-if="!isObject(value)" 
-            v-model="formData[key]"
-            :type="getFieldType(key)"
-            :class="[getFieldClass(key)]"
-            :id="key"
-            :required="isRequiredField(key)"
-            :readonly="isFieldReadOnly(key)"
-            :disabled="isFieldReadOnly(key)"
-        />
-        <div v-else>
-            <div v-for="(innerValue, innerKey) in value" :key="innerKey" class="mb-2">
-            <label :for="innerKey" class="form-label">{{ innerKey }}</label>
+        <div v-for="(value, key) in formData" :key="key" class="mb-3 form-group">
+            <label :for="key" class="form-label">{{ key }}</label>
             <input
-                v-model="formData[key][innerKey]"
-                type='checkbox'
-                class='form-check-input'
-                :id="innerKey"
-                :required="isRequiredField(innerKey)"
-                :readonly="isFieldReadOnly(innerKey)"
-                :disabled="isFieldReadOnly(innerKey)"
+                v-if="!isObject(value)" 
+                v-model="formData[key]"
+                :type="getFieldType(key)"
+                :class="[getFieldClass(key)]"
+                :id="key"
+                :required="isRequiredField(key)"
+                :readonly="isFieldReadOnly(key)"
+                :disabled="isFieldReadOnly(key)"
             />
+            <div v-else>
+                <div v-for="(innerValue, innerKey) in value" :key="innerKey" class="mb-2">
+                    <label :for="innerKey" class="form-label">{{ innerKey }}</label>
+                    <input
+                        v-model="formData[key][innerKey]"
+                        type='checkbox'
+                        class='form-check-input'
+                        :id="innerKey"
+                        :required="isRequiredField(innerKey)"
+                        :readonly="isFieldReadOnly(innerKey)"
+                        :disabled="isFieldReadOnly(innerKey)"
+                    />
+                </div>
             </div>
         </div>
-        </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button class="btn btn-secondary" type="submit">Save</button>
   </form>
 </template>
