@@ -81,6 +81,7 @@ public class BotConnectionController : ControllerBase
         existing.DiscordClipsWebhookUrl = botConnection.DiscordClipsWebhookUrl;
         existing.DiscordTtsWebhookUrl = botConnection.DiscordTtsWebhookUrl;
         existing.Commands = botConnection.Commands;
+        existing.UpdatedAt = DateTime.UtcNow;
 
         await _botConnectionRepository.SaveOrUpdate(existing);
 
