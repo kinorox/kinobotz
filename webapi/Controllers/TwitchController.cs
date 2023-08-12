@@ -78,6 +78,12 @@ namespace webapi.Controllers
 
             if (existingUser != null)
             {
+                existingUser.AccessToken = twitchTokenValidationResult.AccessToken;
+                existingUser.RefreshToken = twitchTokenValidationResult.RefreshToken;
+                existingUser.UpdatedAt = DateTime.UtcNow;
+
+                await _botConnectionRepository.SaveOrUpdate(existingUser);
+
                 return existingUser;
             }
 
