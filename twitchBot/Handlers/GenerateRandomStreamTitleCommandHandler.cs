@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenAI_API;
 using StackExchange.Redis.Extensions.Core.Abstractions;
@@ -20,7 +21,7 @@ namespace twitchBot.Handlers
         public GenerateRandomStreamTitleCommandHandler(IRedisClient redisClient,
             IOpenAIAPI openAiApi,
             IGptRepository gptRepository,
-            ILogger<GenerateRandomStreamTitleCommandHandler> logger, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository)
+            ILogger<GenerateRandomStreamTitleCommandHandler> logger, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
         {
             _openAiApi = openAiApi;
             _gptRepository = gptRepository;
@@ -48,7 +49,7 @@ namespace twitchBot.Handlers
 
                 response = await chat.GetResponseFromChatbotAsync();
 
-                await request.TwitchApi.Helix.Channels.ModifyChannelInformationAsync(request.BotConnection.ChannelId,
+                await TwitchApi.Helix.Channels.ModifyChannelInformationAsync(request.BotConnection.ChannelId,
                     new ModifyChannelInformationRequest()
                     {
                         Title = response

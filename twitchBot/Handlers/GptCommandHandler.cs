@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenAI_API;
 using StackExchange.Redis.Extensions.Core.Abstractions;
@@ -16,7 +17,7 @@ namespace twitchBot.Handlers
         private readonly ILogger<GptCommandHandler> _logger;
         private readonly IGptRepository _gptRepository;
 
-        public GptCommandHandler(IOpenAIAPI openAiApi, ILogger<GptCommandHandler> logger, IRedisClient redisClient, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository)
+        public GptCommandHandler(IOpenAIAPI openAiApi, ILogger<GptCommandHandler> logger, IRedisClient redisClient, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
         {
             _openAiApi = openAiApi;
             _logger = logger;

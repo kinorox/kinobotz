@@ -76,8 +76,8 @@ namespace twitchBot
             {
                 Settings =
                 {
-                    ClientId = _configuration["client_id"],
-                    Secret = _configuration["client_secret"],
+                    ClientId = _configuration["twitch_client_id"],
+                    Secret = _configuration["twitch_client_secret"],
                     AccessToken = botConnection.AccessToken
                 }
             };

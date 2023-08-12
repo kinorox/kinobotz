@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using Entities;
-using twitchBot.Handlers;
-using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
@@ -9,7 +7,7 @@ namespace twitchBot.Commands
 {
     public class GenerateRandomStreamTitleCommand : BaseCommand
     {
-        public GenerateRandomStreamTitleCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection)
+        public GenerateRandomStreamTitleCommand(BotConnection botConnection) : base(botConnection)
         {
         }
 

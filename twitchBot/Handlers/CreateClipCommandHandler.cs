@@ -9,6 +9,7 @@ using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using TwitchLib.Api.Helix.Models.Clips.GetClips;
 using Infrastructure.Repository;
+using Microsoft.Extensions.Configuration;
 
 namespace twitchBot.Handlers
 {
@@ -16,13 +17,13 @@ namespace twitchBot.Handlers
     {
         private bool _queryClip = true;
 
-        public CreateClipCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository)
+        public CreateClipCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
         {
         }
 
         public override async Task<Response> InternalHandle(CreateClipCommand request, CancellationToken cancellationToken)
         {
-            var createClipResponse = await request.TwitchApi.Helix.Clips.CreateClipAsync(request.BotConnection.ChannelId);
+            var createClipResponse = await TwitchApi.Helix.Clips.CreateClipAsync(request.BotConnection.ChannelId);
 
             var createdClip = createClipResponse.CreatedClips.FirstOrDefault();
             
@@ -39,7 +40,7 @@ namespace twitchBot.Handlers
             Clip resultClip = null;
             while (_queryClip && resultClip == null)
             {
-                var response = await request.TwitchApi.Helix.Clips.GetClipsAsync(new List<string>() { createdClip.Id });
+                var response = await TwitchApi.Helix.Clips.GetClipsAsync(new List<string>() { createdClip.Id });
                 resultClip = response.Clips.FirstOrDefault();
             }
 

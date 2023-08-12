@@ -1,7 +1,5 @@
 ﻿using Entities;
 using System.Collections.Generic;
-using twitchBot.Handlers;
-using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
@@ -9,7 +7,7 @@ namespace twitchBot.Commands
 {
     public class UpdateStreamTitleCommmand : BaseCommand
     {
-        public UpdateStreamTitleCommmand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection)
+        public UpdateStreamTitleCommmand(BotConnection botConnection) : base(botConnection)
         {
         }
 

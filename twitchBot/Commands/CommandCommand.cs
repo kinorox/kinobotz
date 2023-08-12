@@ -1,7 +1,6 @@
 ﻿using System;
 using Entities;
 using Entities.Exceptions;
-using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
@@ -9,18 +8,18 @@ namespace twitchBot.Commands
 {
     public class CommandCommand : BaseCommand
     {
-        private readonly string errorMessage = "Please follow the syntax (without the brackets): %command {add/update/delete} {name} {content}";
+        private const string ErrorMessage = "Please follow the syntax (without the brackets): %command {add/update/delete} {name} {content}";
 
         public override string Prefix => Entities.Commands.COMMAND;
 
-        public CommandCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection) { }
+        public CommandCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             Username = chatMessage.Username;
 
             if (string.IsNullOrEmpty(commandContent))
-                throw new InvalidCommandException(errorMessage);
+                throw new InvalidCommandException(ErrorMessage);
 
             if (commandContent[0] == ' ')
                 commandContent = commandContent[1..];
@@ -28,7 +27,7 @@ namespace twitchBot.Commands
             var firstSpace = commandContent.IndexOf(' ');
             
             if (firstSpace < 0 || firstSpace > commandContent.Length)
-                throw new InvalidCommandException(errorMessage); 
+                throw new InvalidCommandException(ErrorMessage); 
 
             Operation = commandContent[..firstSpace]?.ToLower() switch
             {
@@ -41,7 +40,7 @@ namespace twitchBot.Commands
             var secondSpace = commandContent[(firstSpace + 1)..].IndexOf(' ');
 
             if (secondSpace < 0 || secondSpace > commandContent.Length)
-                throw new InvalidCommandException(errorMessage);
+                throw new InvalidCommandException(ErrorMessage);
 
             Name = commandContent[(firstSpace + 1)..][..secondSpace];
             Content = commandContent[(firstSpace + 1)..][(secondSpace + 1)..];
