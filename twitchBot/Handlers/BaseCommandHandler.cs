@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
+using TwitchLib.Api;
+using TwitchLib.Api.Interfaces;
 
 namespace twitchBot.Handlers
 {
@@ -14,16 +17,19 @@ namespace twitchBot.Handlers
     {
         private readonly IRedisClient _redisClient;
         private readonly IBotConnectionRepository _botConnectionRepository;
+        private readonly IConfiguration _configuration;
+        protected ITwitchAPI TwitchApi;
 
         private readonly Dictionary<string, UserAccessLevelEnum> _userAccessLevels = new()
         {
             { "k1notv", UserAccessLevelEnum.Admin }
         };
 
-        protected BaseCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository)
+        protected BaseCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository, IConfiguration configuration)
         {
             _redisClient = redisClient;
             _botConnectionRepository = botConnectionRepository;
+            _configuration = configuration;
         }
 
         public virtual int Cooldown => 0;
@@ -45,6 +51,20 @@ namespace twitchBot.Handlers
                         request.BotConnection = refreshedBotConnection;
                     }
                 }
+                else
+                {
+                    throw new Exception("Bot connection not found.");
+                }
+
+                TwitchApi = new TwitchAPI()
+                {
+                    Settings =
+                    {
+                        ClientId = _configuration["twitch_client_id"],
+                        Secret = _configuration["twitch_client_secret"],
+                        AccessToken = request.BotConnection.AccessToken
+                    }
+                };
 
                 if (!IsCommandEnabled(request, out var commandDisabledResponse)) return commandDisabledResponse;
 

@@ -1,6 +1,5 @@
 ﻿using Entities;
 using Infrastructure.Extensions;
-using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
@@ -8,7 +7,7 @@ namespace twitchBot.Commands
 {
     public class TextToSpeechCommand : BaseCommand
     {
-        public TextToSpeechCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection) { }
+        public TextToSpeechCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override string Prefix => Entities.Commands.TTS;
         public override void Build(ChatMessage chatMessage, string command, string commandContent)

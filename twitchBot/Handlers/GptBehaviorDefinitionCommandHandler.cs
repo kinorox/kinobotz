@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
+using Microsoft.Extensions.Configuration;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 
@@ -11,7 +12,7 @@ namespace twitchBot.Handlers
     {
         private readonly IGptRepository _gptRepository;
 
-        public GptBehaviorDefinitionCommandHandler(IRedisClient redisClient, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository)
+        public GptBehaviorDefinitionCommandHandler(IRedisClient redisClient, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
         {
             _gptRepository = gptRepository;
         }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Entities;
 using Entities.Exceptions;
 using Infrastructure.Repository;
+using Microsoft.Extensions.Configuration;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 
@@ -13,7 +14,7 @@ namespace twitchBot.Handlers
     {
         private readonly ICommandRepository _commandRepository;
 
-        public CommandCommandHandler(ICommandRepository commandRepository, IRedisClient redisClient, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository)
+        public CommandCommandHandler(ICommandRepository commandRepository, IRedisClient redisClient, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
         {
             _commandRepository = commandRepository;
         }

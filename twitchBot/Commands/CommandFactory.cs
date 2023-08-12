@@ -14,17 +14,17 @@ namespace twitchBot.Commands
 
         private Dictionary<string, ICommand> ChatCommands => new()
         {
-            {Entities.Commands.LAST_MESSAGE, new LastMessageCommand(twitchApi, botConnection)},
-            {Entities.Commands.GPT, new GptCommand(twitchApi, botConnection)},
-            {Entities.Commands.NOTIFY, new NotifyCommand(twitchApi, botConnection)},
-            {Entities.Commands.TTS, new TextToSpeechCommand(twitchApi, botConnection)},
-            {Entities.Commands.EXISTING_COMMANDS, new ExistingCommandsCommand(twitchApi, botConnection)},
-            {Entities.Commands.CREATE_CLIP, new CreateClipCommand(twitchApi, botConnection)},
-            {Entities.Commands.COMMAND, new CommandCommand(twitchApi, botConnection)},
-            {Entities.Commands.GPT_BEHAVIOR, new GptBehaviorCommand(twitchApi, botConnection)},
-            {Entities.Commands.GPT_BEHAVIOR_DEFINITION, new GptBehaviorDefinitionCommand(twitchApi, botConnection)},
-            {Entities.Commands.RANDOM_STREAM_TITLE, new GenerateRandomStreamTitleCommand(twitchApi, botConnection)},
-            {Entities.Commands.UPDATE_STREAM_TITLE, new UpdateStreamTitleCommmand(twitchApi, botConnection)}
+            {Entities.Commands.LAST_MESSAGE, new LastMessageCommand(botConnection)},
+            {Entities.Commands.GPT, new GptCommand(botConnection)},
+            {Entities.Commands.NOTIFY, new NotifyCommand(botConnection)},
+            {Entities.Commands.TTS, new TextToSpeechCommand(botConnection)},
+            {Entities.Commands.EXISTING_COMMANDS, new ExistingCommandsCommand(botConnection)},
+            {Entities.Commands.CREATE_CLIP, new CreateClipCommand(botConnection)},
+            {Entities.Commands.COMMAND, new CommandCommand(botConnection)},
+            {Entities.Commands.GPT_BEHAVIOR, new GptBehaviorCommand(botConnection)},
+            {Entities.Commands.GPT_BEHAVIOR_DEFINITION, new GptBehaviorDefinitionCommand(botConnection)},
+            {Entities.Commands.RANDOM_STREAM_TITLE, new GenerateRandomStreamTitleCommand(botConnection)},
+            {Entities.Commands.UPDATE_STREAM_TITLE, new UpdateStreamTitleCommmand(botConnection)}
         };
 
         private Dictionary<string, ICommand> RewardCommands => new()

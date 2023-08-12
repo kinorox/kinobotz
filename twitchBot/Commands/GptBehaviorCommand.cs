@@ -1,5 +1,4 @@
 ﻿using Entities;
-using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
@@ -7,7 +6,7 @@ namespace twitchBot.Commands
 {
     public class GptBehaviorCommand : BaseCommand
     {
-        public GptBehaviorCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection)
+        public GptBehaviorCommand(BotConnection botConnection) : base(botConnection)
         {
         }
 

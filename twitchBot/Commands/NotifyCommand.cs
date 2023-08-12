@@ -1,5 +1,4 @@
 ﻿using Entities;
-using TwitchLib.Api.Interfaces;
 using TwitchLib.Client.Models;
 using TwitchLib.PubSub.Models.Responses.Messages.Redemption;
 
@@ -7,7 +6,7 @@ namespace twitchBot.Commands
 {
     public class NotifyCommand : BaseCommand
     {
-        public NotifyCommand(ITwitchAPI twitchApi, BotConnection botConnection) : base(twitchApi, botConnection) { }
+        public NotifyCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override string Prefix => Entities.Commands.NOTIFY;
 
