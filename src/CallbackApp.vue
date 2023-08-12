@@ -1,5 +1,5 @@
 <script>
-import NavBar from './components/NavBar.vue';
+import LoadingSpinner from './components/LoadingSpinner.vue';
 import router from '@/scripts/router'
 import { mapActions } from 'vuex';
 import Cookies from 'js-cookie';
@@ -7,7 +7,7 @@ import axiosInstance from '@/scripts/axios-instance';
 
 export default {
     name: "CallbackApp",
-    components: { NavBar },
+    components: { LoadingSpinner },
     mounted() {
         var code = this.extractTokenFromUrl();
         
@@ -41,5 +41,5 @@ export default {
 </script>
 
 <template>
-    <NavBar/>
+    <LoadingSpinner/>
 </template>

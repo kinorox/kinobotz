@@ -7,6 +7,19 @@ export default {
 }
 </script>
 
+<style>
+  
+    .container-home {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh; /* Set a minimum height to fill the viewport */
+    }
+
+</style>
+
 <template>
-    <NavBar/>
+    <div class="container-home">
+        <NavBar/>
+    </div>
 </template>

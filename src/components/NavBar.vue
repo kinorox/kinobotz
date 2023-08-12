@@ -26,10 +26,10 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li v-if="userLoggedIn" class="nav-item">
-                    <router-link class="nav-link active btn btn-dark" aria-current="page" to="/gptbehavior">gpt behavior</router-link>
+                    <router-link class="btn btn-dark" aria-current="page" to="/gptbehavior">gpt behavior</router-link>
                 </li>
                 <li v-if="userLoggedIn" class="nav-item">
-                    <router-link class="nav-link active btn btn-dark" aria-current="page" to="/dashboard">dashboard</router-link>
+                    <router-link class="btn btn-dark" aria-current="page" to="/dashboard">dashboard</router-link>
                 </li>
                 <li v-if="userLoggedIn" class="nav-item">
                     <button type="button" class="btn btn-dark" @click="logoff()">logout</button>
