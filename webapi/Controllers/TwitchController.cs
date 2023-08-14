@@ -4,6 +4,7 @@ using Infrastructure.Repository;
 using Infrastructure.Services;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.Users.GetUsers;
+using Microsoft.AspNetCore.Authentication;
 
 namespace webapi.Controllers
 {
@@ -22,6 +23,15 @@ namespace webapi.Controllers
             _jwtService = jwtService;
             _botConnectionRepository = botConnectionRepository;
             _logger = logger;
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            // Sign out the user's authentication session
+            HttpContext.SignOutAsync();
+
+            return Ok(new { message = "Signed out successfully." });
         }
 
         [HttpPost("login")]
