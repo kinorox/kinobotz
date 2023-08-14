@@ -2,6 +2,7 @@
     import TwitchLogin from './TwitchLogin.vue';
     import Cookies from 'js-cookie';
     import router from '@/scripts/router'
+    import axiosInstance from '@/scripts/axios-instance';
 
     export default {  
         components: { TwitchLogin },
@@ -13,8 +14,10 @@
         },
         methods: {
             logoff() {
-                Cookies.remove('jwtToken');
-                router.push('/')
+                axiosInstance.post('/twitch/logout').then(() => {                    
+                    Cookies.remove('jwtToken');
+                    router.push('/')
+                });
             }
         }
     }
