@@ -8,6 +8,8 @@ import 'bootstrap/dist/css/bootstrap.css';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faUserSecret } from '@fortawesome/free-solid-svg-icons'
+import Vue3EasyDataTable from 'vue3-easy-data-table';
+import 'vue3-easy-data-table/dist/style.css';
 
 library.add(faUserSecret)
 
@@ -21,6 +23,7 @@ const connection = new HubConnectionBuilder()
     .build();
 
 createApp(App)
+    .component('EasyDataTable', Vue3EasyDataTable)
     .use(router)
     .use(store)
     .use('font-awesome-icon', FontAwesomeIcon)
