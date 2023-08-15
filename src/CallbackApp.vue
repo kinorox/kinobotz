@@ -4,6 +4,7 @@ import router from '@/scripts/router'
 import { mapActions } from 'vuex';
 import Cookies from 'js-cookie';
 import axiosInstance from '@/scripts/axios-instance';
+import jwtDecode from 'jwt-decode';
 
 export default {
     name: "CallbackApp",
@@ -33,6 +34,8 @@ export default {
         },
         handleSuccessfulAuth(token) {
             Cookies.set('jwtToken', token, { expires: 30 });
+            const decodedToken = jwtDecode(token);
+            Cookies.set('userAccessLevel', decodedToken.AccessLevel, { expires: 30 });
             router.push('/dashboard')
         },
         ...mapActions(['saveJwtToken']),

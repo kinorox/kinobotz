@@ -3,6 +3,7 @@ import OverlayApp from '@/OverlayApp.vue';
 import GptBehaviorApp from '@/GptBehaviorApp.vue';
 import CallbackApp from '@/CallbackApp.vue';
 import DashboardApp from '@/DashboardApp.vue';
+import UsersApp from '@/UsersApp.vue';
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
@@ -10,7 +11,8 @@ const routes = [
     { path: '/overlay/:id', name: 'overlay', component: OverlayApp },
     { path: '/gptbehavior', name: 'gptbehavior', component: GptBehaviorApp },
     { path: '/callback', name: 'callback', component: CallbackApp },
-    { path: '/dashboard', name: 'dashboard', component: DashboardApp }
+    { path: '/dashboard', name: 'dashboard', component: DashboardApp },
+    { path: '/users', name: 'users', component: UsersApp }
 ];
 
 const router = createRouter({

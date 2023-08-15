@@ -11,6 +11,9 @@
             userLoggedIn() {
                 return Cookies.get('jwtToken');
             },
+            isAdmin() {
+                return Cookies.get('userAccessLevel') === 'Admin';
+            },
         },
         methods: {
             logoff() {
@@ -33,6 +36,9 @@
                 </li>
                 <li v-if="userLoggedIn" class="nav-item">
                     <router-link class="btn btn-dark" aria-current="page" to="/dashboard">dashboard</router-link>
+                </li>
+                <li v-if="isAdmin" class="nav-item">
+                    <router-link class="btn btn-dark" aria-current="page" to="/users">users</router-link>
                 </li>
                 <li v-if="userLoggedIn" class="nav-item">
                     <button type="button" class="btn btn-dark" @click="logoff()">logout</button>
