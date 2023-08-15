@@ -27,6 +27,7 @@ export default {
             <li class="list-group-item"><a href="https://github.com/kinorox" target=”_blank”><font-awesome-icon :icon="['fab', 'github']" class="icon alt"/></a></li>
             <li class="list-group-item"><a href="https://www.instagram.com/k1notv/" target=”_blank”><font-awesome-icon :icon="['fab', 'instagram']" class="icon alt"/></a></li>
             <li class="list-group-item"><a href="https://discord.gg/YdwQutt" target=”_blank”><font-awesome-icon :icon="['fab', 'discord']" class="icon alt"/></a></li>
+            <li class="list-group-item"><a href="https://www.tiktok.com/@ttvk1notv" target=”_blank”><font-awesome-icon :icon="['fab', 'tiktok']" class="icon alt"/></a></li>
         </ul>
         <br>
         contatok1notv@gmail.com
