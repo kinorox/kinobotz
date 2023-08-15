@@ -33,5 +33,6 @@ namespace Entities
 
         public string ProfileImageUrl { get; set; }
         public string Email { get; set; }
+        public UserAccessLevelEnum AccessLevel { get; set; } = UserAccessLevelEnum.Default;
     }
 }

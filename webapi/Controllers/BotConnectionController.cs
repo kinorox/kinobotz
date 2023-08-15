@@ -25,6 +25,13 @@ public class BotConnectionController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ICollection<BotConnectionDto>>> Get()
     {
+        var claimsPrincipal = HttpContext.User;
+
+        var accessLevel = claimsPrincipal.FindFirstValue("AccessLevel");
+
+        if (accessLevel != UserAccessLevelEnum.Admin.ToString())
+            return Unauthorized();
+
         var botConnections = await _botConnectionRepository.GetAll();
 
         if (!botConnections.Any())
