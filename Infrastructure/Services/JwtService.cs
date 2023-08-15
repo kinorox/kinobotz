@@ -27,7 +27,8 @@ namespace Infrastructure.Services
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Login)
+                new Claim(ClaimTypes.Name, user.Login),
+                new Claim("AccessLevel", user.AccessLevel.ToString())
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor

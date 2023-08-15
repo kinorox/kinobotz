@@ -6,6 +6,7 @@ using Entities;
 using Infrastructure.Repository;
 using MediatR;
 using Microsoft.Extensions.Configuration;
+using StackExchange.Redis;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using TwitchLib.Api;
@@ -90,7 +91,8 @@ namespace twitchBot.Handlers
                         timeNow);
                     await _redisClient.Db0.AddAsync(
                         $"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}", timeNow);
-
+                    _redisClient.Db0.Database.StringIncrement(new RedisKey($"{request.Prefix}:counter"));
+                    _redisClient.Db0.Database.StringIncrement(new RedisKey($"{request.Prefix}:{request.BotConnection.Id}:counter"));
                     return response;
                 }
 
