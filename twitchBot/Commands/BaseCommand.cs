@@ -24,7 +24,8 @@ namespace twitchBot.Commands
             UserAccessLevelEnum.Admin,
             UserAccessLevelEnum.Broadcaster,
             UserAccessLevelEnum.Moderator,
-            UserAccessLevelEnum.Subscriber
+            UserAccessLevelEnum.Subscriber,
+            UserAccessLevelEnum.Vip
         };
     }
 }
