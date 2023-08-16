@@ -37,7 +37,7 @@
                 <li v-if="userLoggedIn" class="nav-item">
                     <router-link class="btn btn-dark" aria-current="page" to="/dashboard">dashboard</router-link>
                 </li>
-                <li v-if="isAdmin" class="nav-item">
+                <li v-if="userLoggedIn && isAdmin" class="nav-item">
                     <router-link class="btn btn-dark" aria-current="page" to="/users">users</router-link>
                 </li>
                 <li v-if="userLoggedIn" class="nav-item">
