@@ -128,7 +128,7 @@ namespace twitchBot.Handlers
                 Message = "You don't have access to this command."
             };
 
-            accessLevel = UserAccessLevelEnum.Default;
+            accessLevel = request.UserAccessLevel;
 
             if (_userAccessLevels.ContainsKey(request.Username.ToLower()))
             {
