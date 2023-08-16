@@ -43,6 +43,9 @@ namespace twitchBot
         {
             var botConnections = await _botConnectionRepository.GetAll();
 
+            //TODO remove - only for testing
+            //botConnections = botConnections.Where(b => b.Login == "kinobotz").ToList();
+
             foreach (var botConnection in botConnections.Where(b => b.Active.HasValue && b.Active.Value))
             {
                 try

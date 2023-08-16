@@ -9,22 +9,23 @@ namespace twitchBot.Commands
 {
     public class CommandFactory : ICommandFactory
     {
-        private ITwitchAPI twitchApi;
-        private BotConnection botConnection;
+        private BotConnection _botConnection;
 
-        private Dictionary<string, ICommand> ChatCommands => new()
+        private Dictionary<string, BaseCommand> ChatCommands => new()
         {
-            {Entities.Commands.LAST_MESSAGE, new LastMessageCommand(botConnection)},
-            {Entities.Commands.GPT, new GptCommand(botConnection)},
-            {Entities.Commands.NOTIFY, new NotifyCommand(botConnection)},
-            {Entities.Commands.TTS, new TextToSpeechCommand(botConnection)},
-            {Entities.Commands.EXISTING_COMMANDS, new ExistingCommandsCommand(botConnection)},
-            {Entities.Commands.CREATE_CLIP, new CreateClipCommand(botConnection)},
-            {Entities.Commands.COMMAND, new CommandCommand(botConnection)},
-            {Entities.Commands.GPT_BEHAVIOR, new GptBehaviorCommand(botConnection)},
-            {Entities.Commands.GPT_BEHAVIOR_DEFINITION, new GptBehaviorDefinitionCommand(botConnection)},
-            {Entities.Commands.RANDOM_STREAM_TITLE, new GenerateRandomStreamTitleCommand(botConnection)},
-            {Entities.Commands.UPDATE_STREAM_TITLE, new UpdateStreamTitleCommmand(botConnection)}
+            {Entities.Commands.LAST_MESSAGE, new LastMessageCommand(_botConnection)},
+            {Entities.Commands.GPT, new GptCommand(_botConnection)},
+            {Entities.Commands.NOTIFY, new NotifyCommand(_botConnection)},
+            {Entities.Commands.TTS, new TextToSpeechCommand(_botConnection)},
+            {Entities.Commands.EXISTING_COMMANDS, new ExistingCommandsCommand(_botConnection)},
+            {Entities.Commands.CREATE_CLIP, new CreateClipCommand(_botConnection)},
+            {Entities.Commands.COMMAND, new CommandCommand(_botConnection)},
+            {Entities.Commands.GPT_BEHAVIOR, new GptBehaviorCommand(_botConnection)},
+            {Entities.Commands.GPT_BEHAVIOR_DEFINITION, new GptBehaviorDefinitionCommand(_botConnection)},
+            {Entities.Commands.RANDOM_STREAM_TITLE, new GenerateRandomStreamTitleCommand(_botConnection)},
+            {Entities.Commands.UPDATE_STREAM_TITLE, new UpdateStreamTitleCommmand(_botConnection)},
+            {Entities.Commands.ENABLE, new EnableCommand(_botConnection)},
+            {Entities.Commands.DISABLE, new DisableCommand(_botConnection)}
         };
 
         private Dictionary<string, ICommand> RewardCommands => new()
@@ -33,8 +34,7 @@ namespace twitchBot.Commands
 
         public void Setup(ITwitchAPI twitchApi, BotConnection botConnection)
         {
-            this.twitchApi = twitchApi;
-            this.botConnection = botConnection;
+            _botConnection = botConnection;
         }
 
         public ICommand Build(ChatMessage chatMessage)
@@ -71,8 +71,29 @@ namespace twitchBot.Commands
 
             if (!ChatCommands.TryGetValue(commandPrefix, out var command)) return null;
             command.Build(chatMessage, commandPrefix, message.Split($"%{commandPrefix}")[1]);
-            return command;
 
+            if (chatMessage.IsModerator)
+            {
+                command.UserAccessLevel = UserAccessLevelEnum.Moderator;
+            }
+            else if (chatMessage.IsBroadcaster)
+            {
+                command.UserAccessLevel = UserAccessLevelEnum.Broadcaster;
+            } 
+            else if (chatMessage.IsSubscriber)
+            {
+                command.UserAccessLevel = UserAccessLevelEnum.Subscriber;
+            } 
+            else if (chatMessage.IsVip)
+            {
+                command.UserAccessLevel = UserAccessLevelEnum.Vip;
+            } 
+            else
+            {
+                command.UserAccessLevel = UserAccessLevelEnum.Default;
+            }
+
+            return command;
         }
 
         public ICommand Build(RewardRedeemed rewardRedeemed)
