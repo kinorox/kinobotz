@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
@@ -49,16 +50,29 @@ namespace twitchBot.Handlers
 
                     if (refreshedBotConnection != null)
                     {
-                        var commandsAdded = false;
+                        var commandsAddedOrRemoved = false;
                         foreach (var keyValuePair in Entities.Commands.DefaultCommands)
                         {
                             var added = refreshedBotConnection.Commands.TryAdd(keyValuePair.Key, keyValuePair.Value);
-                            if(added) commandsAdded = true;
+                            if (added)
+                            {
+                                commandsAddedOrRemoved = true;
+                            }
+                        }
+
+                        //remove entries from refreshBotConnection.Commands that have keys with whitespaces
+                        //usefull to clean bad commands
+                        var keysWithWhitespaces = refreshedBotConnection.Commands.Keys.Where(x => x.Contains(" ")).ToList();
+
+                        foreach (var key in keysWithWhitespaces)
+                        {
+                            refreshedBotConnection.Commands.Remove(key);
+                            commandsAddedOrRemoved = true;
                         }
 
                         request.BotConnection = refreshedBotConnection;
 
-                        if(commandsAdded)
+                        if(commandsAddedOrRemoved)
                             await BotConnectionRepository.SaveOrUpdate(request.BotConnection);
                     }
                 }

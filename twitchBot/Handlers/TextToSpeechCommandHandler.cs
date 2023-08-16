@@ -46,6 +46,7 @@ namespace twitchBot.Handlers
             {
                 return new Response()
                 {
+                    WasExecuted = false,
                     Message = "3000 characters limit exceeded. Wait 24 hours to use the TTS again."
                 };
             }
@@ -61,6 +62,7 @@ namespace twitchBot.Handlers
                 {
                     return new Response()
                     {
+                        WasExecuted = false,
                         Message = "No available voices."
                     };
                 }
@@ -71,6 +73,7 @@ namespace twitchBot.Handlers
                 {
                     return new Response()
                     {
+                        WasExecuted = false,
                         Message = $"Wrong voice/syntax. Correct syntax: '<voiceName>: <message>'. Available voices: {string.Join(", ", allVoices.Where(v => string.Equals(v.Category, "cloned")).Select(v => v.Name))}."
                     };
                 }
