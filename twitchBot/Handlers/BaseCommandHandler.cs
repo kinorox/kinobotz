@@ -17,7 +17,7 @@ namespace twitchBot.Handlers
     public abstract class BaseCommandHandler<T> : IRequestHandler<T, Response> where T : BaseCommand
     {
         private readonly IRedisClient _redisClient;
-        private readonly IBotConnectionRepository _botConnectionRepository;
+        protected readonly IBotConnectionRepository BotConnectionRepository;
         private readonly IConfiguration _configuration;
         protected ITwitchAPI TwitchApi;
 
@@ -29,7 +29,7 @@ namespace twitchBot.Handlers
         protected BaseCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository, IConfiguration configuration)
         {
             _redisClient = redisClient;
-            _botConnectionRepository = botConnectionRepository;
+            BotConnectionRepository = botConnectionRepository;
             _configuration = configuration;
         }
 
@@ -45,11 +45,21 @@ namespace twitchBot.Handlers
             {
                 if (request.BotConnection != null)
                 {
-                    var refreshedBotConnection = await _botConnectionRepository.Get(request.BotConnection.Id.ToString(), request.BotConnection.ChannelId, request.BotConnection.Login);
+                    var refreshedBotConnection = await BotConnectionRepository.Get(request.BotConnection.Id.ToString(), request.BotConnection.ChannelId, request.BotConnection.Login);
 
                     if (refreshedBotConnection != null)
                     {
+                        var commandsAdded = false;
+                        foreach (var keyValuePair in Entities.Commands.DefaultCommands)
+                        {
+                            var added = refreshedBotConnection.Commands.TryAdd(keyValuePair.Key, keyValuePair.Value);
+                            if(added) commandsAdded = true;
+                        }
+
                         request.BotConnection = refreshedBotConnection;
+
+                        if(commandsAdded)
+                            await BotConnectionRepository.SaveOrUpdate(request.BotConnection);
                     }
                 }
                 else

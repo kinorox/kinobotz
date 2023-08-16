@@ -17,6 +17,7 @@ namespace twitchBot.Commands
         public abstract void Build(RewardRedeemed rewardRedeemed);
         public BotConnection BotConnection { get; set; }
         public string Username { get; set; }
+        public UserAccessLevelEnum UserAccessLevel { get; set; }
         public virtual List<UserAccessLevelEnum> AccessLevels { get; } = new()
         {
             UserAccessLevelEnum.Default,

@@ -6,6 +6,7 @@
         Subscriber,
         Moderator,
         Broadcaster,
-        Admin
+        Admin,
+        Vip
     }
 }
