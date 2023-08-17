@@ -87,7 +87,7 @@ namespace twitchBot
                 try
                 {
                     //refreshing token in case it has expired
-                    var response = _twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, _configuration["client_secret"], _configuration["client_id"]).Result;
+                    var response = _twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, _configuration["twitch_client_secret"], _configuration["twitch_client_id"]).Result;
                     _twitchApi.Settings.AccessToken = response.AccessToken;
                     _botConnection.AccessToken = response.AccessToken;
                     _botConnection.RefreshToken = response.RefreshToken;
@@ -304,7 +304,7 @@ namespace twitchBot
 
                 _botConnection = await _botConnectionRepository.GetById(_botConnection.Id.ToString());
 
-                var response = _twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, _configuration["client_secret"], _configuration["client_id"]).Result;
+                var response = _twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, _configuration["twitch_client_secret"], _configuration["twitch_client_id"]).Result;
 
                 _twitchApi.Settings.AccessToken = response.AccessToken;
 

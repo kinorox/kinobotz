@@ -10,6 +10,7 @@ namespace twitchBot.Commands
         public EnableCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override string Prefix => Entities.Commands.ENABLE;
+        public override string Syntax => $"%{Prefix} <commandName>";
 
         public string Command { get; set; }
 

@@ -12,11 +12,11 @@ namespace twitchBot.Handlers
 {
     public class CommandCommandHandler : BaseCommandHandler<CommandCommand>
     {
-        private readonly ICommandRepository _commandRepository;
+        private readonly ICustomCommandRepository _customCommandRepository;
 
-        public CommandCommandHandler(ICommandRepository commandRepository, IRedisClient redisClient, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
+        public CommandCommandHandler(ICustomCommandRepository customCommandRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
         {
-            _commandRepository = commandRepository;
+            _customCommandRepository = customCommandRepository;
         }
 
         public override async Task<Response> InternalHandle(CommandCommand request, CancellationToken cancellationToken)
@@ -27,11 +27,11 @@ namespace twitchBot.Handlers
             {
                 case OperationEnum.Add:
                 case OperationEnum.Update:
-                    await _commandRepository.CreateOrUpdate(request.BotConnection.Id, request.Name, request.Content);
+                    await _customCommandRepository.CreateOrUpdate(request.BotConnection.Id, request.Name, request.Content);
                     responseMessage = $"Command {request.Name} {(request.Operation == OperationEnum.Add ? "added" : "updated")}";
                     break;
                 case OperationEnum.Delete:
-                    await _commandRepository.Delete(request.BotConnection.Id, request.Name);
+                    await _customCommandRepository.Delete(request.BotConnection.Id, request.Name);
                     responseMessage = $"Command {request.Name} deleted";
                     break;
                 default:

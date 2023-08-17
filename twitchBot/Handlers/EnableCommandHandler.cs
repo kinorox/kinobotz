@@ -10,8 +10,7 @@ namespace twitchBot.Handlers
 {
     public class EnableCommandHandler : BaseCommandHandler<EnableCommand>
     {
-        public EnableCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository,
-            IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
+        public EnableCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
         {
         }
 

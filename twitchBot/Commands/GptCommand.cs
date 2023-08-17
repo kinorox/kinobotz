@@ -9,6 +9,7 @@ namespace twitchBot.Commands
         public GptCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override string Prefix => Entities.Commands.GPT;
+        public override string Syntax => $"%{Prefix} or mention @kinobotz";
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             Message = commandContent; 

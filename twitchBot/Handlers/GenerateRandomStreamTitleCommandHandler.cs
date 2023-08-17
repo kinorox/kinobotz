@@ -6,7 +6,6 @@ using Infrastructure.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenAI_API;
-using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using TwitchLib.Api.Helix.Models.Channels.ModifyChannelInformation;
 
@@ -18,10 +17,12 @@ namespace twitchBot.Handlers
         private readonly ILogger<GenerateRandomStreamTitleCommandHandler> _logger;
         private readonly IGptRepository _gptRepository;
 
-        public GenerateRandomStreamTitleCommandHandler(IRedisClient redisClient,
-            IOpenAIAPI openAiApi,
+        public GenerateRandomStreamTitleCommandHandler(IOpenAIAPI openAiApi,
             IGptRepository gptRepository,
-            ILogger<GenerateRandomStreamTitleCommandHandler> logger, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
+            ILogger<GenerateRandomStreamTitleCommandHandler> logger,
+            IBotConnectionRepository botConnectionRepository,
+            IConfiguration configuration,
+            ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
         {
             _openAiApi = openAiApi;
             _gptRepository = gptRepository;

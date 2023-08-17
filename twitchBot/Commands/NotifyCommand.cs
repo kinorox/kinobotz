@@ -9,6 +9,7 @@ namespace twitchBot.Commands
         public NotifyCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override string Prefix => Entities.Commands.NOTIFY;
+        public override string Syntax => $"%{Prefix}";
 
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {

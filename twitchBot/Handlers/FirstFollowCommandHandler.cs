@@ -15,9 +15,9 @@ namespace twitchBot.Handlers
     {
         private readonly IRedisClient _redisClient;
 
-        public FirstFollowCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
+        public FirstFollowCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
         {
-            this._redisClient = redisClient;
+            _redisClient = redisClient;
         }
 
         public override async Task<Response> InternalHandle(FirstFollowCommand request, CancellationToken cancellationToken)

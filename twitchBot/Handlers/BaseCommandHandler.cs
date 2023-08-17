@@ -7,8 +7,6 @@ using Entities;
 using Infrastructure.Repository;
 using MediatR;
 using Microsoft.Extensions.Configuration;
-using StackExchange.Redis;
-using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using TwitchLib.Api;
 using TwitchLib.Api.Interfaces;
@@ -17,7 +15,7 @@ namespace twitchBot.Handlers
 {
     public abstract class BaseCommandHandler<T> : IRequestHandler<T, Response> where T : BaseCommand
     {
-        private readonly IRedisClient _redisClient;
+        protected readonly ICommandRepository CommandRepository;
         protected readonly IBotConnectionRepository BotConnectionRepository;
         private readonly IConfiguration _configuration;
         protected ITwitchAPI TwitchApi;
@@ -27,11 +25,11 @@ namespace twitchBot.Handlers
             { "k1notv", UserAccessLevelEnum.Admin }
         };
 
-        protected BaseCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository, IConfiguration configuration)
+        protected BaseCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository)
         {
-            _redisClient = redisClient;
             BotConnectionRepository = botConnectionRepository;
             _configuration = configuration;
+            CommandRepository = commandRepository;
         }
 
         public virtual int Cooldown => 0;
@@ -53,7 +51,7 @@ namespace twitchBot.Handlers
                         var commandsAddedOrRemoved = false;
                         foreach (var keyValuePair in Entities.Commands.DefaultCommands)
                         {
-                            var added = refreshedBotConnection.Commands.TryAdd(keyValuePair.Key, keyValuePair.Value);
+                            var added = refreshedBotConnection.Commands.TryAdd(keyValuePair.Prefix, keyValuePair.Enabled);
                             if (added)
                             {
                                 commandsAddedOrRemoved = true;
@@ -97,26 +95,19 @@ namespace twitchBot.Handlers
                     return accessDeniedResponse;
 
                 var lastExecutionTime = GlobalCooldown
-                    ? await _redisClient.Db0.GetAsync<DateTime>(
-                        $"{request.BotConnection.Id}:{request.Prefix}:lastexecution")
-                    : await _redisClient.Db0.GetAsync<DateTime>(
-                        $"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}");
+                    ? await CommandRepository.GetLastExecutionTime(request.BotConnection.Id, request.Prefix)
+                    : await CommandRepository.GetLastExecutionTime(request.BotConnection.Id, request.Prefix, request.Username);
 
-                if (lastExecutionTime.AddMinutes(Cooldown) <= DateTime.UtcNow ||
-                    accessLevel == UserAccessLevelEnum.Admin)
+                if (lastExecutionTime.AddMinutes(Cooldown) <= DateTime.UtcNow || accessLevel == UserAccessLevelEnum.Admin)
                 {
                     var response = await InternalHandle(request, cancellationToken);
 
                     if (!response.WasExecuted) return response;
+                    
+                    await CommandRepository.SetLastExecutionTime(request.BotConnection.Id, request.Prefix, request.Username, DateTime.UtcNow);
+                    
+                    CommandRepository.IncrementExecutionCounter(request.BotConnection.Id, request.Prefix);
 
-                    var timeNow = DateTime.UtcNow;
-
-                    await _redisClient.Db0.AddAsync($"{request.BotConnection.Id}:{request.Prefix}:lastexecution",
-                        timeNow);
-                    await _redisClient.Db0.AddAsync(
-                        $"{request.BotConnection.Id}:{request.Prefix}:lastexecution:{request.Username}", timeNow);
-                    _redisClient.Db0.Database.StringIncrement(new RedisKey($"{request.Prefix}:counter"));
-                    _redisClient.Db0.Database.StringIncrement(new RedisKey($"{request.Prefix}:{request.BotConnection.Id}:counter"));
                     return response;
                 }
 
@@ -124,8 +115,7 @@ namespace twitchBot.Handlers
 
                 return new Response()
                 {
-                    Message =
-                        $"Wait {(difference.Minutes == 0 ? difference.Seconds + "s" : difference.Minutes + "min")} to execute this command again."
+                    Message = $"Wait {(difference.Minutes == 0 ? difference.Seconds + "s" : difference.Minutes + "min")} to execute this command again."
                 };
             }
             catch (Exception e)

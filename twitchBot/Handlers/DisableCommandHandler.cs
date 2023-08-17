@@ -3,15 +3,13 @@ using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
 using Microsoft.Extensions.Configuration;
-using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 
 namespace twitchBot.Handlers
 {
     public class DisableCommandHandler : BaseCommandHandler<DisableCommand>
     {
-        public DisableCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository,
-            IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
+        public DisableCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
         {
         }
 

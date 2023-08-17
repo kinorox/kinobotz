@@ -5,7 +5,6 @@ using Entities;
 using Infrastructure.Repository;
 using MediatR;
 using Microsoft.Extensions.Configuration;
-using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 
 namespace twitchBot.Handlers
@@ -15,7 +14,7 @@ namespace twitchBot.Handlers
         private readonly IMediator _mediator;
         private readonly IGptRepository _gptRepository;
 
-        public GptBehaviorCommandHandler(IRedisClient redisClient, IMediator mediator, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
+        public GptBehaviorCommandHandler(IMediator mediator, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
         {
             _mediator = mediator;
             _gptRepository = gptRepository;

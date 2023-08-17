@@ -14,6 +14,7 @@ namespace twitchBot.Commands
         public string Channel { get; set; }
 
         public override string Prefix => Entities.Commands.GPT_BEHAVIOR;
+        public override string Syntax => $"%{Prefix} <behaviorInstructions>";
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             Behavior = commandContent;

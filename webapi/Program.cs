@@ -47,6 +47,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddHttpClient();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<IBotConnectionRepository, BotConnectionRepository>();
+builder.Services.AddScoped<ICommandRepository, CommandRepository>();
 builder.Services.AddControllers(options =>
 {
     options.InputFormatters.Add(new ByteArrayInputFormatter());

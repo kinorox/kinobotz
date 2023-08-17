@@ -10,6 +10,7 @@ namespace twitchBot.Commands
         public DisableCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override string Prefix => Entities.Commands.DISABLE;
+        public override string Syntax => $"%{Prefix} <commandName>";
 
         public string Command { get; set; }
 

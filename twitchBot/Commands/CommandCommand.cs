@@ -11,7 +11,7 @@ namespace twitchBot.Commands
         private const string ErrorMessage = "Please follow the syntax (without the brackets): %command {add/update/delete} {name} {content}";
 
         public override string Prefix => Entities.Commands.COMMAND;
-
+        public override string Syntax => "%command <add/update/delete> <commandName> <content>";
         public CommandCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
@@ -34,7 +34,7 @@ namespace twitchBot.Commands
                 "add" => OperationEnum.Add,
                 "update" => OperationEnum.Update,
                 "delete" => OperationEnum.Delete,
-                _ => throw new InvalidCommandOperationException("Available operations: add, update, delete. Syntax: %command <add/update/delete> <commandName> <content>")
+                _ => throw new InvalidCommandOperationException($"Available operations: add, update, delete. Syntax: {Syntax}")
             };
 
             var secondSpace = commandContent[(firstSpace + 1)..].IndexOf(' ');
