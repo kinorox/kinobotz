@@ -13,6 +13,7 @@ namespace twitchBot.Commands
         }
         
         public abstract string Prefix { get; }
+        public abstract string Syntax { get; }
         public abstract void Build(ChatMessage chatMessage, string command, string commandContent);
         public abstract void Build(RewardRedeemed rewardRedeemed);
         public BotConnection BotConnection { get; set; }

@@ -12,7 +12,8 @@ namespace twitchBot.Commands
         }
 
         public override string Prefix => Entities.Commands.RANDOM_STREAM_TITLE;
-        
+        public override string Syntax => $"%{Prefix}";
+
         public override List<UserAccessLevelEnum> AccessLevels { get; } = new()
         {
             UserAccessLevelEnum.Broadcaster,

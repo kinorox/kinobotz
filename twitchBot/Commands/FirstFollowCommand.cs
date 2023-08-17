@@ -9,6 +9,7 @@ namespace twitchBot.Commands
         public FirstFollowCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override string Prefix => Entities.Commands.FIRST_FOLLOW;
+        public override string Syntax => $"%{Prefix}";
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             Username = chatMessage.Username;

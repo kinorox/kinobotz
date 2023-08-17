@@ -18,6 +18,8 @@ namespace twitchBot.Commands
             UserAccessLevelEnum.Admin
         };
 
+        public override string Syntax => $"%{Prefix} <title>";
+
         public override string Prefix => Entities.Commands.UPDATE_STREAM_TITLE;
         
         public string Title { get; set; }

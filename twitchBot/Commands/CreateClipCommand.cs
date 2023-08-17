@@ -9,6 +9,8 @@ namespace twitchBot.Commands
         public CreateClipCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override string Prefix => Entities.Commands.CREATE_CLIP;
+        public override string Syntax => "%clip";
+
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             Username = chatMessage.Username;

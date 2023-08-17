@@ -9,6 +9,7 @@ namespace twitchBot.Commands
         public LastMessageCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override string Prefix => Entities.Commands.LAST_MESSAGE;
+        public override string Syntax => $"%{Prefix} <username>";
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             TargetUsername = commandContent.Trim();

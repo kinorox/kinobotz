@@ -10,6 +10,7 @@ namespace twitchBot.Commands
         public TextToSpeechCommand(BotConnection botConnection) : base(botConnection) { }
 
         public override string Prefix => Entities.Commands.TTS;
+        public override string Syntax => $"%{Prefix} <voiceName>: <message>";
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             Voice = commandContent.GetUntilOrEmpty(":").Trim().ToLower();

@@ -12,6 +12,7 @@ namespace twitchBot.Commands
         }
 
         public override string Prefix => Entities.Commands.GPT_BEHAVIOR_DEFINITION;
+        public override string Syntax => $"%{Prefix}";
         public override void Build(ChatMessage chatMessage, string command, string commandContent)
         {
             Username = chatMessage.Username;

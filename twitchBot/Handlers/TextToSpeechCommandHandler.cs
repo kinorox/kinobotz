@@ -27,7 +27,7 @@ namespace twitchBot.Handlers
         private readonly IConfiguration _configuration;
         private readonly IKinobotzService _kinobotzService;
 
-        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService, IBotConnectionRepository botConnectionRepository) : base(redisClient, botConnectionRepository, configuration)
+        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService, IBotConnectionRepository botConnectionRepository, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
         {
             _elevenLabsClient = elevenLabsClient;
             _redisClient = redisClient;

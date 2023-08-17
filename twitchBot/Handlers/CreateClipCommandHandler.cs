@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Entities;
-using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 using TwitchLib.Api.Helix.Models.Clips.GetClips;
 using Infrastructure.Repository;
@@ -17,7 +16,7 @@ namespace twitchBot.Handlers
     {
         private bool _queryClip = true;
 
-        public CreateClipCommandHandler(IRedisClient redisClient, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(redisClient, botConnectionRepository, configuration)
+        public CreateClipCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
         {
         }
 
