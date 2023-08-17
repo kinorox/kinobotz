@@ -61,3 +61,9 @@ body {
     color: #6441A5 !important; 
     background-color: #FFFFFF !important; 
   }
+
+  .router-link-exact-active {
+    color: #fff !important;
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+  }
