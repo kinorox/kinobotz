@@ -2,11 +2,9 @@
 {
     public class BotConnectionDto
     {
-        public Guid Id { get; set; }
         public string? Login { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public string ProfileImageUrl { get; set; }
         public bool? Active { get; set; }
         public string? DiscordClipsWebhookUrl { get; set; }
         public string? DiscordTtsWebhookUrl { get; set; }
