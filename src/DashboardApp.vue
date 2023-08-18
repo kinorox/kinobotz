@@ -122,7 +122,7 @@ export default {
             <div v-if="getFieldType(key) == 'password'" class="d-inline-flex p-2 form-control justify-content-between">
                 <input :id="key" class="form-control" :type="showPassword[key] ? 'text' : 'password'" v-model="formData[key]">
                 <button class="btn btn-outline-secondary" type="button" @click="toggleShowPassword(key)">{{ showPassword[key] ? 'Hide' : 'Show' }}</button>
-                <button class="btn btn-outline-secondary" type="button" @click="copyPassword('overlayId')">Copy</button>
+                <button class="btn btn-outline-secondary" type="button" @click="copyPassword(key)">Copy</button>
             </div>
             <div v-else-if="isObject(value)">
                 <div v-for="(innerValue, innerKey) in value" :key="innerKey" class="mb-2">
