@@ -14,6 +14,9 @@
             isAdmin() {
                 return Cookies.get('userAccessLevel') === 'Admin';
             },
+            profilePic() {
+                return Cookies.get('ProfileImageUrl');
+            },
         },
         methods: {
             logoff() {
@@ -33,10 +36,7 @@
             <TwitchLogin/>
         </div>
         <div v-else class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <router-link class="btn btn-dark" aria-current="page" to="/dashboard" exact>dashboard</router-link>
-                </li>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex">
                 <li class="nav-item">
                     <router-link class="btn btn-dark" aria-current="page" to="/gptbehavior" exact>gpt behavior</router-link>
                 </li>
@@ -49,8 +49,14 @@
                 <li v-if="isAdmin" class="nav-item">
                     <router-link class="btn btn-dark" aria-current="page" to="/stats" exact>stats</router-link>
                 </li>
-                <li class="nav-item">
-                    <button type="button" class="btn btn-dark" @click="logoff()">logout</button>
+                <li class="nav-item dropdown ml-auto">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-bs-toggle="dropdown" data-bs-target="#navbarDropdown" aria-haspopup="true" aria-expanded="false">
+                        <img :src="profilePic" width="30" height="30" class="d-inline-block align-top" alt="">
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <router-link class="dropdown-item" aria-current="page" to="/dashboard" exact>dashboard</router-link>
+                        <a class="dropdown-item" href="#" @click="logoff()">logout</a>
+                    </div>
                 </li>
             </ul>
         </div>

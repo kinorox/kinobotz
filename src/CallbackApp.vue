@@ -36,6 +36,7 @@ export default {
             Cookies.set('jwtToken', token, { expires: 30 });
             const decodedToken = jwtDecode(token);
             Cookies.set('userAccessLevel', decodedToken.AccessLevel, { expires: 30 });
+            Cookies.set('ProfileImageUrl', decodedToken.ProfileImageUrl, { expires: 30 });
             router.push('/dashboard')
         },
         ...mapActions(['saveJwtToken']),
