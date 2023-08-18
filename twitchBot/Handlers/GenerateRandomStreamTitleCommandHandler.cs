@@ -31,7 +31,7 @@ namespace twitchBot.Handlers
 
         public override async Task<Response> InternalHandle(GenerateRandomStreamTitleCommand request, CancellationToken cancellationToken)
         {
-            string response;
+            string response = string.Empty;
 
             try
             {
@@ -44,10 +44,10 @@ namespace twitchBot.Handlers
                     chat.AppendSystemMessage(behavior);
                 }
 
-                chat.AppendSystemMessage("Sua resposta deve ter entre 1 e 10 palavras, além de 1 emoji aleatório.");
+                chat.AppendSystemMessage("Sua resposta deve ter entre 1 e 5 palavras NO MÁXIMO. Pode usar um emoji aleatório.");
 
                 chat.AppendUserInputWithName(request.Username, "Me dê um título aleatório para a minha stream, sem utilizar áspas.");
-
+                
                 response = await chat.GetResponseFromChatbotAsync();
 
                 await TwitchApi.Helix.Channels.ModifyChannelInformationAsync(request.BotConnection.ChannelId,
