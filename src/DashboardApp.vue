@@ -10,7 +10,7 @@ export default {
             formData: null, 
             showAlert: false,
             overlay: null,
-            showPassword: false
+            showPassword: []
         };
     },
     name: "DashboardApp",
@@ -55,6 +55,8 @@ export default {
                 return 'email';
             } else if (key === 'active') {
                 return 'checkbox';
+            } else if (key === 'discordClipsWebhookUrl' || key === 'discordTtsWebhookUrl' ) {
+                return 'password';
             }
             
             return 'text';
@@ -86,8 +88,8 @@ export default {
         isObject(value) {
             return typeof value === 'object' && value !== null && !Array.isArray(value);
         },
-        toggleShowPassword() {
-            this.showPassword = !this.showPassword;
+        toggleShowPassword(key) {
+            this.showPassword[key] = !this.showPassword[key];
         },
         copyPassword(key) {
             const passwordInput = document.getElementById(key);
@@ -107,27 +109,22 @@ export default {
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     <div class="mb-3 form-group">
-        <label for="overlayId" class="form-label">Overlay</label>
+        <label for="overlayId" class="form-label">Overlay <i>(add this as a Browser Source on OBS)</i></label>
         <div class="d-inline-flex p-2 form-control justify-content-between">
-            <input id="overlayId" class="form-control" :type="showPassword ? 'text' : 'password'" v-model="overlay" readonly disabled>
-            <button class="btn btn-outline-secondary" type="button" @click="toggleShowPassword">{{ showPassword ? 'Hide' : 'Show' }}</button>
+            <input id="overlayId" class="form-control" :type="showPassword['overlayId'] ? 'text' : 'password'" v-model="overlay" readonly disabled>
+            <button class="btn btn-outline-secondary" type="button" @click="toggleShowPassword('overlayId')">{{ showPassword['overlayId'] ? 'Hide' : 'Show' }}</button>
             <button class="btn btn-outline-secondary" type="button" @click="copyPassword('overlayId')">Copy</button>
         </div>
     </div>
     <form @submit.prevent="submitForm" class="needs-validation" novalidate>
-        <div v-for="(value, key) in formData" :key="key" class="mb-3 form-group">
-            <label :for="key" class="form-label">{{ key }}</label>
-            <input
-                v-if="!isObject(value)" 
-                v-model="formData[key]"
-                :type="getFieldType(key)"
-                :class="[getFieldClass(key)]"
-                :id="key"
-                :required="isRequiredField(key)"
-                :readonly="isFieldReadOnly(key)"
-                :disabled="isFieldReadOnly(key)"
-            />
-            <div v-else>
+        <div v-for="(value, key) in formData" :key="key" class="mb-3 form-group">    
+            <label :for="key" class="form-label">{{ key }}</label> 
+            <div v-if="getFieldType(key) == 'password'" class="d-inline-flex p-2 form-control justify-content-between">
+                <input :id="key" class="form-control" :type="showPassword[key] ? 'text' : 'password'" v-model="formData[key]" readonly disabled>
+                <button class="btn btn-outline-secondary" type="button" @click="toggleShowPassword(key)">{{ showPassword[key] ? 'Hide' : 'Show' }}</button>
+                <button class="btn btn-outline-secondary" type="button" @click="copyPassword('overlayId')">Copy</button>
+            </div>
+            <div v-else-if="isObject(value)">
                 <div v-for="(innerValue, innerKey) in value" :key="innerKey" class="mb-2">
                     <label :for="innerKey" class="form-label">{{ innerKey }}</label>
                     <input
@@ -140,7 +137,16 @@ export default {
                         :disabled="isFieldReadOnly(innerKey)"
                     />
                 </div>
-            </div>
+            </div> 
+            <input v-else 
+                v-model="formData[key]"
+                :type="getFieldType(key)"
+                :class="[getFieldClass(key)]"
+                :id="key"
+                :required="isRequiredField(key)"
+                :readonly="isFieldReadOnly(key)"
+                :disabled="isFieldReadOnly(key)"
+            />                  
         </div>
     <button class="btn btn-secondary" type="submit">Save</button>
   </form>
