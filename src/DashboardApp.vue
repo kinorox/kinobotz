@@ -120,7 +120,7 @@ export default {
         <div v-for="(value, key) in formData" :key="key" class="mb-3 form-group">    
             <label :for="key" class="form-label">{{ key }}</label> 
             <div v-if="getFieldType(key) == 'password'" class="d-inline-flex p-2 form-control justify-content-between">
-                <input :id="key" class="form-control" :type="showPassword[key] ? 'text' : 'password'" v-model="formData[key]" readonly disabled>
+                <input :id="key" class="form-control" :type="showPassword[key] ? 'text' : 'password'" v-model="formData[key]">
                 <button class="btn btn-outline-secondary" type="button" @click="toggleShowPassword(key)">{{ showPassword[key] ? 'Hide' : 'Show' }}</button>
                 <button class="btn btn-outline-secondary" type="button" @click="copyPassword('overlayId')">Copy</button>
             </div>
