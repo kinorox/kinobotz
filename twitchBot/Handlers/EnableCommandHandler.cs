@@ -1,16 +1,16 @@
-﻿using System.Threading;
+﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
 using Microsoft.Extensions.Configuration;
-using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 
 namespace twitchBot.Handlers
 {
     public class EnableCommandHandler : BaseCommandHandler<EnableCommand>
     {
-        public EnableCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
+        public EnableCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(botConnectionRepository, configuration)
         {
         }
 
@@ -26,17 +26,29 @@ namespace twitchBot.Handlers
                 };
             }
 
-            if (!request.BotConnection.Commands.ContainsKey(cleanCommand))
+            var command = request.BotConnection.ChannelCommands.FirstOrDefault(c => c.Prefix == cleanCommand);
+
+            if (command == null)
             {
                 return new Response()
                 {
-                    Message = $"Command {cleanCommand} not found. Only existing commands can be enabled (use %commands to check the existing ones)."
+                    Message = $"Command {cleanCommand} not found. Only existing commands can be disabled (use %commands to check the existing ones)."
                 };
             }
 
-            request.BotConnection.Commands[cleanCommand] = true;
+            if (command.Prefix == request.Prefix)
+            {
+                return new Response()
+                {
+                    Message = $"Command {cleanCommand} cannot be disabled."
+                };
+            }
+
+            command.Enabled = true;
 
             await BotConnectionRepository.SaveOrUpdate(request.BotConnection);
+
+            await BotConnectionRepository.SetCommand(request.BotConnection.Id, command);
 
             return new Response()
             {

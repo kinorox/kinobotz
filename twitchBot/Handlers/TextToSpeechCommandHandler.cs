@@ -27,16 +27,13 @@ namespace twitchBot.Handlers
         private readonly IConfiguration _configuration;
         private readonly IKinobotzService _kinobotzService;
 
-        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService, IBotConnectionRepository botConnectionRepository, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
+        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService, IBotConnectionRepository botConnectionRepository) : base(botConnectionRepository, configuration)
         {
             _elevenLabsClient = elevenLabsClient;
             _redisClient = redisClient;
             _configuration = configuration;
             _kinobotzService = kinobotzService;
         }
-
-        public override int Cooldown => 5;
-        public override bool GlobalCooldown => false;
 
         public override async Task<Response> InternalHandle(TextToSpeechCommand request, CancellationToken cancellationToken)
         {

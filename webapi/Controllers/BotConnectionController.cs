@@ -27,7 +27,7 @@ public class BotConnectionController : ControllerBase
     [CustomClaimRequirement("AccessLevel", "Admin")]
     public async Task<ActionResult<ICollection<BotConnectionDto>>> Get()
     {
-        var botConnections = await _botConnectionRepository.GetAll();
+        var botConnections = await _botConnectionRepository.GetAll(true);
 
         if (!botConnections.Any())
             return NotFound();
@@ -40,7 +40,7 @@ public class BotConnectionController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<BotConnectionDto>> Get(string id)
     {
-        var botConnection = await _botConnectionRepository.GetById(id);
+        var botConnection = await _botConnectionRepository.GetById(id, true);
 
         if (botConnection == null)
             return NotFound();
@@ -57,7 +57,7 @@ public class BotConnectionController : ControllerBase
         
         var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var botConnection = await _botConnectionRepository.GetById(userId);
+        var botConnection = await _botConnectionRepository.GetById(userId, true);
         
         if (botConnection == null)
             return NotFound();
@@ -82,26 +82,31 @@ public class BotConnectionController : ControllerBase
         existing.Active = botConnection.Active;
         existing.DiscordClipsWebhookUrl = botConnection.DiscordClipsWebhookUrl;
         existing.DiscordTtsWebhookUrl = botConnection.DiscordTtsWebhookUrl;
-        existing.Commands = botConnection.Commands;
         existing.UpdatedAt = DateTime.UtcNow;
+        existing.ChannelCommands = botConnection.ChannelCommands;
 
         await _botConnectionRepository.SaveOrUpdate(existing);
 
-        return Ok();
-    }
+        if (botConnection.ChannelCommands == null) return Ok();
 
-    [HttpPost("{login}")]
-    public async Task<IActionResult> CreateFromLogin(string login)
-    {
-        var botConnection = new BotConnection()
+        //channel commands list should always have the same length as the default commands list
+        if (botConnection.ChannelCommands.Count != Commands.DefaultCommands.Count)
+            return BadRequest();
+
+        //the prefixes should always be the same as the ones in the defaultcommands list
+        if (botConnection.ChannelCommands.Any(command => Commands.DefaultCommands.All(x => x.Prefix != command.Prefix)))
         {
-            Id = Guid.NewGuid(),
-            CreatedAt = DateTime.UtcNow,
-            Active = true,
-            Login = login
-        };
+            return BadRequest();
+        }
 
-        await _botConnectionRepository.SaveOrUpdate(botConnection);
+        //same for the descriptions
+        if (botConnection.ChannelCommands.Any(command =>
+                Commands.DefaultCommands.All(x => x.Description != command.Description)))
+        {
+            return BadRequest();
+        }
+
+        await _botConnectionRepository.SetCommands(existing.Id, botConnection.ChannelCommands);
 
         return Ok();
     }
@@ -112,5 +117,5 @@ public class UpdateBotConnection
     public bool? Active { get; set; }
     public string? DiscordClipsWebhookUrl { get; set; }
     public string? DiscordTtsWebhookUrl { get; set; }
-    public Dictionary<string, bool> Commands { get; set; }
+    public ICollection<Command>? ChannelCommands { get; set; }
 }

@@ -25,6 +25,19 @@ namespace webapi.Controllers
             _logger = logger;
         }
 
+        [HttpPost("createDefaultCommands")]
+        public async Task<IActionResult> CreateDefaultCommands()
+        {
+            var botConnections = await _botConnectionRepository.GetAll(true);
+
+            foreach (var botConnection in botConnections)
+            {
+                await _botConnectionRepository.SetCommands(botConnection.Id, Commands.DefaultCommands);
+            }
+
+            return Ok();
+        }
+
         [HttpPost("logout")]
         public IActionResult Logout()
         {
@@ -111,6 +124,8 @@ namespace webapi.Controllers
             };
 
             await _botConnectionRepository.SaveOrUpdate(newBotConnection);
+
+            await _botConnectionRepository.SetCommands(newBotConnection.Id, Commands.DefaultCommands);
             
             return newBotConnection;
         }

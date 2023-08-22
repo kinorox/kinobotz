@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
@@ -15,26 +14,21 @@ namespace twitchBot.Handlers
 {
     public abstract class BaseCommandHandler<T> : IRequestHandler<T, Response> where T : BaseCommand
     {
-        protected readonly ICommandRepository CommandRepository;
         protected readonly IBotConnectionRepository BotConnectionRepository;
         private readonly IConfiguration _configuration;
         protected ITwitchAPI TwitchApi;
+        private Command _currentCommand;
 
         private readonly Dictionary<string, UserAccessLevelEnum> _userAccessLevels = new()
         {
             { "k1notv", UserAccessLevelEnum.Admin }
         };
 
-        protected BaseCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository)
+        protected BaseCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration)
         {
             BotConnectionRepository = botConnectionRepository;
             _configuration = configuration;
-            CommandRepository = commandRepository;
         }
-
-        public virtual int Cooldown => 0;
-
-        public virtual bool GlobalCooldown => false;
 
         public abstract Task<Response> InternalHandle(T request, CancellationToken cancellationToken);
 
@@ -42,41 +36,24 @@ namespace twitchBot.Handlers
         {
             try
             {
-                if (request.BotConnection != null)
+                //get most recent version of botConnection
+                request.BotConnection = await BotConnectionRepository.GetById(request.BotConnection.Id.ToString());
+
+                if (request.BotConnection == null)
                 {
-                    var refreshedBotConnection = await BotConnectionRepository.Get(request.BotConnection.Id.ToString(), request.BotConnection.ChannelId, request.BotConnection.Login);
-
-                    if (refreshedBotConnection != null)
-                    {
-                        var commandsAddedOrRemoved = false;
-                        foreach (var keyValuePair in Entities.Commands.DefaultCommands)
-                        {
-                            var added = refreshedBotConnection.Commands.TryAdd(keyValuePair.Prefix, keyValuePair.Enabled);
-                            if (added)
-                            {
-                                commandsAddedOrRemoved = true;
-                            }
-                        }
-
-                        //remove entries from refreshBotConnection.Commands that have keys with whitespaces
-                        //usefull to clean bad commands
-                        var keysWithWhitespaces = refreshedBotConnection.Commands.Keys.Where(x => x.Contains(" ")).ToList();
-
-                        foreach (var key in keysWithWhitespaces)
-                        {
-                            refreshedBotConnection.Commands.Remove(key);
-                            commandsAddedOrRemoved = true;
-                        }
-
-                        request.BotConnection = refreshedBotConnection;
-
-                        if(commandsAddedOrRemoved)
-                            await BotConnectionRepository.SaveOrUpdate(request.BotConnection);
-                    }
+                    throw new Exception("Inexistent botConnection.");
                 }
-                else
+
+                _currentCommand = await BotConnectionRepository.GetCommand(request.BotConnection.Id, request.Prefix);
+
+                if (_currentCommand == null)
                 {
-                    throw new Exception("Bot connection not found.");
+                    throw new Exception("Command not found.");
+                }
+
+                if (string.IsNullOrEmpty(request.BotConnection?.AccessToken))
+                {
+                    throw new Exception("Access token is null.");
                 }
 
                 TwitchApi = new TwitchAPI()
@@ -94,24 +71,24 @@ namespace twitchBot.Handlers
                 if (!UserHasAccess(request, out var accessLevel, out var accessDeniedResponse))
                     return accessDeniedResponse;
 
-                var lastExecutionTime = GlobalCooldown
-                    ? await CommandRepository.GetLastExecutionTime(request.BotConnection.Id, request.Prefix)
-                    : await CommandRepository.GetLastExecutionTime(request.BotConnection.Id, request.Prefix, request.Username);
+                var lastExecutionTime = _currentCommand.GlobalCooldown
+                    ? await BotConnectionRepository.GetLastExecutionTime(request.BotConnection.Id, request.Prefix)
+                    : await BotConnectionRepository.GetLastExecutionTime(request.BotConnection.Id, request.Prefix, request.Username);
 
-                if (lastExecutionTime.AddMinutes(Cooldown) <= DateTime.UtcNow || accessLevel == UserAccessLevelEnum.Admin)
+                if (lastExecutionTime.AddMinutes(_currentCommand.Cooldown) <= DateTime.UtcNow || accessLevel == UserAccessLevelEnum.Admin)
                 {
                     var response = await InternalHandle(request, cancellationToken);
 
                     if (!response.WasExecuted) return response;
                     
-                    await CommandRepository.SetLastExecutionTime(request.BotConnection.Id, request.Prefix, request.Username, DateTime.UtcNow);
-                    
-                    CommandRepository.IncrementExecutionCounter(request.BotConnection.Id, request.Prefix);
+                    await BotConnectionRepository.SetLastExecutionTime(request.BotConnection.Id, request.Prefix, request.Username, DateTime.UtcNow);
+
+                    BotConnectionRepository.IncrementExecutionCounter(request.BotConnection.Id, request.Prefix);
 
                     return response;
                 }
 
-                var difference = lastExecutionTime.AddMinutes(Cooldown) - DateTime.UtcNow;
+                var difference = lastExecutionTime.AddMinutes(_currentCommand.Cooldown) - DateTime.UtcNow;
 
                 return new Response()
                 {
@@ -143,25 +120,17 @@ namespace twitchBot.Handlers
                 accessLevel = UserAccessLevelEnum.Broadcaster;
             }
 
-            if (request.AccessLevels.Contains(accessLevel)) return true;
-            {
-                return false;
-            }
+            return _currentCommand.AccessLevel <= accessLevel;
         }
 
-        private static bool IsCommandEnabled(T request, out Response commandDisabledResponse)
+        private bool IsCommandEnabled(T request, out Response commandDisabledResponse)
         {
             commandDisabledResponse = new Response()
             {
                 Message = "This command is disabled."
             };
-
-            if (!request.BotConnection.Commands.TryGetValue(request.Prefix, out var commandEnabled)) return false;
-
-            if (commandEnabled) return true;
-            {
-                return false;
-            }
+            
+            return _currentCommand.Enabled;
         }
     }
 }

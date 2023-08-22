@@ -42,7 +42,7 @@ namespace twitchBot
         private async Task Connect()
         {
             var botConnections = await _botConnectionRepository.GetAll();
-
+            
             foreach (var botConnection in botConnections.Where(b => b.Active.HasValue && b.Active.Value))
             {
                 try

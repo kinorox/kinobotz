@@ -11,7 +11,7 @@ namespace twitchBot.Handlers
     {
         private readonly ICommandFactory _commandFactory;
 
-        public ExistingCommandsCommandHandler(ICommandFactory commandFactory, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
+        public ExistingCommandsCommandHandler(ICommandFactory commandFactory, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(botConnectionRepository, configuration)
         {
             _commandFactory = commandFactory;
         }
