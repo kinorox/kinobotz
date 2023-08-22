@@ -1,4 +1,6 @@
-﻿namespace webapi.Dto
+﻿using Entities;
+
+namespace webapi.Dto
 {
     public class BotConnectionDto
     {
@@ -9,6 +11,6 @@
         public bool? Active { get; set; }
         public string? DiscordClipsWebhookUrl { get; set; }
         public string? DiscordTtsWebhookUrl { get; set; }
-        public Dictionary<string, bool> Commands { get; set; }
+        public List<Command> ChannelCommands { get; set; }
     }
 }

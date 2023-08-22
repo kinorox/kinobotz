@@ -1,11 +1,9 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Entities;
 using Entities.Exceptions;
 using Infrastructure.Repository;
 using Microsoft.Extensions.Configuration;
-using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
 
 namespace twitchBot.Handlers
@@ -14,7 +12,7 @@ namespace twitchBot.Handlers
     {
         private readonly ICustomCommandRepository _customCommandRepository;
 
-        public CommandCommandHandler(ICustomCommandRepository customCommandRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
+        public CommandCommandHandler(ICustomCommandRepository customCommandRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(botConnectionRepository, configuration)
         {
             _customCommandRepository = customCommandRepository;
         }

@@ -14,13 +14,11 @@ namespace twitchBot.Handlers
         private readonly IMediator _mediator;
         private readonly IGptRepository _gptRepository;
 
-        public GptBehaviorCommandHandler(IMediator mediator, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
+        public GptBehaviorCommandHandler(IMediator mediator, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(botConnectionRepository, configuration)
         {
             _mediator = mediator;
             _gptRepository = gptRepository;
         }
-        public override int Cooldown => 10;
-        public override bool GlobalCooldown => true;
 
         public override async Task<Response> InternalHandle(GptBehaviorCommand request, CancellationToken cancellationToken)
         {

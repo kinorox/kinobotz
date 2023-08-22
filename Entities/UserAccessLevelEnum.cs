@@ -3,10 +3,10 @@
     public enum UserAccessLevelEnum
     {
         Default,
+        Vip,
         Subscriber,
         Moderator,
         Broadcaster,
-        Admin,
-        Vip
+        Admin
     }
 }

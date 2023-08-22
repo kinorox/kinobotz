@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
@@ -9,7 +10,7 @@ namespace twitchBot.Handlers
 {
     public class DisableCommandHandler : BaseCommandHandler<DisableCommand>
     {
-        public DisableCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, ICommandRepository commandRepository) : base(botConnectionRepository, configuration, commandRepository)
+        public DisableCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(botConnectionRepository, configuration)
         {
         }
 
@@ -25,7 +26,9 @@ namespace twitchBot.Handlers
                 };
             }
 
-            if (!request.BotConnection.Commands.ContainsKey(cleanCommand))
+            var command = request.BotConnection.ChannelCommands.FirstOrDefault(c => c.Prefix == cleanCommand);
+
+            if (command == null)
             {
                 return new Response()
                 {
@@ -33,9 +36,19 @@ namespace twitchBot.Handlers
                 };
             }
 
-            request.BotConnection.Commands[cleanCommand] = false;
+            if (command.Prefix == request.Prefix)
+            {
+                return new Response()
+                {
+                    Message = $"Command {cleanCommand} cannot be disabled."
+                };
+            }
+
+            command.Enabled = false;
 
             await BotConnectionRepository.SaveOrUpdate(request.BotConnection);
+
+            await BotConnectionRepository.SetCommand(request.BotConnection.Id, command);
 
             return new Response()
             {

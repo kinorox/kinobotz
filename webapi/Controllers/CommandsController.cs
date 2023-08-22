@@ -11,15 +11,15 @@ namespace webapi.Controllers
     [Route("[controller]")]
     public class CommandsController : ControllerBase
     {
-        private readonly ICommandRepository _commandRepository;
+        private readonly IBotConnectionRepository _botConnectionRepository;
 
-        public CommandsController(ICommandRepository commandRepository)
+        public CommandsController(IBotConnectionRepository botConnectionRepository)
         {
-            _commandRepository = commandRepository;
+            _botConnectionRepository = botConnectionRepository;
         }
 
         [HttpGet]
-        public ActionResult<List<CommandInformation>> Get()
+        public ActionResult<List<Command>> Get()
         {
             return Ok(Commands.DefaultCommands);
         }
@@ -28,7 +28,7 @@ namespace webapi.Controllers
         [CustomClaimRequirement("AccessLevel", "Admin")]
         public async Task<ActionResult<IDictionary<string, long>>> GetCommandExecutionCounters()
         {
-            return Ok(await _commandRepository.GetExecutionCounters());
+            return Ok(await _botConnectionRepository.GetExecutionCounters());
         }
     }
 }
