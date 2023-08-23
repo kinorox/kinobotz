@@ -27,7 +27,7 @@ public class BotConnectionController : ControllerBase
     [CustomClaimRequirement("AccessLevel", "Admin")]
     public async Task<ActionResult<ICollection<BotConnectionDto>>> Get()
     {
-        var botConnections = await _botConnectionRepository.GetAll(true);
+        var botConnections = await _botConnectionRepository.GetAll();
 
         if (!botConnections.Any())
             return NotFound();
