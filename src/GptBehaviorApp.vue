@@ -1,98 +1,89 @@
 <script>
-    import NavBar from './components/NavBar.vue';
-    import TableLite from 'vue3-table-lite'
-    import LoadingSpinner from './components/LoadingSpinner.vue';
-    import { reactive } from 'vue'
-    import axiosInstance from '@/scripts/axios-instance';
+import NavBar from './components/NavBar.vue';
+import LoadingSpinner from './components/LoadingSpinner.vue';
+import axiosInstance from '@/scripts/axios-instance';
 
-    export default {
-        name: 'GptBehaviorApp',        
-        components: { TableLite, NavBar, LoadingSpinner },
-        setup() {
-            // Init Your table settings
-            const table = reactive({
-                isLoading: false,
-                columns: [
-                  {
-                      label: "channel",
-                      field: "channel",
-                      width: "3%",
-                      sortable: true,
-                      isKey: false,
-                  },
-                  {
-                      label: "defined by",
-                      field: "definedBy",
-                      width: "10%",
-                      sortable: true,
-                  },
-                  {
-                      label: "behavior",
-                      field: "behavior",
-                      width: "15%",
-                      sortable: true,
-                  },
-                  {
-                      label: "created at",
-                      field: "createdAt",
-                      width: "15%",
-                      sortable: true,
-                  },
-                ],
-                rows: [],
-                totalRecordCount: 0,
-                sortable: {
-                order: "createdAt",
-                sort: "desc",
-              }
-            })
+export default {
+  name: 'GptBehaviorApp',
+  components: { NavBar, LoadingSpinner },
+  data() {
+    return {
+      behaviorData: [],
+      isLoading: false,
+      searchQuery: ''
+    };
+  },
+  mounted() {
+    this.fetchBehaviorData();
+  },
+  methods: {
+    fetchBehaviorData() {
+      this.isLoading = true;
+      axiosInstance.get('/Public/gptBehaviors')
+        .then(response => {
+          this.behaviorData = response.data;
+        })
+        .finally(() => {
+          this.isLoading = false;
+        });
+    }
+  },
+  computed: {
+    formattedBehaviorData() {
+      return this.behaviorData.map(item => ({
+        ...item,
+        CreatedAtFormatted: new Date(item.createdAt).toLocaleString('pt-BR', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          timeZone: 'America/Sao_Paulo' // Brazilian time zone
+        })
+      }));
+    },
+    filteredBehaviorData() {
+      if (!this.searchQuery) {
+        return this.formattedBehaviorData; // If no search query, show all data
+      }
 
-        /**
-       * Table search event
-       */
-       const doSearch = (order, sort) => {
-        table.isLoading = true;
-  
-        // Start use axios to get data from Server
-        axiosInstance.get('/behaviors')
-          .then(response => {
-            table.rows = response.data;
-            table.totalRecordCount = response.data.length;
-            table.sortable.order = order;
-            table.sortable.sort = sort;
-          })
-        // End use axios to get data from Server
-      };
-  
-      /**
-       * Table search finished event
-       */
-      const tableLoadingFinish = () => {
-        table.isLoading = false;
-      };
+      const normalizedQuery = this.searchQuery.toLowerCase();
 
-      // Get data first
-      doSearch(0, 10, 'createdAt', 'desc');
-  
-      return {
-        table,
-        doSearch,
-        tableLoadingFinish,
-      };
+      // Filter the data based on the search query
+      return this.formattedBehaviorData.filter(item => {
+        return (
+          item.behavior.toLowerCase().includes(normalizedQuery) ||
+          item.definedBy.toLowerCase().includes(normalizedQuery) ||
+          item.channel.toLowerCase().includes(normalizedQuery)
+        );
+      });
+    }
   }
 }
 </script>
 
 <template>
-    <NavBar/>
-    <LoadingSpinner v-if="table.isLoading"/>
-    <table-lite
-        :is-loading="table.isLoading"
-        :columns="table.columns"
-        :rows="table.rows"
-        :total="table.totalRecordCount"
-        :sortable="table.sortable"
-        @do-search="doSearch"
-        @is-finished="tableLoadingFinish"
-    />
+  <NavBar />
+  <LoadingSpinner v-if="isLoading" />
+  <!-- Search input -->
+  <input v-model="searchQuery" placeholder="Search..." class="form-control mb-3" />
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Channel</th>
+        <th>Created At</th>
+        <th>Defined By</th>
+        <th>Behavior</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="(item, index) in filteredBehaviorData" :key="index">
+        <td>{{ item.channel }}</td>
+        <td>{{ item.CreatedAtFormatted }}</td>
+        <td>{{ item.definedBy }}</td>
+        <td>{{ item.behavior }}</td>
+      </tr>
+    </tbody>
+  </table>
 </template>

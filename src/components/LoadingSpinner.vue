@@ -23,7 +23,7 @@
         <pixel-spinner
             :animation-duration="2000"
             :size="70"
-            color="#ff1d5e"
+            color="#1c9716"
         />
     </div>
 </template>

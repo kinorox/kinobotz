@@ -170,7 +170,10 @@ export default {
                         <tbody>
                             <tr v-for="(item, index) in value" :key="index">
                                 <td v-for="(itemValue, itemKey) in item" :key="itemKey">
-                                    <template v-if="itemKey === 'accessLevel'">
+                                    <template v-if="itemKey === 'description' || itemKey === 'prefix'">
+                                        {{ itemValue }}
+                                    </template>
+                                    <template v-else-if="itemKey === 'accessLevel'">
                                         <select class="form-select" v-model="item[itemKey]">
                                             <option v-for="accessLevel in UserAccessLevelEnumValues" :value="accessLevel"
                                                 :key="accessLevel">
