@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
@@ -26,7 +25,7 @@ namespace twitchBot.Handlers
                 };
             }
 
-            var command = request.BotConnection.ChannelCommands.FirstOrDefault(c => c.Prefix == cleanCommand);
+            var command = await BotConnectionRepository.GetCommand(request.BotConnection.Id, cleanCommand);
 
             if (command == null)
             {
@@ -40,14 +39,12 @@ namespace twitchBot.Handlers
             {
                 return new Response()
                 {
-                    Message = $"Command {cleanCommand} cannot be disabled."
+                    Message = $"Command {cleanCommand} cannot be enabled."
                 };
             }
 
             command.Enabled = true;
-
-            await BotConnectionRepository.SaveOrUpdate(request.BotConnection);
-
+            
             await BotConnectionRepository.SetCommand(request.BotConnection.Id, command);
 
             return new Response()

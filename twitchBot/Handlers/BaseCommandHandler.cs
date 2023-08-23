@@ -66,7 +66,7 @@ namespace twitchBot.Handlers
                     }
                 };
 
-                if (!IsCommandEnabled(request, out var commandDisabledResponse)) return commandDisabledResponse;
+                if (!IsCommandEnabled(out var commandDisabledResponse)) return commandDisabledResponse;
 
                 if (!UserHasAccess(request, out var accessLevel, out var accessDeniedResponse))
                     return accessDeniedResponse;
@@ -115,15 +115,11 @@ namespace twitchBot.Handlers
             {
                 accessLevel = _userAccessLevels[request.Username.ToLower()];
             }
-            else if (string.Equals(request.Username.ToLower(), request.BotConnection.Login))
-            {
-                accessLevel = UserAccessLevelEnum.Broadcaster;
-            }
 
             return _currentCommand.AccessLevel <= accessLevel;
         }
 
-        private bool IsCommandEnabled(T request, out Response commandDisabledResponse)
+        private bool IsCommandEnabled(out Response commandDisabledResponse)
         {
             commandDisabledResponse = new Response()
             {

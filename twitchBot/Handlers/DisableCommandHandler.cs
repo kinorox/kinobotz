@@ -20,13 +20,13 @@ namespace twitchBot.Handlers
 
             if (string.IsNullOrEmpty(cleanCommand) || string.IsNullOrWhiteSpace(cleanCommand))
             {
-               return new Response()
-               {
-                    Message = $"Command {cleanCommand} not found. Only existing commands can be disabled (use %commands to check the existing ones)."
+                return new Response()
+                {
+                    Message = $"Command {cleanCommand} not found. Only existing commands can be enabled (use %commands to check the existing ones)."
                 };
             }
 
-            var command = request.BotConnection.ChannelCommands.FirstOrDefault(c => c.Prefix == cleanCommand);
+            var command = await BotConnectionRepository.GetCommand(request.BotConnection.Id, cleanCommand);
 
             if (command == null)
             {
@@ -45,8 +45,6 @@ namespace twitchBot.Handlers
             }
 
             command.Enabled = false;
-
-            await BotConnectionRepository.SaveOrUpdate(request.BotConnection);
 
             await BotConnectionRepository.SetCommand(request.BotConnection.Id, command);
 
