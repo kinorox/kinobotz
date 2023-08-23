@@ -25,8 +25,8 @@ namespace webapi.Controllers
             var id = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var result = await _gptRepository.GetGptBehaviors(id);
-
-            return Ok(result);
+            
+            return Ok(result.OrderByDescending(r => r.CreatedAt));
         }
     }
 }
