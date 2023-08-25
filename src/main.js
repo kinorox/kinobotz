@@ -1,6 +1,5 @@
 import { createApp } from 'vue';
 import App from '@/App.vue';
-import { VueSignalR } from '@dreamonkey/vue-signalr';
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import router from '@/scripts/router'
 import store from '@/scripts/store'
@@ -28,5 +27,5 @@ createApp(App)
     .component("font-awesome-icon", FontAwesomeIcon)
     .use(router)
     .use(store)
-    .use(VueSignalR, { connection })
+    .provide('signalR', connection)
     .mount('#app');
