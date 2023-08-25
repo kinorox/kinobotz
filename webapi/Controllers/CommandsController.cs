@@ -28,7 +28,8 @@ namespace webapi.Controllers
         [CustomClaimRequirement("AccessLevel", "Admin")]
         public async Task<ActionResult<IDictionary<string, long>>> GetCommandExecutionCounters()
         {
-            return Ok(await _botConnectionRepository.GetExecutionCounters());
+            var response = await _botConnectionRepository.GetExecutionCounters();
+            return Ok(response.OrderBy(r => r.Key));
         }
     }
 }
