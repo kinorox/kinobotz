@@ -85,7 +85,7 @@ namespace twitchBot.Handlers
             var audioStreamingRequest = new TtsAudioStreamingRequest()
             {
                 text = request.Message,
-                model_id = "eleven_multilingual_v1",
+                model_id = "eleven_multilingual_v2",
                 voice_settings = new Dictionary<string, string>
                 {
                     {"similarity_boost", "1.0"},
