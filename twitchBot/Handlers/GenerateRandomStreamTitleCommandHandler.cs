@@ -49,6 +49,11 @@ namespace twitchBot.Handlers
                 
                 response = await chat.GetResponseFromChatbotAsync();
 
+                if (response.Length > 140)
+                {
+                    response = response[..140];
+                }
+
                 await TwitchApi.Helix.Channels.ModifyChannelInformationAsync(request.BotConnection.ChannelId,
                     new ModifyChannelInformationRequest()
                     {
@@ -57,12 +62,12 @@ namespace twitchBot.Handlers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error during GPT execution.");
+                _logger.LogError(e, "Error trying to modify the stream title.");
 
                 return new Response()
                 {
                     Error = true,
-                    Message = $"Error during GPT execution: {e.Message}"
+                    Message = $"Error trying to modify the stream title: {e.Message}"
                 };
             }
 
