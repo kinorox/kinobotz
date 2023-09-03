@@ -16,6 +16,15 @@ namespace twitchBot.Handlers
 
         public override async Task<Response> InternalHandle(UpdateStreamTitleCommmand request, CancellationToken cancellationToken)
         {
+            if (request.Title.Length > 140)
+            {
+                return new Response()
+                {
+                    Message = "Stream title must be less than 140 characters.",
+                    WasExecuted = false
+                };
+            }
+
             await TwitchApi.Helix.Channels.ModifyChannelInformationAsync(request.BotConnection.ChannelId,
                 new ModifyChannelInformationRequest()
                 {
