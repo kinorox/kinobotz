@@ -91,8 +91,8 @@ namespace twitchBot.Handlers
                 model_id = "eleven_multilingual_v2",
                 voice_settings = new Dictionary<string, string>
                 {
-                    {"similarity_boost", "1.0"},
-                    {"stability", "1.0"}
+                    {"similarity_boost", !string.IsNullOrEmpty(request.BotConnection.ElevenLabsSimilarityBoost) ? request.BotConnection.ElevenLabsSimilarityBoost : "1.0"},
+                    {"stability", !string.IsNullOrEmpty(request.BotConnection.ElevenLabsSimilarityBoost) ? request.BotConnection.ElevenLabsStability : "1.0"},
                 }
             };
 

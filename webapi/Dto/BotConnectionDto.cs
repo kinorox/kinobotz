@@ -12,5 +12,7 @@ namespace webapi.Dto
         public string? DiscordClipsWebhookUrl { get; set; }
         public string? DiscordTtsWebhookUrl { get; set; }
         public List<Command> ChannelCommands { get; set; }
+        public string ElevenLabsSimilarityBoost { get; set; }
+        public string ElevenLabsStability { get; set; }
     }
 }

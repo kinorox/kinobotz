@@ -15,6 +15,8 @@
         public ICollection<Command>? ChannelCommands { get; set; }
         public string ProfileImageUrl { get; set; }
         public string Email { get; set; }
+        public string? ElevenLabsSimilarityBoost { get; set; }
+        public string? ElevenLabsStability { get; set; }
         public UserAccessLevelEnum AccessLevel { get; set; } = UserAccessLevelEnum.Default;
     }
 }

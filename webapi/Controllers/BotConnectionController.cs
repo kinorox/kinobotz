@@ -82,6 +82,8 @@ public class BotConnectionController : ControllerBase
         existing.Active = botConnection.Active;
         existing.DiscordClipsWebhookUrl = botConnection.DiscordClipsWebhookUrl;
         existing.DiscordTtsWebhookUrl = botConnection.DiscordTtsWebhookUrl;
+        existing.ElevenLabsSimilarityBoost = botConnection.ElevenLabsSimilarityBoost;
+        existing.ElevenLabsStability = botConnection.ElevenLabsStability;
         existing.UpdatedAt = DateTime.UtcNow;
         existing.ChannelCommands = botConnection.ChannelCommands;
 
@@ -115,6 +117,8 @@ public class BotConnectionController : ControllerBase
 public class UpdateBotConnection
 {
     public bool? Active { get; set; }
+    public string? ElevenLabsSimilarityBoost { get; set; }
+    public string? ElevenLabsStability { get; set; }
     public string? DiscordClipsWebhookUrl { get; set; }
     public string? DiscordTtsWebhookUrl { get; set; }
     public ICollection<Command>? ChannelCommands { get; set; }
