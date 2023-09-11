@@ -92,7 +92,7 @@ namespace twitchBot.Handlers
                 voice_settings = new Dictionary<string, string>
                 {
                     {"similarity_boost", !string.IsNullOrEmpty(request.BotConnection.ElevenLabsSimilarityBoost) ? request.BotConnection.ElevenLabsSimilarityBoost : "1.0"},
-                    {"stability", !string.IsNullOrEmpty(request.BotConnection.ElevenLabsSimilarityBoost) ? request.BotConnection.ElevenLabsStability : "1.0"},
+                    {"stability", !string.IsNullOrEmpty(request.BotConnection.ElevenLabsStability) ? request.BotConnection.ElevenLabsStability : "0.3"},
                 }
             };
 
