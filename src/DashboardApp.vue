@@ -82,9 +82,9 @@ export default {
         getFieldType(key) {
             if (key === 'email') {
                 return 'email';
-            } else if (key === 'active' || key === 'globalCooldown' || key === 'enabled' || key === 'custom') {
+            } else if (key === 'active' || key === 'globalCooldown' || key === 'enabled' || key === 'custom' || key === 'useTtsOnBits' || key === 'useTtsOnSubscription') {
                 return 'checkbox';
-            } else if (key === 'discordClipsWebhookUrl' || key === 'discordTtsWebhookUrl') {
+            } else if (key === 'discordClipsWebhookUrl' || key === 'discordTtsWebhookUrl' || key === 'elevenLabsApiKey') {
                 return 'password';
             }
 

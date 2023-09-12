@@ -11,7 +11,7 @@
             redirectUri = 'http://localhost:8080/callback';
           }
           const responseType = 'code';
-          const scopes = 'user:read:email analytics:read:games user:edit:broadcast channel:read:subscriptions channel:read:redemptions channel:manage:broadcast user:read:subscriptions user:read:follows channel:read:polls channel:read:predictions channel:read:vips clips:edit';
+          const scopes = 'user:read:email analytics:read:games user:edit:broadcast channel:read:subscriptions channel:read:redemptions channel:manage:broadcast user:read:subscriptions user:read:follows channel:read:polls channel:read:predictions channel:read:vips clips:edit bits:read';
 
           const twitchAuthUrl = `https://id.twitch.tv/oauth2/authorize?response_type=${responseType}&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes}`;
 
