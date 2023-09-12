@@ -17,6 +17,12 @@
         public string Email { get; set; }
         public string? ElevenLabsSimilarityBoost { get; set; }
         public string? ElevenLabsStability { get; set; }
+        public string? ElevenLabsApiKey { get; set; }
+        public string? ElevenLabsDefaultVoice { get; set; }
+        public bool UseTtsOnBits { get; set; }
+        public decimal TtsMinimumBitAmount { get; set; }
+        public bool UseTtsOnSubscription { get; set; }
+        public decimal TtsMinimumResubMonthsAmount { get; set; }
         public UserAccessLevelEnum AccessLevel { get; set; } = UserAccessLevelEnum.Default;
     }
 }

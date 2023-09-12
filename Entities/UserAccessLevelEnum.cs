@@ -7,6 +7,7 @@
         Subscriber,
         Moderator,
         Broadcaster,
+        Premium,
         Admin
     }
 }

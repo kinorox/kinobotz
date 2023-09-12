@@ -58,7 +58,7 @@ namespace twitchBot
             _twitchClient.OnConnected += TwitchClientOnConnected;
             _twitchClient.OnUserBanned += TwitchClientOnUserBanned;
             _twitchClient.OnMessageReceived += TwitchClientOnMessageReceived;
-
+            
             _twitchPubSub = new TwitchPubSub();
             _twitchPubSub.OnStreamUp += TwitchPubSubOnOnStreamUp;
             _twitchPubSub.OnStreamDown += TwitchPubSubOnOnStreamDown;
@@ -66,6 +66,52 @@ namespace twitchBot
             _twitchPubSub.OnPubSubServiceConnected += OnPubSubServiceConnected;
             _twitchPubSub.OnListenResponse += OnListenResponse;
             _twitchPubSub.OnPubSubServiceError += OnPubSubServiceError;
+            _twitchPubSub.OnBitsReceivedV2 += TwitchPubSubOnOnBitsReceivedV2;
+            _twitchPubSub.OnChannelSubscription += TwitchPubSubOnOnChannelSubscription;
+        }
+
+        public void TwitchPubSubOnOnChannelSubscription(object sender, OnChannelSubscriptionArgs e)
+        {
+            try
+            {
+                if (!_botConnection.UseTtsOnSubscription) return;
+                if (!(e.Subscription.Months >= _botConnection.TtsMinimumResubMonthsAmount)) return;
+
+                var command = new TextToSpeechCommand(_botConnection)
+                {
+                    Channel = _botConnection.Login,
+                    Message = e.Subscription.SubMessage.Message,
+                    Voice = _botConnection.ElevenLabsDefaultVoice
+                };
+
+                _mediator.Send(command);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Error during subscriber event");
+            }
+        }
+
+        public void TwitchPubSubOnOnBitsReceivedV2(object sender, OnBitsReceivedV2Args e)
+        {
+            try
+            {
+                if (!_botConnection.UseTtsOnBits) return;
+                if (!(e.TotalBitsUsed >= _botConnection.TtsMinimumBitAmount)) return;
+
+                var command = new TextToSpeechCommand(_botConnection)
+                {
+                    Channel = _botConnection.Login,
+                    Message = e.ChatMessage,
+                    Voice = _botConnection.ElevenLabsDefaultVoice
+                };
+
+                _mediator.Send(command);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Error during bits event");
+            }
         }
 
         public Task Connect(BotConnection botConnection)
@@ -123,6 +169,8 @@ namespace twitchBot
                 _twitchPubSub.ListenToChannelPoints(_botConnection.ChannelId);
                 _twitchPubSub.ListenToPredictions(_botConnection.ChannelId);
                 _twitchPubSub.ListenToVideoPlayback(_botConnection.ChannelId);
+                _twitchPubSub.ListenToBitsEventsV2(_botConnection.ChannelId);
+                _twitchPubSub.ListenToSubscriptions(_botConnection.ChannelId);
             }
 
             _twitchClient.Connect();

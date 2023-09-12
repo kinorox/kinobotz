@@ -84,6 +84,13 @@ public class BotConnectionController : ControllerBase
         existing.DiscordTtsWebhookUrl = botConnection.DiscordTtsWebhookUrl;
         existing.ElevenLabsSimilarityBoost = botConnection.ElevenLabsSimilarityBoost;
         existing.ElevenLabsStability = botConnection.ElevenLabsStability;
+        existing.ElevenLabsApiKey = botConnection.ElevenLabsApiKey;
+        existing.ElevenLabsDefaultVoice = botConnection.ElevenLabsDefaultVoice;
+        existing.UseTtsOnBits = botConnection.UseTtsOnBits;
+        existing.TtsMinimumBitAmount = botConnection.TtsMinimumBitAmount;
+        existing.UseTtsOnSubscription = botConnection.UseTtsOnSubscription;
+        existing.TtsMinimumResubMonthsAmount = botConnection.TtsMinimumResubMonthsAmount;
+
         existing.UpdatedAt = DateTime.UtcNow;
         existing.ChannelCommands = botConnection.ChannelCommands;
 
@@ -117,9 +124,15 @@ public class BotConnectionController : ControllerBase
 public class UpdateBotConnection
 {
     public bool? Active { get; set; }
+    public string? ElevenLabsDefaultVoice { get; set; }
+    public string? ElevenLabsApiKey { get; set; }
     public string? ElevenLabsSimilarityBoost { get; set; }
     public string? ElevenLabsStability { get; set; }
     public string? DiscordClipsWebhookUrl { get; set; }
     public string? DiscordTtsWebhookUrl { get; set; }
+    public bool UseTtsOnBits { get; set; }
+    public decimal TtsMinimumBitAmount { get; set; }
+    public bool UseTtsOnSubscription { get; set; }
+    public decimal TtsMinimumResubMonthsAmount { get; set; }
     public ICollection<Command>? ChannelCommands { get; set; }
 }

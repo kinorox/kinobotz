@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "twitchBot", "twitchBot\twit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Entities", "Entities\Entities.csproj", "{8C8635C7-5FFD-48F7-B4E8-B5470A0D3887}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{FC6B8582-A8FB-4D2C-BDEF-5B5E1E4B1CDD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{FC6B8582-A8FB-4D2C-BDEF-5B5E1E4B1CDD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kinobotz.Tests", "kinobotz.Tests\kinobotz.Tests.csproj", "{D1C4EA37-CBAB-4FC9-82FC-2065B589AF52}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{FC6B8582-A8FB-4D2C-BDEF-5B5E1E4B1CDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC6B8582-A8FB-4D2C-BDEF-5B5E1E4B1CDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC6B8582-A8FB-4D2C-BDEF-5B5E1E4B1CDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1C4EA37-CBAB-4FC9-82FC-2065B589AF52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1C4EA37-CBAB-4FC9-82FC-2065B589AF52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1C4EA37-CBAB-4FC9-82FC-2065B589AF52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1C4EA37-CBAB-4FC9-82FC-2065B589AF52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

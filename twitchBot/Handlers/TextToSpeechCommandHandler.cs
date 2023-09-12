@@ -40,6 +40,17 @@ namespace twitchBot.Handlers
 
         public override async Task<Response> InternalHandle(TextToSpeechCommand request, CancellationToken cancellationToken)
         {
+            var elevenLabsApiKey = request.BotConnection.AccessLevel >= UserAccessLevelEnum.Premium ? _configuration["ELEVEN_LABS_API_KEY"] : request.BotConnection.ElevenLabsApiKey;
+
+            if (string.IsNullOrEmpty(elevenLabsApiKey))
+            {
+                return new Response()
+                {
+                    WasExecuted = false,
+                    Message = "ElevenLabs API key is missing. Please, either configure an API key on your dashboard."
+                };
+            }
+
             var characterCount = await _redisClient.Db0.GetAsync<int?>($"{request.BotConnection.Id}:{request.Prefix}:{DateTime.UtcNow.Date}:{request.Username}:characters");
 
             if (characterCount > 3000)
@@ -99,7 +110,7 @@ namespace twitchBot.Handlers
             using HttpClient client = new HttpClient { BaseAddress = new Uri("https://api.elevenlabs.io/v1/") };
             
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
-            client.DefaultRequestHeaders.Add("xi-api-key", _configuration["ELEVEN_LABS_API_KEY"]);
+            client.DefaultRequestHeaders.Add("xi-api-key", elevenLabsApiKey);
 
             var json = JsonConvert.SerializeObject(audioStreamingRequest);
 
@@ -108,7 +119,12 @@ namespace twitchBot.Handlers
             var response = await client.PostAsync($"text-to-speech/{matchVoice.Id}/stream?optimize_streaming_latency=0", content, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
-                return new Response {Error = true};
+                return new Response
+                {
+                    Error = true,
+                    WasExecuted = false,
+                    Message = "Failed generate audio. ElevenLabs has no more available characters to be used."
+                };
 
             var audioStreamData = await response.Content.ReadAsByteArrayAsync(cancellationToken);
 
