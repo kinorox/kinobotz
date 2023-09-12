@@ -76,13 +76,14 @@ namespace twitchBot
             {
                 if (!_botConnection.UseTtsOnSubscription) return;
                 if (!(e.Subscription.Months >= _botConnection.TtsMinimumResubMonthsAmount)) return;
-                if (!string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice)) return;
+                if (string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice)) return;
 
                 var command = new TextToSpeechCommand(_botConnection)
                 {
                     Channel = _botConnection.Login,
                     Message = e.Subscription.SubMessage.Message,
-                    Voice = _botConnection.ElevenLabsDefaultVoice
+                    Voice = _botConnection.ElevenLabsDefaultVoice,
+                    Username = "k1notv"
                 };
 
                 _mediator.Send(command);
@@ -99,13 +100,14 @@ namespace twitchBot
             {
                 if (!_botConnection.UseTtsOnBits) return;
                 if (!(e.TotalBitsUsed >= _botConnection.TtsMinimumBitAmount)) return;
-                if (!string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice)) return;
+                if (string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice)) return;
 
                 var command = new TextToSpeechCommand(_botConnection)
                 {
                     Channel = _botConnection.Login,
                     Message = e.ChatMessage,
-                    Voice = _botConnection.ElevenLabsDefaultVoice
+                    Voice = _botConnection.ElevenLabsDefaultVoice,
+                    Username = "k1notv"
                 };
 
                 _mediator.Send(command);
