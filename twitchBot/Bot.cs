@@ -76,6 +76,7 @@ namespace twitchBot
             {
                 if (!_botConnection.UseTtsOnSubscription) return;
                 if (!(e.Subscription.Months >= _botConnection.TtsMinimumResubMonthsAmount)) return;
+                if (!string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice)) return;
 
                 var command = new TextToSpeechCommand(_botConnection)
                 {
@@ -98,6 +99,7 @@ namespace twitchBot
             {
                 if (!_botConnection.UseTtsOnBits) return;
                 if (!(e.TotalBitsUsed >= _botConnection.TtsMinimumBitAmount)) return;
+                if (!string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice)) return;
 
                 var command = new TextToSpeechCommand(_botConnection)
                 {
