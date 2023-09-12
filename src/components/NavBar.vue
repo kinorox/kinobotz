@@ -39,6 +39,9 @@
         <div v-else class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex">
                 <li class="nav-item">
+                    <router-link class="btn btn-dark" aria-current="page" to="/" exact>home</router-link>
+                </li>
+                <li class="nav-item">
                     <router-link class="btn btn-dark" aria-current="page" to="/gptbehavior" exact>behaviors</router-link>
                 </li>
                 <li class="nav-item">
