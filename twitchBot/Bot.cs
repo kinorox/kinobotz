@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
 using Entities;
@@ -76,13 +77,13 @@ namespace twitchBot
             {
                 if (!_botConnection.UseTtsOnSubscription) return;
                 if (!(e.Subscription.Months >= _botConnection.TtsMinimumResubMonthsAmount)) return;
-                if (string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice)) return;
 
                 var command = new TextToSpeechCommand(_botConnection)
                 {
                     Channel = _botConnection.Login,
                     Message = e.Subscription.SubMessage.Message,
-                    Voice = _botConnection.ElevenLabsDefaultVoice,
+                    Voice = !string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice) ? _botConnection.ElevenLabsDefaultVoice : null,
+                    RandomVoice = string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice),
                     Username = "k1notv"
                 };
 
@@ -100,13 +101,19 @@ namespace twitchBot
             {
                 if (!_botConnection.UseTtsOnBits) return;
                 if (!(e.TotalBitsUsed >= _botConnection.TtsMinimumBitAmount)) return;
-                if (string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice)) return;
 
+                // Define a regular expression pattern to match "Cheer" followed by any integer number
+                string pattern = @"Cheer\d+";
+
+                // Use Regex.Replace to remove all matches of the pattern with an empty string
+                string result = Regex.Replace(e.ChatMessage, pattern, string.Empty);
+                
                 var command = new TextToSpeechCommand(_botConnection)
                 {
                     Channel = _botConnection.Login,
-                    Message = e.ChatMessage,
-                    Voice = _botConnection.ElevenLabsDefaultVoice,
+                    Message = result,
+                    Voice = !string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice) ? _botConnection.ElevenLabsDefaultVoice : null,
+                    RandomVoice = string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice),
                     Username = "k1notv"
                 };
 

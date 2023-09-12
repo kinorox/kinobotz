@@ -62,7 +62,7 @@ namespace twitchBot.Handlers
                 };
             }
 
-            var existingVoiceId = await _redisClient.Db0.GetAsync<string>($"{request.Prefix}:{request.Voice}");
+            var existingVoiceId = await _redisClient.Db0.GetAsync<string>($"{request.Channel}:{request.Prefix}:{request.Voice}");
 
             Voice matchVoice;
             if (string.IsNullOrEmpty(existingVoiceId))
@@ -80,6 +80,13 @@ namespace twitchBot.Handlers
 
                 matchVoice = allVoices.FirstOrDefault(x => string.Equals(x.Name.ToLower(), request.Voice, StringComparison.CurrentCultureIgnoreCase));
 
+                if (request.RandomVoice)
+                {
+                    var random = new Random();
+                    var index = random.Next(allVoices.Count);
+                    matchVoice = allVoices[index];
+                }
+
                 if (matchVoice == null)
                 {
                     return new Response()
@@ -89,7 +96,7 @@ namespace twitchBot.Handlers
                     };
                 }
 
-                await _redisClient.Db0.AddAsync($"{request.Prefix}:{request.Voice}", matchVoice.Id);
+                await _redisClient.Db0.AddAsync($"{request.Channel}:{request.Prefix}:{request.Voice}", matchVoice.Id);
             }
             else
             {

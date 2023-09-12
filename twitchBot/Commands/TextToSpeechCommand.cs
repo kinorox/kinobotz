@@ -30,6 +30,6 @@ namespace twitchBot.Commands
         public string Channel { get; set; }
         public string Message { get; set; }
         public string Voice { get; set; }
-
+        public bool RandomVoice { get; set; }
     }
 }
