@@ -23,15 +23,15 @@ namespace twitchBot.Handlers
 {
     public class TextToSpeechCommandHandler : BaseCommandHandler<TextToSpeechCommand>
     {
-        private readonly ElevenLabsClient _elevenLabsClient;
         private readonly IRedisClient _redisClient;
         private readonly IConfiguration _configuration;
         private readonly IKinobotzService _kinobotzService;
         private readonly ILogger<TextToSpeechCommandHandler> _logger;
 
-        public TextToSpeechCommandHandler(ElevenLabsClient elevenLabsClient, IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService, IBotConnectionRepository botConnectionRepository, ILogger<TextToSpeechCommandHandler> logger) : base(botConnectionRepository, configuration)
+        private const int CharacterLimit = 1000;
+
+        public TextToSpeechCommandHandler(IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService, IBotConnectionRepository botConnectionRepository, ILogger<TextToSpeechCommandHandler> logger) : base(botConnectionRepository, configuration)
         {
-            _elevenLabsClient = elevenLabsClient;
             _redisClient = redisClient;
             _configuration = configuration;
             _kinobotzService = kinobotzService;
@@ -51,23 +51,28 @@ namespace twitchBot.Handlers
                 };
             }
 
+            //always prioritize the user's api key
+            if (!string.IsNullOrEmpty(request.BotConnection.ElevenLabsApiKey))
+                elevenLabsApiKey = request.BotConnection.ElevenLabsApiKey;
+
             var characterCount = await _redisClient.Db0.GetAsync<int?>($"{request.BotConnection.Id}:{request.Prefix}:{DateTime.UtcNow.Date}:{request.Username}:characters");
 
-            if (characterCount > 3000)
+            if (characterCount > CharacterLimit)
             {
                 return new Response()
                 {
                     WasExecuted = false,
-                    Message = "3000 characters limit exceeded. Wait 24 hours to use the TTS again."
+                    Message = $"{CharacterLimit} characters limit exceeded. Wait 24 hours to use the TTS again."
                 };
             }
 
             var existingVoiceId = await _redisClient.Db0.GetAsync<string>($"{request.Channel}:{request.Prefix}:{request.Voice}");
 
             Voice matchVoice;
+            var elevenLabsClient = new ElevenLabsClient(elevenLabsApiKey);
             if (string.IsNullOrEmpty(existingVoiceId))
             {
-                var allVoices = await _elevenLabsClient.VoicesEndpoint.GetAllVoicesAsync(cancellationToken);
+                var allVoices = await elevenLabsClient.VoicesEndpoint.GetAllVoicesAsync(cancellationToken);
 
                 if (!allVoices.Any())
                 {
@@ -92,7 +97,7 @@ namespace twitchBot.Handlers
                     return new Response()
                     {
                         WasExecuted = false,
-                        Message = $"Wrong voice/syntax. Correct syntax: '<voiceName>: <message>'. Available voices: {string.Join(", ", allVoices.Where(v => string.Equals(v.Category, "cloned")).Select(v => v.Name))}."
+                        Message = $"Wrong voice/syntax. Correct syntax: '<voiceName>: <message>'. Available voices: {string.Join(", ", allVoices.Where(v => string.Equals(v.Category, "cloned") || string.Equals(v.Category, "generated")).Select(v => v.Name))}."
                     };
                 }
 
@@ -100,7 +105,7 @@ namespace twitchBot.Handlers
             }
             else
             {
-                matchVoice = await _elevenLabsClient.VoicesEndpoint.GetVoiceAsync(existingVoiceId, cancellationToken: cancellationToken);
+                matchVoice = await elevenLabsClient.VoicesEndpoint.GetVoiceAsync(existingVoiceId, cancellationToken: cancellationToken);
             }
 
             var audioStreamingRequest = new TtsAudioStreamingRequest()
@@ -160,7 +165,7 @@ namespace twitchBot.Handlers
 
             return new Response
             {
-                Message = $"TTS successfully sent. It will play on stream shortly. Remaining daily characters: {3000 - characterCount}."
+                Message = $"TTS successfully sent. It will play on stream shortly. Remaining daily characters: {CharacterLimit - characterCount}."
             };
         }
     }
