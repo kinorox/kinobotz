@@ -43,7 +43,7 @@ namespace twitchBot
         {
             var botConnections = await _botConnectionRepository.GetAll();
             
-            foreach (var botConnection in botConnections.Where(b => b.Active.HasValue && b.Active.Value && b.Login == "granjas"))
+            foreach (var botConnection in botConnections.Where(b => b.Active.HasValue && b.Active.Value))
             {
                 try
                 {
