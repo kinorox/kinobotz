@@ -11,7 +11,7 @@ namespace twitchBot.Commands
 
         public override string Prefix => Entities.Commands.TTS;
         public override string Syntax => $"%{Prefix} <voiceName>: <message>";
-        public override void Build(ChatMessage chatMessage, string command, string commandContent)
+        public override void InternalBuild(ChatMessage chatMessage, string command, string commandContent)
         {
             Voice = commandContent.GetUntilOrEmpty(":").Trim().ToLower();
             Message = commandContent[(commandContent.IndexOf(':') + 1)..];
@@ -19,7 +19,7 @@ namespace twitchBot.Commands
             Channel = chatMessage.Channel;
         }
 
-        public override void Build(RewardRedeemed rewardRedeemed)
+        public override void InternalBuild(RewardRedeemed rewardRedeemed)
         {
             Voice = rewardRedeemed.Redemption.UserInput.GetUntilOrEmpty(":").Trim().ToLower();
             Message = rewardRedeemed.Redemption.UserInput[(rewardRedeemed.Redemption.UserInput.IndexOf(':') + 1)..];

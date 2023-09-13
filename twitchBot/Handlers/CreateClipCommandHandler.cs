@@ -16,7 +16,7 @@ namespace twitchBot.Handlers
     {
         private bool _queryClip = true;
 
-        public CreateClipCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(botConnectionRepository, configuration)
+        public CreateClipCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
         {
         }
 

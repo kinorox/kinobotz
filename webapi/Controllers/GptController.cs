@@ -18,7 +18,7 @@ namespace webapi.Controllers
         }
 
         [HttpGet("~/behaviors")]
-        public async Task<ActionResult<IDictionary<string, string?>>> Get()
+        public async Task<ActionResult<BehaviorDefinition[]>> Get()
         {
             var claimsPrincipal = HttpContext.User;
 

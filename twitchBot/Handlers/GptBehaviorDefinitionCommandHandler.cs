@@ -11,7 +11,7 @@ namespace twitchBot.Handlers
     {
         private readonly IGptRepository _gptRepository;
 
-        public GptBehaviorDefinitionCommandHandler(IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(botConnectionRepository, configuration)
+        public GptBehaviorDefinitionCommandHandler(IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
         {
             _gptRepository = gptRepository;
         }

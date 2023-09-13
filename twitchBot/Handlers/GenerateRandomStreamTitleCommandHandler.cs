@@ -21,7 +21,7 @@ namespace twitchBot.Handlers
             IGptRepository gptRepository,
             ILogger<GenerateRandomStreamTitleCommandHandler> logger,
             IBotConnectionRepository botConnectionRepository,
-            IConfiguration configuration) : base(botConnectionRepository, configuration)
+            IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
         {
             _openAiApi = openAiApi;
             _gptRepository = gptRepository;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
@@ -14,6 +15,7 @@ namespace twitchBot.Handlers
 {
     public abstract class BaseCommandHandler<T> : IRequestHandler<T, Response> where T : BaseCommand
     {
+        private readonly IAuditLogRepository _auditLogRepository;
         protected readonly IBotConnectionRepository BotConnectionRepository;
         private readonly IConfiguration _configuration;
         protected ITwitchAPI TwitchApi;
@@ -24,10 +26,11 @@ namespace twitchBot.Handlers
             { "k1notv", UserAccessLevelEnum.Admin }
         };
 
-        protected BaseCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration)
+        protected BaseCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository)
         {
             BotConnectionRepository = botConnectionRepository;
             _configuration = configuration;
+            _auditLogRepository = auditLogRepository;
         }
 
         public abstract Task<Response> InternalHandle(T request, CancellationToken cancellationToken);
@@ -84,6 +87,25 @@ namespace twitchBot.Handlers
                     await BotConnectionRepository.SetLastExecutionTime(request.BotConnection.Id, request.Prefix, request.Username, DateTime.UtcNow);
 
                     BotConnectionRepository.IncrementExecutionCounter(request.BotConnection.Id, request.Prefix);
+
+                    try
+                    {
+                        //async create audit log
+                        _auditLogRepository.Create(request.BotConnection.Id, new AuditLog()
+                        {
+                            Id = Guid.NewGuid(),
+                            Channel = request.BotConnection.Login,
+                            Command = _currentCommand,
+                            UserAccessLevel = accessLevel.ToString(),
+                            ChatMessage = request.ChatMessage.Message,
+                            RequestedBy = request.Username,
+                            Timestamp = DateTime.UtcNow
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Error trying to create audit log {e}");
+                    }
 
                     return response;
                 }

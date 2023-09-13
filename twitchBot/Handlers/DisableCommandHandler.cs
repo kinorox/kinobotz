@@ -10,7 +10,7 @@ namespace twitchBot.Handlers
 {
     public class DisableCommandHandler : BaseCommandHandler<DisableCommand>
     {
-        public DisableCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(botConnectionRepository, configuration)
+        public DisableCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
         {
         }
 

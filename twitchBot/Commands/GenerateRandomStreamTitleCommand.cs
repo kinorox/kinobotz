@@ -21,12 +21,12 @@ namespace twitchBot.Commands
             UserAccessLevelEnum.Admin
         };
 
-        public override void Build(ChatMessage chatMessage, string command, string commandContent)
+        public override void InternalBuild(ChatMessage chatMessage, string command, string commandContent)
         {
             Username = chatMessage.Username;
         }
 
-        public override void Build(RewardRedeemed rewardRedeemed)
+        public override void InternalBuild(RewardRedeemed rewardRedeemed)
         {
             throw new System.NotImplementedException();
         }
