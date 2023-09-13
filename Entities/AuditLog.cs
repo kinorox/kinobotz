@@ -9,5 +9,6 @@
         public DateTime Timestamp { get; set; }
         public string Channel { get; set; }
         public string UserAccessLevel { get; set; }
+        public Response Response { get; set; }
     }
 }

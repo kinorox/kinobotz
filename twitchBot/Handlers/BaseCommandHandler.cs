@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
@@ -19,6 +18,7 @@ namespace twitchBot.Handlers
         protected readonly IBotConnectionRepository BotConnectionRepository;
         private readonly IConfiguration _configuration;
         protected ITwitchAPI TwitchApi;
+        private UserAccessLevelEnum _accessLevel;
         private Command _currentCommand;
 
         private readonly Dictionary<string, UserAccessLevelEnum> _userAccessLevels = new()
@@ -35,7 +35,7 @@ namespace twitchBot.Handlers
 
         public abstract Task<Response> InternalHandle(T request, CancellationToken cancellationToken);
 
-        public async Task<Response> Handle(T request, CancellationToken cancellationToken)
+        private async Task<Response> Run(T request, CancellationToken cancellationToken)
         {
             try
             {
@@ -71,42 +71,23 @@ namespace twitchBot.Handlers
 
                 if (!IsCommandEnabled(out var commandDisabledResponse)) return commandDisabledResponse;
 
-                if (!UserHasAccess(request, out var accessLevel, out var accessDeniedResponse))
+                if (!UserHasAccess(request, out _accessLevel, out var accessDeniedResponse))
                     return accessDeniedResponse;
 
                 var lastExecutionTime = _currentCommand.GlobalCooldown
                     ? await BotConnectionRepository.GetLastExecutionTime(request.BotConnection.Id, request.Prefix)
                     : await BotConnectionRepository.GetLastExecutionTime(request.BotConnection.Id, request.Prefix, request.Username);
 
-                if (lastExecutionTime.AddMinutes(_currentCommand.Cooldown) <= DateTime.UtcNow || accessLevel == UserAccessLevelEnum.Admin)
+                if (lastExecutionTime.AddMinutes(_currentCommand.Cooldown) <= DateTime.UtcNow || _accessLevel == UserAccessLevelEnum.Admin)
                 {
                     var response = await InternalHandle(request, cancellationToken);
 
                     if (!response.WasExecuted) return response;
-                    
+
                     await BotConnectionRepository.SetLastExecutionTime(request.BotConnection.Id, request.Prefix, request.Username, DateTime.UtcNow);
 
                     BotConnectionRepository.IncrementExecutionCounter(request.BotConnection.Id, request.Prefix);
-
-                    try
-                    {
-                        //async create audit log
-                        _auditLogRepository.Create(request.BotConnection.Id, new AuditLog()
-                        {
-                            Id = Guid.NewGuid(),
-                            Channel = request.BotConnection.Login,
-                            Command = _currentCommand,
-                            UserAccessLevel = accessLevel.ToString(),
-                            ChatMessage = request.ChatMessage.Message,
-                            RequestedBy = request.Username,
-                            Timestamp = DateTime.UtcNow
-                        });
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Error trying to create audit log {e}");
-                    }
-
+                    
                     return response;
                 }
 
@@ -122,6 +103,33 @@ namespace twitchBot.Handlers
                 Console.WriteLine(e);
                 throw;
             }
+        }
+
+        public async Task<Response> Handle(T request, CancellationToken cancellationToken)
+        {
+            var response = await Run(request, cancellationToken);
+
+            try
+            {
+                //async create audit log
+                _auditLogRepository.Create(request.BotConnection.Id, new AuditLog()
+                {
+                    Id = Guid.NewGuid(),
+                    Channel = request.BotConnection.Login,
+                    Command = _currentCommand,
+                    UserAccessLevel = _accessLevel.ToString(),
+                    ChatMessage = request.ChatMessage.Message,
+                    RequestedBy = request.Username,
+                    Timestamp = DateTime.UtcNow,
+                    Response = response
+                });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error trying to create audit log {e}");
+            }
+
+            return response;
         }
 
         private bool UserHasAccess(T request, out UserAccessLevelEnum accessLevel, out Response accessDeniedResponse)
