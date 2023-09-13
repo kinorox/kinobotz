@@ -12,7 +12,7 @@ namespace twitchBot.Handlers
     {
         private readonly ICustomCommandRepository _customCommandRepository;
 
-        public CommandCommandHandler(ICustomCommandRepository customCommandRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(botConnectionRepository, configuration)
+        public CommandCommandHandler(ICustomCommandRepository customCommandRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
         {
             _customCommandRepository = customCommandRepository;
         }

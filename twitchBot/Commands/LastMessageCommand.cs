@@ -10,13 +10,13 @@ namespace twitchBot.Commands
 
         public override string Prefix => Entities.Commands.LAST_MESSAGE;
         public override string Syntax => $"%{Prefix} <username>";
-        public override void Build(ChatMessage chatMessage, string command, string commandContent)
+        public override void InternalBuild(ChatMessage chatMessage, string command, string commandContent)
         {
             TargetUsername = commandContent.Trim();
             Username = chatMessage.Username;
         }
 
-        public override void Build(RewardRedeemed rewardRedeemed)
+        public override void InternalBuild(RewardRedeemed rewardRedeemed)
         {
             throw new System.NotImplementedException();
         }

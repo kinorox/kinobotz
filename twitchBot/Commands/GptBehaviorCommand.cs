@@ -15,14 +15,14 @@ namespace twitchBot.Commands
 
         public override string Prefix => Entities.Commands.GPT_BEHAVIOR;
         public override string Syntax => $"%{Prefix} <behaviorInstructions>";
-        public override void Build(ChatMessage chatMessage, string command, string commandContent)
+        public override void InternalBuild(ChatMessage chatMessage, string command, string commandContent)
         {
             Behavior = commandContent;
             Username = chatMessage.Username;
             Channel = chatMessage.Channel;
         }
 
-        public override void Build(RewardRedeemed rewardRedeemed)
+        public override void InternalBuild(RewardRedeemed rewardRedeemed)
         {
             Behavior = rewardRedeemed.Redemption.UserInput;
             Username = rewardRedeemed.Redemption.User.DisplayName;

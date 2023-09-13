@@ -67,6 +67,7 @@ namespace twitchBot
                         services.AddSignalR();
                         services.AddTransient<ICustomCommandRepository, CustomCommandRepository>();
                         services.AddTransient<IBotConnectionRepository, BotConnectionRepository>();
+                        services.AddTransient<IAuditLogRepository, AuditLogRepository>();
                         services.AddTransient<IGptRepository, GptRepository>();
                         services.AddTransient<IKinobotzService, KinobotzService>();
                         services.AddQuartz(q =>

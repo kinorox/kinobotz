@@ -14,7 +14,7 @@ namespace twitchBot.Handlers
         private readonly IMediator _mediator;
         private readonly IGptRepository _gptRepository;
 
-        public GptBehaviorCommandHandler(IMediator mediator, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(botConnectionRepository, configuration)
+        public GptBehaviorCommandHandler(IMediator mediator, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
         {
             _mediator = mediator;
             _gptRepository = gptRepository;

@@ -10,7 +10,7 @@ namespace twitchBot.Handlers
 {
     public class UpdateStreamTitleCommandHandler : BaseCommandHandler<UpdateStreamTitleCommmand>
     {
-        public UpdateStreamTitleCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration) : base(botConnectionRepository, configuration)
+        public UpdateStreamTitleCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
         {
         }
 

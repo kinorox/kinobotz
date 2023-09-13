@@ -12,10 +12,12 @@ namespace webapi.Controllers
     public class CommandsController : ControllerBase
     {
         private readonly IBotConnectionRepository _botConnectionRepository;
+        private readonly IAuditLogRepository _auditLogRepository;
 
-        public CommandsController(IBotConnectionRepository botConnectionRepository)
+        public CommandsController(IBotConnectionRepository botConnectionRepository, IAuditLogRepository auditLogRepository)
         {
             _botConnectionRepository = botConnectionRepository;
+            _auditLogRepository = auditLogRepository;
         }
 
         [HttpGet]
@@ -29,7 +31,17 @@ namespace webapi.Controllers
         public async Task<ActionResult<IDictionary<string, long>>> GetCommandExecutionCounters()
         {
             var response = await _botConnectionRepository.GetExecutionCounters();
+
             return Ok(response.OrderBy(r => r.Key));
+        }
+
+        [HttpGet("log")]
+        [CustomClaimRequirement("AccessLevel", "Admin")]
+        public async Task<ActionResult<AuditLog[]>> GetAuditLog()
+        {
+            var response = await _auditLogRepository.Get();
+
+            return Ok(response.OrderByDescending(r => r.Timestamp));
         }
     }
 }

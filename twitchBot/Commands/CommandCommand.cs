@@ -14,7 +14,7 @@ namespace twitchBot.Commands
         public override string Syntax => "%command <add/update/delete> <commandName> <content>";
         public CommandCommand(BotConnection botConnection) : base(botConnection) { }
 
-        public override void Build(ChatMessage chatMessage, string command, string commandContent)
+        public override void InternalBuild(ChatMessage chatMessage, string command, string commandContent)
         {
             Username = chatMessage.Username;
 
@@ -46,7 +46,7 @@ namespace twitchBot.Commands
             Content = commandContent[(firstSpace + 1)..][(secondSpace + 1)..];
         }
 
-        public override void Build(RewardRedeemed rewardRedeemed)
+        public override void InternalBuild(RewardRedeemed rewardRedeemed)
         {
             throw new NotImplementedException();
         }

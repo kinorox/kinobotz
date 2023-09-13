@@ -30,7 +30,7 @@ namespace twitchBot.Handlers
 
         private const int CharacterLimit = 1000;
 
-        public TextToSpeechCommandHandler(IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService, IBotConnectionRepository botConnectionRepository, ILogger<TextToSpeechCommandHandler> logger) : base(botConnectionRepository, configuration)
+        public TextToSpeechCommandHandler(IRedisClient redisClient, IConfiguration configuration, IKinobotzService kinobotzService, IBotConnectionRepository botConnectionRepository, ILogger<TextToSpeechCommandHandler> logger, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
         {
             _redisClient = redisClient;
             _configuration = configuration;
