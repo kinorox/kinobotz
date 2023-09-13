@@ -59,12 +59,8 @@ namespace twitchBot
                         var api = new OpenAIAPI();
 
                         services.AddSingleton<IOpenAIAPI>(api);
-
-                        var elevenLabsClient = new ElevenLabsClient(ElevenLabsAuthentication.LoadFromEnv());
-
                         services.AddHttpClient();
                         services.AddHttpClient<KinobotzService>();
-                        services.AddSingleton(elevenLabsClient);
                         services.AddTransient<ICommandFactory, CommandFactory>();
                         services.AddSingleton<Orchestrator>();
                         services.AddHostedService(p => p.GetRequiredService<Orchestrator>());

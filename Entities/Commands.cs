@@ -30,8 +30,8 @@
             new Command { Prefix = CREATE_CLIP, Description = "Creates a clip. Usage: %clip", Enabled = true, AccessLevel = UserAccessLevelEnum.Default },
             new Command { Prefix = GPT, Description = "Generates text using GPT-3 and the defined behavior. Usage: %gpt <text> or just mention @kinobotz", Enabled = true, AccessLevel = UserAccessLevelEnum.Default },
             new Command { Prefix = GPT_BEHAVIOR, Description = "Sets the behavior of GPT-3. Usage: %gptbehavior <behavior>", Enabled = true, AccessLevel = UserAccessLevelEnum.Default, GlobalCooldown = true, Cooldown = 10},
-            new Command { Prefix = GPT_BEHAVIOR_DEFINITION, Description = "Gets the definition of a behavior of GPT-3. Usage: %gptbehaviordef <behavior>", Enabled = true, AccessLevel = UserAccessLevelEnum.Default },
-            new Command { Prefix = TTS, Description = "Text to speech. Usage: %tts <voiceName>: <text>. To check the list of available voiceNames just type %tts.", Enabled = true, AccessLevel = UserAccessLevelEnum.Default, Cooldown = 5, GlobalCooldown = false},
+            new Command { Prefix = GPT_BEHAVIOR_DEFINITION, Description = "Gets the definition of a behavior of GPT-3. Usage: %gptbehaviordef", Enabled = true, AccessLevel = UserAccessLevelEnum.Default },
+            new Command { Prefix = TTS, Description = "Text to speech. Usage: %tts <voiceName>: <text>. To check the list of available voiceNames just type %tts.", Enabled = true, AccessLevel = UserAccessLevelEnum.Default, Cooldown = 10, GlobalCooldown = true},
             new Command { Prefix = NOTIFY, Description = "Joins the stream up/down notification list. Usage: %notify", Enabled = true, AccessLevel = UserAccessLevelEnum.Default }
         };
     }
