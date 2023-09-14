@@ -116,7 +116,7 @@ namespace twitchBot.Handlers
                 {
                     Id = Guid.NewGuid(),
                     Channel = request.BotConnection.Login,
-                    Command = _currentCommand,
+                    Command = _currentCommand.Prefix,
                     UserAccessLevel = _accessLevel.ToString(),
                     ChatMessage = request.ChatMessage.Message,
                     RequestedBy = request.Username,
