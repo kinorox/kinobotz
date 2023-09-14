@@ -15,6 +15,7 @@ using Infrastructure.Repository;
 using Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using twitchBot.Commands;
@@ -66,7 +67,7 @@ namespace twitchBot.Handlers
                 };
             }
 
-            var existingVoiceId = await _redisClient.Db0.GetAsync<string>($"{request.Channel}:{request.Prefix}:{request.Voice}");
+            var existingVoiceId = !request.Voice.IsNullOrEmpty() ? await _redisClient.Db0.GetAsync<string>($"{request.Channel}:{request.Prefix}:{request.Voice}") : null;
 
             Voice matchVoice;
             var elevenLabsClient = new ElevenLabsClient(elevenLabsApiKey);
