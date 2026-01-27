@@ -4,14 +4,20 @@
       methods: {
       async login() {
         try {
-          const clientId = 'lzszb9tfwd5w3czq84agigf5lih1ur';
+          const clientId = process.env.VUE_APP_TWITCH_CLIENT_ID;
 
-          let redirectUri = 'https://k1no.tv/callback';
-          if(process.env.NODE_ENV === 'development') {
+          if (!clientId) {
+            console.error('Twitch Client ID not configured');
+            return;
+          }
+
+          let redirectUri = process.env.VUE_APP_TWITCH_REDIRECT_URI || 'https://k1no.tv/callback';
+          if (process.env.NODE_ENV === 'development') {
             redirectUri = 'http://localhost:8080/callback';
           }
           const responseType = 'code';
-          const scopes = 'user:read:email analytics:read:games user:edit:broadcast channel:read:subscriptions channel:read:redemptions channel:manage:broadcast user:read:subscriptions user:read:follows channel:read:polls channel:read:predictions channel:read:vips clips:edit bits:read';
+          // Reduced to minimum required scopes
+          const scopes = 'user:read:email';
 
           const twitchAuthUrl = `https://id.twitch.tv/oauth2/authorize?response_type=${responseType}&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes}`;
 
