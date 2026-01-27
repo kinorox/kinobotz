@@ -4,14 +4,15 @@
       methods: {
       async login() {
         try {
-          const clientId = process.env.VUE_APP_TWITCH_CLIENT_ID;
+          const env = window.__ENV__ || {};
+          const clientId = env.TWITCH_CLIENT_ID;
 
           if (!clientId) {
             console.error('Twitch Client ID not configured');
             return;
           }
 
-          let redirectUri = process.env.VUE_APP_TWITCH_REDIRECT_URI || 'https://k1no.tv/callback';
+          let redirectUri = env.TWITCH_REDIRECT_URI || 'https://k1no.tv/callback';
           if (process.env.NODE_ENV === 'development') {
             redirectUri = 'http://localhost:8080/callback';
           }

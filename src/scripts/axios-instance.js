@@ -1,7 +1,8 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const url = process.env.VUE_APP_API_URL || 'https://kinobotz.herokuapp.com';
+const env = window.__ENV__ || {};
+const url = env.API_URL || 'https://kinobotz.herokuapp.com';
 
 const instance = axios.create({
   baseURL: url,
