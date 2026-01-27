@@ -1,10 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-var url = 'https://kinobotz.herokuapp.com';
-if(process.env.NODE_ENV === 'development') {
-    url = 'https://localhost:44305';
-}
+const url = process.env.VUE_APP_API_URL || 'https://kinobotz.herokuapp.com';
 
 const instance = axios.create({
   baseURL: url,
@@ -14,7 +11,7 @@ const instance = axios.create({
 });
 
 instance.interceptors.request.use(config => {
-  var jwtToken = Cookies.get('jwtToken')
+  const jwtToken = Cookies.get('jwtToken');
   if (jwtToken) {
     config.headers.Authorization = `Bearer ${jwtToken}`;
   }
