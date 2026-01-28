@@ -39,7 +39,7 @@ builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
     {
         corsPolicyBuilder.AllowAnyHeader()
             .AllowAnyMethod()
-            .SetIsOriginAllowed((_) => true)
+            .WithOrigins("https://k1no.tv", "http://localhost:8080")
             .AllowCredentials();
     }));
 builder.Services.AddSingleton<IOverlayHub, OverlayHub>();
@@ -88,14 +88,16 @@ var redisConfig = new RedisConfiguration()
 builder.Services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfig);
 builder.WebHost.UseUrls($"http://*:{Environment.GetEnvironmentVariable("PORT") ?? "5000"}");
 builder.WebHost.CaptureStartupErrors(true);
-builder.WebHost.UseSetting(WebHostDefaults.DetailedErrorsKey, "true");
 
 var app = builder.Build();
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "kinobotz API v1");
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "kinobotz API v1");
+    });
+}
 
 app.UseCors("CorsPolicy");
 app.UseAuthentication();

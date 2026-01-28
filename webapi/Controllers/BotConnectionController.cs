@@ -40,6 +40,14 @@ public class BotConnectionController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<BotConnectionDto>> Get(string id)
     {
+        var claimsPrincipal = HttpContext.User;
+        var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+        var accessLevel = claimsPrincipal.FindFirstValue("AccessLevel");
+
+        // Non-admin users can only access their own data
+        if (accessLevel != "Admin" && userId != id)
+            return Forbid();
+
         var botConnection = await _botConnectionRepository.GetById(id, true);
 
         if (botConnection == null)

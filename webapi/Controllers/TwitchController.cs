@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Entities;
 using Infrastructure.Repository;
 using Infrastructure.Services;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.Users.GetUsers;
 using Microsoft.AspNetCore.Authentication;
+using webapi.Attributes;
 
 namespace webapi.Controllers
 {
@@ -26,6 +28,8 @@ namespace webapi.Controllers
         }
 
         [HttpPost("createDefaultCommands")]
+        [Authorize]
+        [CustomClaimRequirement("AccessLevel", "Admin")]
         public async Task<IActionResult> CreateDefaultCommands()
         {
             var botConnections = await _botConnectionRepository.GetAll(true);
