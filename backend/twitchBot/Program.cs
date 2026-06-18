@@ -12,7 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Quartz;
 using Serilog;
 using StackExchange.Redis.Extensions.Core.Configuration;
-using StackExchange.Redis.Extensions.Newtonsoft;
+using StackExchange.Redis.Extensions.System.Text.Json;
 using twitchBot.Commands;
 using twitchBot.Jobs;
 
@@ -51,7 +51,7 @@ namespace twitchBot
                             ConnectionString =
                                 $"{_configuration["redis_host"]},password={_configuration["redis_password"]},allowAdmin=true"
                         };
-                        services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfig);
+                        services.AddStackExchangeRedisExtensions<SystemTextJsonSerializer>(redisConfig);
                         services.AddMediatR(typeof(Program));
                         services.AddTransient<IBot, Bot>();
                         
