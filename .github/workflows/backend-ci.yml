@@ -1,0 +1,50 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, modernization]
+    paths:
+      - 'backend/**'
+      - 'global.json'
+      - '*.Dockerfile'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'global.json'
+      - '*.Dockerfile'
+      - '.github/workflows/backend-ci.yml'
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET (pinned by global.json)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - run: dotnet restore backend/twitchBot.sln
+
+      - run: dotnet build backend/twitchBot.sln -c Release --no-restore
+
+      - name: Test with coverage
+        run: >
+          dotnet test backend/twitchBot.sln -c Release --no-build
+          --collect:"XPlat Code Coverage"
+          --results-directory ./coverage
+
+      # Coverage is REPORT-ONLY in Phase 0 — the suite is just being seeded, so a
+      # hard gate would fail immediately. TARGET: ratchet to 70% line coverage
+      # (spec section 11) as handler tests land (Phase 3+), switching the gate to
+      # coverlet.msbuild (/p:Threshold=70 /p:ThresholdType=line). The collector
+      # path used here cannot enforce a threshold by design.
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: ./coverage/**/coverage.cobertura.xml
+          if-no-files-found: warn
