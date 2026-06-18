@@ -20,7 +20,7 @@ jobs:
     env:
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # GitHub runners no longer ship the Heroku CLI.
       - name: Install Heroku CLI
