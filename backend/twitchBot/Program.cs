@@ -9,7 +9,6 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenAI_API;
 using Quartz;
 using Serilog;
 using StackExchange.Redis.Extensions.Core.Configuration;
@@ -56,9 +55,7 @@ namespace twitchBot
                         services.AddMediatR(typeof(Program));
                         services.AddTransient<IBot, Bot>();
                         
-                        var api = new OpenAIAPI();
-
-                        services.AddSingleton<IOpenAIAPI>(api);
+                        services.AddGptChatService(_configuration);
                         services.AddHttpClient();
                         services.AddHttpClient<KinobotzService>();
                         services.AddTransient<ICommandFactory, CommandFactory>();
