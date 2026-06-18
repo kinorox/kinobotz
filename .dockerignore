@@ -1,0 +1,13 @@
+# Backend Docker builds use the repo ROOT as context (heroku.yml -> *.Dockerfile).
+# Keep that context lean and free of secrets. The frontend app builds from its
+# own context (frontend/) and is unaffected by this file.
+.git
+.github
+docs
+frontend
+**/bin
+**/obj
+**/node_modules
+**/.vs
+**/.env
+*.md
