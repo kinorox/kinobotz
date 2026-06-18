@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
-using MediatR;
 using Microsoft.Extensions.Configuration;
 using twitchBot.Commands;
 using TwitchLib.Api;
@@ -12,7 +11,7 @@ using TwitchLib.Api.Interfaces;
 
 namespace twitchBot.Handlers
 {
-    public abstract class BaseCommandHandler<T> : IRequestHandler<T, Response> where T : BaseCommand
+    public abstract class BaseCommandHandler<T> : ICommandHandler<T> where T : BaseCommand
     {
         private readonly IAuditLogRepository _auditLogRepository;
         protected readonly IBotConnectionRepository BotConnectionRepository;
