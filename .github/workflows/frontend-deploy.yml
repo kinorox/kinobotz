@@ -1,0 +1,32 @@
+name: Frontend Deploy
+
+# Deploys the UI from the monorepo to the kinobotz-ui Heroku app.
+# Requires a HEROKU_API_KEY repo secret. Once verified, disconnect the
+# kinobotz-ui app's GitHub auto-deploy from the standalone repo and archive it.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Heroku container login
+        run: heroku container:login
+
+      - name: Build & push UI image (frontend/Dockerfile)
+        run: heroku container:push web -a kinobotz-ui
+
+      - name: Release
+        run: heroku container:release web -a kinobotz-ui
