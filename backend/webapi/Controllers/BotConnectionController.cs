@@ -3,7 +3,6 @@ using Infrastructure.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using AutoMapper;
 using webapi.Dto;
 using webapi.Attributes;
 
@@ -15,12 +14,10 @@ namespace webapi.Controllers;
 public class BotConnectionController : ControllerBase
 {
     private readonly IBotConnectionRepository _botConnectionRepository;
-    private readonly IMapper _mapper;
-    
-    public BotConnectionController(IBotConnectionRepository botConnectionRepository, IMapper mapper)
+
+    public BotConnectionController(IBotConnectionRepository botConnectionRepository)
     {
         _botConnectionRepository = botConnectionRepository;
-        _mapper = mapper;
     }
 
     [HttpGet]
@@ -32,7 +29,7 @@ public class BotConnectionController : ControllerBase
         if (!botConnections.Any())
             return NotFound();
 
-        var mapped = _mapper.Map<ICollection<BotConnectionDto>>(botConnections);
+        var mapped = botConnections.Select(b => b.ToDto()).ToList();
 
         return Ok(mapped);
     }
@@ -53,7 +50,7 @@ public class BotConnectionController : ControllerBase
         if (botConnection == null)
             return NotFound();
 
-        var mapped = _mapper.Map<BotConnectionDto>(botConnection);
+        var mapped = botConnection.ToDto();
         
         return Ok(mapped);
     }
@@ -70,7 +67,7 @@ public class BotConnectionController : ControllerBase
         if (botConnection == null)
             return NotFound();
 
-        var mapped = _mapper.Map<BotConnectionDto>(botConnection);
+        var mapped = botConnection.ToDto();
         
         return Ok(mapped);
     }

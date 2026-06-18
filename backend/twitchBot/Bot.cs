@@ -7,7 +7,6 @@ using System.Timers;
 using Entities;
 using Entities.Exceptions;
 using Infrastructure.Repository;
-using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
@@ -30,7 +29,7 @@ namespace twitchBot
         private readonly TwitchClient _twitchClient;
         private readonly TwitchPubSub _twitchPubSub;
         private readonly IRedisClient _redisClient;
-        private readonly IMediator _mediator;
+        private readonly ICommandDispatcher _commandDispatcher;
         private readonly ILogger<Bot> _logger;
         private readonly ICommandFactory _commandFactory;
         private readonly IConfiguration _configuration;
@@ -38,11 +37,11 @@ namespace twitchBot
         private BotConnection _botConnection;
         private readonly IBotConnectionRepository _botConnectionRepository;
 
-        public Bot(IConfiguration configuration, IRedisClient redisClient, IMediator mediator, ILogger<Bot> logger, ICommandFactory commandFactory, IBotConnectionRepository botConnectionRepository)
+        public Bot(IConfiguration configuration, IRedisClient redisClient, ICommandDispatcher commandDispatcher, ILogger<Bot> logger, ICommandFactory commandFactory, IBotConnectionRepository botConnectionRepository)
         {
             _configuration = configuration;
             _redisClient = redisClient;
-            _mediator = mediator;
+            _commandDispatcher = commandDispatcher;
             _logger = logger;
             _commandFactory = commandFactory;
             _botConnectionRepository = botConnectionRepository;
@@ -87,7 +86,7 @@ namespace twitchBot
                     Username = "k1notv"
                 };
 
-                _mediator.Send(command);
+                _commandDispatcher.Send(command);
             }
             catch (Exception exception)
             {
@@ -117,7 +116,7 @@ namespace twitchBot
                     Username = "k1notv"
                 };
 
-                _mediator.Send(command);
+                _commandDispatcher.Send(command);
             }
             catch (Exception exception)
             {
@@ -194,14 +193,14 @@ namespace twitchBot
 
         private void OnOAuthTokenRefreshTimer(object sender, ElapsedEventArgs e)
         {
-            RefreshAccessToken();
+            _ = RefreshAccessToken();
         }
 
         private void OnPubSubServiceError(object sender, OnPubSubServiceErrorArgs e)
         {
             _logger.LogError(e.Exception, "Error on PubSub");
 
-            RefreshAccessToken();
+            _ = RefreshAccessToken();
         }
 
         private void OnListenResponse(object sender, OnListenResponseArgs e)
@@ -228,7 +227,7 @@ namespace twitchBot
             if (ttsCommand == null)
                 return;
 
-            var response = await _mediator.Send(ttsCommand);
+            var response = await _commandDispatcher.Send(ttsCommand);
 
             _logger.LogInformation(response.Message);
         }
@@ -321,7 +320,7 @@ namespace twitchBot
                 if (command == null)
                     return;
 
-                var response = await _mediator.Send(command);
+                var response = await _commandDispatcher.Send(command);
 
                 if (!string.IsNullOrEmpty(response.Message))
                 {
@@ -355,7 +354,7 @@ namespace twitchBot
             }
         }
 
-        private async void RefreshAccessToken()
+        private async Task RefreshAccessToken()
         {
             try
             {
@@ -363,7 +362,7 @@ namespace twitchBot
 
                 _botConnection = await _botConnectionRepository.GetById(_botConnection.Id.ToString());
 
-                var response = _twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, _configuration["twitch_client_secret"], _configuration["twitch_client_id"]).Result;
+                var response = await _twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, _configuration["twitch_client_secret"], _configuration["twitch_client_id"]);
 
                 _twitchApi.Settings.AccessToken = response.AccessToken;
 

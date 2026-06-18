@@ -5,7 +5,6 @@ using ElevenLabs;
 using Infrastructure;
 using Infrastructure.Repository;
 using Infrastructure.Services;
-using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -52,7 +51,7 @@ namespace twitchBot
                                 $"{_configuration["redis_host"]},password={_configuration["redis_password"]},allowAdmin=true"
                         };
                         services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfig);
-                        services.AddMediatR(typeof(Program));
+                        services.AddCommandHandlers(typeof(Program).Assembly);
                         services.AddTransient<IBot, Bot>();
                         
                         services.AddGptChatService(_configuration);
