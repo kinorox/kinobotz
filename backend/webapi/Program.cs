@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using StackExchange.Redis.Extensions.Core.Configuration;
-using StackExchange.Redis.Extensions.Newtonsoft;
+using StackExchange.Redis.Extensions.System.Text.Json;
 using webapi.Formatters;
 
 DotEnv.Load();
@@ -84,7 +84,7 @@ var redisConfig = new RedisConfiguration()
     ConnectionString = $"{builder.Configuration["redis_host"]},password={builder.Configuration["redis_password"]},allowAdmin=true"
 };
 
-builder.Services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfig);
+builder.Services.AddStackExchangeRedisExtensions<SystemTextJsonSerializer>(redisConfig);
 builder.WebHost.UseUrls($"http://*:{Environment.GetEnvironmentVariable("PORT") ?? "5000"}");
 builder.WebHost.CaptureStartupErrors(true);
 
