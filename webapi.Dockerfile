@@ -3,13 +3,13 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY Infrastructure/Infrastructure.csproj Infrastructure/
-COPY Entities/Entities.csproj Entities/
-COPY webapi/webapi.csproj webapi/
+COPY backend/Infrastructure/Infrastructure.csproj backend/Infrastructure/
+COPY backend/Entities/Entities.csproj backend/Entities/
+COPY backend/webapi/webapi.csproj backend/webapi/
 
-RUN dotnet restore webapi/webapi.csproj
+RUN dotnet restore backend/webapi/webapi.csproj
 COPY . .
-WORKDIR /src/webapi
+WORKDIR /src/backend/webapi
 RUN dotnet build -c Release -o /app
 
 FROM build AS publish
