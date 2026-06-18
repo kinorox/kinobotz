@@ -1,61 +1,62 @@
-﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
+using Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using OpenAI_API;
 using twitchBot.Commands;
 
 namespace twitchBot.Handlers
 {
     public class GptCommandHandler : BaseCommandHandler<GptCommand>
     {
-        private readonly IOpenAIAPI _openAiApi;
+        private readonly IGptChatService _gptChatService;
         private readonly ILogger<GptCommandHandler> _logger;
         private readonly IGptRepository _gptRepository;
 
-        public GptCommandHandler(IOpenAIAPI openAiApi, ILogger<GptCommandHandler> logger, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
+        public GptCommandHandler(IGptChatService gptChatService, ILogger<GptCommandHandler> logger, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
         {
-            _openAiApi = openAiApi;
+            _gptChatService = gptChatService;
             _logger = logger;
             _gptRepository = gptRepository;
         }
 
         public override async Task<Response> InternalHandle(GptCommand request, CancellationToken cancellationToken)
         {
-            string response;
+            var behavior = await _gptRepository.GetGptBehavior(request.BotConnection.Id.ToString());
 
-            try
+            var systemMessages = new List<string>();
+            if (!string.IsNullOrEmpty(behavior))
             {
-                var chat = _openAiApi.Chat.CreateConversation();
-
-                var behavior = await _gptRepository.GetGptBehavior(request.BotConnection.Id.ToString());
-
-                if (!string.IsNullOrEmpty(behavior))
-                {
-                    chat.AppendSystemMessage(behavior);
-                }
-                
-                chat.AppendSystemMessage("Responda sempre em frases curtas, de preferência em menos de 500 caracteres.");
-
-                chat.AppendUserInputWithName(request.Username, request.Message);
-
-                response = await chat.GetResponseFromChatbotAsync();
+                systemMessages.Add(behavior);
             }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error during GPT execution.");
+            systemMessages.Add("Responda sempre em frases curtas, de preferência em menos de 500 caracteres.");
 
-                return new Response()
+            var result = await _gptChatService.CompleteAsync(systemMessages, request.Username, request.Message, cancellationToken);
+
+            if (result.Unavailable)
+            {
+                return new Response
                 {
                     Error = true,
-                    Message = $"Error during GPT execution: {e.Message}"
+                    Message = "O GPT está temporariamente indisponível. Tente novamente mais tarde."
                 };
             }
 
-            return new Response()
+            if (result.ErrorMessage != null)
+            {
+                _logger.LogError("Error during GPT execution: {Error}", result.ErrorMessage);
+                return new Response
+                {
+                    Error = true,
+                    Message = "Não consegui gerar uma resposta agora. Tente novamente."
+                };
+            }
+
+            var response = result.Text ?? string.Empty;
+            return new Response
             {
                 Error = false,
                 Message = response.Length > 500 ? response[..500] : response
