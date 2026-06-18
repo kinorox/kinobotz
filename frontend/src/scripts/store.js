@@ -1,22 +1,17 @@
-import Vuex from 'vuex';
+import { defineStore } from 'pinia';
 
-export default new Vuex.Store({
-  state: {
-    auth: {
-      jwtToken: null,
-    }
-  },
-  mutations: {
-    setJwtToken(state, token) {
-      state.auth.jwtToken = token;
-    }
+// Auth store (Pinia, replaces the old Vuex store). The JWT is also persisted to a
+// cookie (see axios-instance / CallbackApp); this holds the in-memory copy.
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    jwtToken: null,
+  }),
+  getters: {
+    getJwtToken: (state) => state.jwtToken,
   },
   actions: {
-    saveJwtToken({ commit }, token) {
-      commit('setJwtToken', token);
-    }
+    setJwtToken(token) {
+      this.jwtToken = token;
+    },
   },
-  getters: {
-    getJwtToken: state => state.auth.jwtToken,
-  }
 });

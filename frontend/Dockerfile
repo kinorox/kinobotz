@@ -1,8 +1,8 @@
 # Stage 1: Build Vue.js app and generate static files
-FROM node:lts-alpine AS build-stage
+FROM node:22-alpine AS build-stage
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 COPY . .
 RUN npm run build
 
