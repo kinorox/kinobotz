@@ -3,13 +3,13 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY Infrastructure/Infrastructure.csproj Infrastructure/
-COPY Entities/Entities.csproj Entities/
-COPY twitchBot/twitchBot.csproj twitchBot/
+COPY backend/Infrastructure/Infrastructure.csproj backend/Infrastructure/
+COPY backend/Entities/Entities.csproj backend/Entities/
+COPY backend/twitchBot/twitchBot.csproj backend/twitchBot/
 
-RUN dotnet restore twitchBot/twitchBot.csproj
+RUN dotnet restore backend/twitchBot/twitchBot.csproj
 COPY . .
-WORKDIR /src/twitchBot
+WORKDIR /src/backend/twitchBot
 RUN dotnet build -c Release -o /app
 
 FROM build AS publish
