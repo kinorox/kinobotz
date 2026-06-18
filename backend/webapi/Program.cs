@@ -45,7 +45,6 @@ builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
 builder.Services.AddSingleton<IOverlayHub, OverlayHub>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddHttpClient();
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<IBotConnectionRepository, BotConnectionRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddControllers(options =>

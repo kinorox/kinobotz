@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
-using MediatR;
 using Microsoft.Extensions.Configuration;
 using twitchBot.Commands;
 
@@ -11,12 +10,12 @@ namespace twitchBot.Handlers
 {
     public class GptBehaviorCommandHandler : BaseCommandHandler<GptBehaviorCommand>
     {
-        private readonly IMediator _mediator;
+        private readonly ICommandDispatcher _commandDispatcher;
         private readonly IGptRepository _gptRepository;
 
-        public GptBehaviorCommandHandler(IMediator mediator, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
+        public GptBehaviorCommandHandler(ICommandDispatcher commandDispatcher, IGptRepository gptRepository, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
         {
-            _mediator = mediator;
+            _commandDispatcher = commandDispatcher;
             _gptRepository = gptRepository;
         }
 
@@ -30,7 +29,7 @@ namespace twitchBot.Handlers
                         Username = request.Username
                     };
 
-                var response = await _mediator.Send(gptBehaviorDefinitionCommand, cancellationToken);
+                var response = await _commandDispatcher.Send(gptBehaviorDefinitionCommand, cancellationToken);
 
                 response.WasExecuted = false;
 
