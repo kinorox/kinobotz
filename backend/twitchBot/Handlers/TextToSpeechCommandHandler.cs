@@ -67,7 +67,7 @@ namespace twitchBot.Handlers
                 };
             }
 
-            var existingVoiceId = !request.Voice.IsNullOrEmpty() ? await _redisClient.Db0.GetAsync<string>($"{request.Channel}:{request.Prefix}:{request.Voice}") : null;
+            var existingVoiceId = !string.IsNullOrEmpty(request.Voice) ? await _redisClient.Db0.GetAsync<string>($"{request.Channel}:{request.Prefix}:{request.Voice}") : null;
 
             Voice matchVoice;
             var elevenLabsClient = new ElevenLabsClient(elevenLabsApiKey);
