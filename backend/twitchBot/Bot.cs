@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -17,8 +17,6 @@ using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
-using TwitchLib.PubSub;
-using TwitchLib.PubSub.Events;
 using OnLogArgs = TwitchLib.Client.Events.OnLogArgs;
 using Response = Entities.Response;
 
@@ -27,7 +25,6 @@ namespace twitchBot
     public class Bot : IBot
     {
         private readonly TwitchClient _twitchClient;
-        private readonly TwitchPubSub _twitchPubSub;
         private readonly IRedisClient _redisClient;
         private readonly ICommandDispatcher _commandDispatcher;
         private readonly ILogger<Bot> _logger;
@@ -58,55 +55,48 @@ namespace twitchBot
             _twitchClient.OnConnected += TwitchClientOnConnected;
             _twitchClient.OnUserBanned += TwitchClientOnUserBanned;
             _twitchClient.OnMessageReceived += TwitchClientOnMessageReceived;
-            
-            _twitchPubSub = new TwitchPubSub();
-            _twitchPubSub.OnStreamUp += TwitchPubSubOnOnStreamUp;
-            _twitchPubSub.OnStreamDown += TwitchPubSubOnOnStreamDown;
-            _twitchPubSub.OnChannelPointsRewardRedeemed += TwitchPubSubChannelPoints;
-            _twitchPubSub.OnPubSubServiceConnected += OnPubSubServiceConnected;
-            _twitchPubSub.OnListenResponse += OnListenResponse;
-            _twitchPubSub.OnPubSubServiceError += OnPubSubServiceError;
-            _twitchPubSub.OnBitsReceivedV2 += TwitchPubSubOnOnBitsReceivedV2;
-            _twitchPubSub.OnChannelSubscription += TwitchPubSubOnOnChannelSubscription;
         }
 
-        public void TwitchPubSubOnOnChannelSubscription(object sender, OnChannelSubscriptionArgs e)
+        public string ChannelId => _botConnection?.ChannelId;
+
+        // ── EventSub-driven handlers (replace the former Twitch PubSub events) ──
+        // Invoked by EventSubRouter when a notification for this channel arrives.
+
+        public Task HandleSubscriptionAsync(int months, string subMessage)
         {
             try
             {
-                if (!_botConnection.UseTtsOnSubscription) return;
-                if (!(e.Subscription.Months >= _botConnection.TtsMinimumResubMonthsAmount)) return;
+                if (_botConnection is not { UseTtsOnSubscription: true }) return Task.CompletedTask;
+                if (months < _botConnection.TtsMinimumResubMonthsAmount) return Task.CompletedTask;
 
                 var command = new TextToSpeechCommand(_botConnection)
                 {
                     Channel = _botConnection.Login,
-                    Message = e.Subscription.SubMessage.Message,
+                    Message = subMessage,
                     Voice = !string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice) ? _botConnection.ElevenLabsDefaultVoice : null,
                     RandomVoice = string.IsNullOrEmpty(_botConnection.ElevenLabsDefaultVoice),
                     Username = "k1notv"
                 };
 
-                _commandDispatcher.Send(command);
+                return _commandDispatcher.Send(command);
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Error during subscriber event");
+                _logger.LogError(exception, "Error during subscription event");
+                return Task.CompletedTask;
             }
         }
 
-        public void TwitchPubSubOnOnBitsReceivedV2(object sender, OnBitsReceivedV2Args e)
+        public Task HandleBitsAsync(int bits, string chatMessage)
         {
             try
             {
-                if (!_botConnection.UseTtsOnBits) return;
-                if (!(e.TotalBitsUsed >= _botConnection.TtsMinimumBitAmount)) return;
+                if (_botConnection is not { UseTtsOnBits: true }) return Task.CompletedTask;
+                if (bits < _botConnection.TtsMinimumBitAmount) return Task.CompletedTask;
 
-                // Define a regular expression pattern to match "Cheer" followed by any integer number
-                string pattern = @"Cheer\d+";
+                // strip the "CheerNNN" tokens from the message
+                var result = Regex.Replace(chatMessage ?? string.Empty, @"Cheer\d+", string.Empty);
 
-                // Use Regex.Replace to remove all matches of the pattern with an empty string
-                string result = Regex.Replace(e.ChatMessage, pattern, string.Empty);
-                
                 var command = new TextToSpeechCommand(_botConnection)
                 {
                     Channel = _botConnection.Login,
@@ -116,12 +106,35 @@ namespace twitchBot
                     Username = "k1notv"
                 };
 
-                _commandDispatcher.Send(command);
+                return _commandDispatcher.Send(command);
             }
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Error during bits event");
+                return Task.CompletedTask;
             }
+        }
+
+        public async Task HandleStreamUpAsync()
+        {
+            var notifyUsers = await _redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Entities.Commands.NOTIFY}");
+
+            if (notifyUsers?.Usernames == null || !notifyUsers.Usernames.Any()) return;
+
+            var users = string.Join(", ", notifyUsers.Usernames);
+
+            _twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} is live! BloodTrail Notifying users: {users}");
+        }
+
+        public async Task HandleStreamDownAsync()
+        {
+            var notifyUsers = await _redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Entities.Commands.NOTIFY}");
+
+            if (notifyUsers?.Usernames == null || !notifyUsers.Usernames.Any()) return;
+
+            var users = string.Join(", ", notifyUsers.Usernames);
+
+            _twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} stream ended. Notifying users: {users}");
         }
 
         public Task Connect(BotConnection botConnection)
@@ -173,19 +186,7 @@ namespace twitchBot
             var credentials = new ConnectionCredentials(_configuration["twitch_username"], _configuration["bot_access_token"]);
 
             _twitchClient.Initialize(credentials);
-
-            if (!string.IsNullOrEmpty(_botConnection.ChannelId))
-            {
-                _twitchPubSub.ListenToChannelPoints(_botConnection.ChannelId);
-                _twitchPubSub.ListenToPredictions(_botConnection.ChannelId);
-                _twitchPubSub.ListenToVideoPlayback(_botConnection.ChannelId);
-                _twitchPubSub.ListenToBitsEventsV2(_botConnection.ChannelId);
-                _twitchPubSub.ListenToSubscriptions(_botConnection.ChannelId);
-            }
-
             _twitchClient.Connect();
-            _twitchPubSub.Connect();
-            
             _twitchClient.JoinChannel(_botConnection.Login);
 
             return Task.CompletedTask;
@@ -194,80 +195,6 @@ namespace twitchBot
         private void OnOAuthTokenRefreshTimer(object sender, ElapsedEventArgs e)
         {
             _ = RefreshAccessToken();
-        }
-
-        private void OnPubSubServiceError(object sender, OnPubSubServiceErrorArgs e)
-        {
-            _logger.LogError(e.Exception, "Error on PubSub");
-
-            _ = RefreshAccessToken();
-        }
-
-        private void OnListenResponse(object sender, OnListenResponseArgs e)
-        {
-            if (!e.Successful)
-            {
-                _logger.LogError($"Couldn't connect to PubSub topic: {e.Topic}");
-            }
-            else
-            {
-                _logger.LogInformation($"Successfully connected to PubSub topic: {e.Topic}");
-            }
-        }
-
-        private void OnPubSubServiceConnected(object sender, EventArgs e)
-        {
-            _twitchPubSub.SendTopics(_botConnection.AccessToken);
-        }
-
-        private async void TwitchPubSubChannelPoints(object sender, OnChannelPointsRewardRedeemedArgs e)
-        {
-            var ttsCommand = _commandFactory.Build(e.RewardRedeemed);
-
-            if (ttsCommand == null)
-                return;
-
-            var response = await _commandDispatcher.Send(ttsCommand);
-
-            _logger.LogInformation(response.Message);
-        }
-
-        private async void TwitchPubSubOnOnStreamDown(object sender, OnStreamDownArgs e)
-        {
-            var notifyUsers = await _redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Entities.Commands.NOTIFY}");
-
-            if (notifyUsers?.Usernames == null)
-                return;
-
-            if (!notifyUsers.Usernames.Any()) return;
-
-            var users = string.Join(", ", notifyUsers.Usernames);
-
-            _twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} stream ended. Notifying users: {users}");
-        }
-
-        private async void TwitchPubSubOnOnStreamUp(object sender, OnStreamUpArgs e)
-        {
-            if (e == null)
-            {
-                _logger.LogInformation("OnStreamUpArgs is null");
-                return;
-            }
-
-            _logger.LogInformation($"stream up | channelId: {e.ChannelId} playDelay: {e.PlayDelay} serverTime: {e.ServerTime}");
-
-            var notifyUsers = await _redisClient.Db0.GetAsync<NotifyUsers>($"{_botConnection.Id}:{Entities.Commands.NOTIFY}");
-
-            if (notifyUsers?.Usernames == null)
-                return;
-
-            if (!notifyUsers.Usernames.Any()) return;
-
-            var users = string.Join(", ", notifyUsers.Usernames);
-
-            _twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} is live! BloodTrail Notifying users: {users}");
-
-            _logger.LogInformation("end notifying");
         }
 
         private void TwitchClientOnLog(object sender, OnLogArgs e)
@@ -382,6 +309,11 @@ namespace twitchBot
 
     public interface IBot
     {
+        string ChannelId { get; }
         Task Connect(BotConnection botConnection);
+        Task HandleBitsAsync(int bits, string chatMessage);
+        Task HandleSubscriptionAsync(int months, string subMessage);
+        Task HandleStreamUpAsync();
+        Task HandleStreamDownAsync();
     }
 }

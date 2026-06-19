@@ -117,7 +117,7 @@ namespace twitchBot.Handlers
                     Channel = request.BotConnection.Login,
                     Command = _currentCommand.Prefix,
                     UserAccessLevel = _accessLevel.ToString(),
-                    ChatMessage = request.ChatMessage.Message,
+                    ChatMessage = request.ChatMessage?.Message,
                     RequestedBy = request.Username,
                     Timestamp = DateTime.UtcNow,
                     Response = response
