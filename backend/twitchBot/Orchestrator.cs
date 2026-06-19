@@ -60,7 +60,8 @@ namespace twitchBot
                     if (Connections.ContainsKey(botConnection.Id)) continue;
 
                     var bot = (IBot)_serviceProvider.GetService(typeof(IBot));
-                    bot?.Connect(botConnection);
+                    if (bot != null)
+                        await bot.Connect(botConnection);
 
                     Connections.Add(botConnection.Id, botConnection);
 
