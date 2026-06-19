@@ -43,6 +43,7 @@ builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
             .AllowCredentials();
     }));
 builder.Services.AddSingleton<IOverlayHub, OverlayHub>();
+builder.Services.AddSingleton<IEventSubBus, EventSubBus>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IBotConnectionRepository, BotConnectionRepository>();
