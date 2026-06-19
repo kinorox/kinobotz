@@ -55,9 +55,34 @@ namespace twitchBot
             _twitchClient.OnConnected += TwitchClientOnConnected;
             _twitchClient.OnUserBanned += TwitchClientOnUserBanned;
             _twitchClient.OnMessageReceived += TwitchClientOnMessageReceived;
+            _twitchClient.OnJoinedChannel += TwitchClientOnJoinedChannel;
+            _twitchClient.OnConnectionError += TwitchClientOnConnectionError;
+            _twitchClient.OnIncorrectLogin += TwitchClientOnIncorrectLogin;
+            _twitchClient.OnDisconnected += TwitchClientOnDisconnected;
         }
 
         public string ChannelId => _botConnection?.ChannelId;
+
+        // ── connection diagnostics ──
+        private void TwitchClientOnJoinedChannel(object sender, OnJoinedChannelArgs e)
+        {
+            _logger.LogInformation($"[conn] JOINED channel '{e.Channel}' as '{e.BotUsername}'");
+        }
+
+        private void TwitchClientOnConnectionError(object sender, OnConnectionErrorArgs e)
+        {
+            _logger.LogError($"[conn] CONNECTION ERROR as '{e.BotUsername}': {e.Error?.Message}");
+        }
+
+        private void TwitchClientOnIncorrectLogin(object sender, OnIncorrectLoginArgs e)
+        {
+            _logger.LogError(e.Exception, $"[conn] INCORRECT LOGIN for '{e.Exception?.Username}'");
+        }
+
+        private void TwitchClientOnDisconnected(object sender, TwitchLib.Communication.Events.OnDisconnectedEventArgs e)
+        {
+            _logger.LogWarning("[conn] DISCONNECTED from Twitch IRC");
+        }
 
         // ── EventSub-driven handlers (replace the former Twitch PubSub events) ──
         // Invoked by EventSubRouter when a notification for this channel arrives.
@@ -137,7 +162,7 @@ namespace twitchBot
             _twitchClient.SendMessage(_botConnection.Login, $"{_botConnection.Login} stream ended. Notifying users: {users}");
         }
 
-        public Task Connect(BotConnection botConnection)
+        public async Task Connect(BotConnection botConnection)
         {
             _botConnection = botConnection;
 
@@ -155,20 +180,20 @@ namespace twitchBot
             {
                 try
                 {
-                    //refreshing token in case it has expired
-                    var response = _twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, _configuration["twitch_client_secret"], _configuration["twitch_client_id"]).Result;
+                    //refreshing token in case it has expired (awaited - blocking .Result starved the Eco dyno thread pool)
+                    var response = await _twitchApi.Auth.RefreshAuthTokenAsync(_botConnection.RefreshToken, _configuration["twitch_client_secret"], _configuration["twitch_client_id"]);
                     _twitchApi.Settings.AccessToken = response.AccessToken;
                     _botConnection.AccessToken = response.AccessToken;
                     _botConnection.RefreshToken = response.RefreshToken;
 
                     if (string.IsNullOrEmpty(_botConnection.ChannelId) || _botConnection.ChannelId == "string")
                     {
-                        var user = _twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { _botConnection.Login }).Result;
+                        var user = await _twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { _botConnection.Login });
 
                         _botConnection.ChannelId = user.Users[0].Id;
                     }
 
-                    _botConnectionRepository.SaveOrUpdate(_botConnection);
+                    await _botConnectionRepository.SaveOrUpdate(_botConnection);
 
                     var aTimer = new Timer(TimeSpan.FromSeconds(response.ExpiresIn).TotalMilliseconds);
                     aTimer.Elapsed += OnOAuthTokenRefreshTimer;
@@ -183,13 +208,19 @@ namespace twitchBot
 
             _commandFactory.Setup(_twitchApi, _botConnection);
 
-            var credentials = new ConnectionCredentials(_configuration["twitch_username"], _configuration["bot_access_token"]);
+            var username = _configuration["twitch_username"];
+            var botToken = _configuration["bot_access_token"];
+            _logger.LogInformation($"[conn] Connecting: channel='{_botConnection.Login}' channelId='{_botConnection.ChannelId}' configuredUsername='{username}' botTokenSet={!string.IsNullOrEmpty(botToken)} botTokenLen={botToken?.Length ?? 0}");
+
+            if (string.IsNullOrEmpty(username))
+                _logger.LogWarning("[conn] twitch_username is EMPTY - ConnectionCredentials will have no username, which can break joins.");
+
+            var credentials = new ConnectionCredentials(username, botToken);
 
             _twitchClient.Initialize(credentials);
             _twitchClient.Connect();
             _twitchClient.JoinChannel(_botConnection.Login);
-
-            return Task.CompletedTask;
+            _logger.LogInformation($"[conn] Issued Connect() + JoinChannel('{_botConnection.Login}')");
         }
 
         private void OnOAuthTokenRefreshTimer(object sender, ElapsedEventArgs e)
