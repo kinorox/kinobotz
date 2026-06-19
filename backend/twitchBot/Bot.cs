@@ -217,10 +217,13 @@ namespace twitchBot
 
             var credentials = new ConnectionCredentials(username, botToken);
 
-            _twitchClient.Initialize(credentials);
+            // Pass the channel to Initialize so TwitchLib auto-joins once the connection is
+            // ready. The old "Initialize() + Connect() + JoinChannel()" pattern raced on .NET 10
+            // (the manual join fired before the connection/auth completed and was silently lost),
+            // which is why the bot connected but never actually joined any channel.
+            _twitchClient.Initialize(credentials, _botConnection.Login);
             _twitchClient.Connect();
-            _twitchClient.JoinChannel(_botConnection.Login);
-            _logger.LogInformation($"[conn] Issued Connect() + JoinChannel('{_botConnection.Login}')");
+            _logger.LogInformation($"[conn] Initialized with channel + Connect() for '{_botConnection.Login}'");
         }
 
         private void OnOAuthTokenRefreshTimer(object sender, ElapsedEventArgs e)
