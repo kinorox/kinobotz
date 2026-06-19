@@ -8,7 +8,7 @@
           const clientId = env.TWITCH_CLIENT_ID || 'lzszb9tfwd5w3czq84agigf5lih1ur';
 
           let redirectUri = env.TWITCH_REDIRECT_URI || 'https://k1no.tv/callback';
-          if (process.env.NODE_ENV === 'development') {
+          if (import.meta.env.DEV) {
             redirectUri = 'http://localhost:8080/callback';
           }
           const responseType = 'code';
