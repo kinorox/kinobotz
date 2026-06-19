@@ -56,7 +56,8 @@ namespace twitchBot
                         
                         services.AddGptChatService(_configuration);
                         services.AddSingleton<IEventSubBus, EventSubBus>();
-                        services.AddHostedService<EventSubObserver>();
+                        services.AddHttpClient<IEventSubSubscriptionService, EventSubSubscriptionService>();
+                        services.AddHostedService<EventSubRouter>();
                         services.AddHttpClient();
                         services.AddHttpClient<KinobotzService>();
                         services.AddTransient<ICommandFactory, CommandFactory>();
