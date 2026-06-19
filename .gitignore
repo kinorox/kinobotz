@@ -436,3 +436,8 @@ $RECYCLE.BIN/
 # Local test artifacts
 .playwright-mcp/
 k1no-tv-vite-live.png
+
+# Playwright e2e
+frontend/test-results/
+frontend/playwright-report/
+frontend/playwright/.cache/
