@@ -433,3 +433,6 @@ $RECYCLE.BIN/
 !.vscode/extensions.json
 
 .env
+# Local test artifacts
+.playwright-mcp/
+k1no-tv-vite-live.png
