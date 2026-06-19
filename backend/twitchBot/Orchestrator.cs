@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
 using Infrastructure.Repository;
+using Infrastructure.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -14,14 +15,17 @@ namespace twitchBot
     {
         private readonly IBotConnectionRepository _botConnectionRepository;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEventSubSubscriptionService _eventSubSubscriptionService;
         private readonly ILogger<Orchestrator> _logger;
         public readonly Dictionary<Guid, BotConnection> Connections = new();
+        private readonly Dictionary<string, IBot> _botsByChannelId = new();
 
-        public Orchestrator(IServiceProvider serviceProvider, ILogger<Orchestrator> logger, IBotConnectionRepository botConnectionRepository)
+        public Orchestrator(IServiceProvider serviceProvider, ILogger<Orchestrator> logger, IBotConnectionRepository botConnectionRepository, IEventSubSubscriptionService eventSubSubscriptionService)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _botConnectionRepository = botConnectionRepository;
+            _eventSubSubscriptionService = eventSubSubscriptionService;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -39,10 +43,16 @@ namespace twitchBot
             await Connect();
         }
 
+        /// <summary>Returns the connected bot for a broadcaster id (Twitch channel id), or null.</summary>
+        public IBot GetBot(string channelId)
+        {
+            return channelId != null && _botsByChannelId.TryGetValue(channelId, out var bot) ? bot : null;
+        }
+
         private async Task Connect()
         {
             var botConnections = await _botConnectionRepository.GetAll();
-            
+
             foreach (var botConnection in botConnections.Where(b => b.Active.HasValue && b.Active.Value))
             {
                 try
@@ -53,6 +63,13 @@ namespace twitchBot
                     bot?.Connect(botConnection);
 
                     Connections.Add(botConnection.Id, botConnection);
+
+                    // register for EventSub routing + ensure the channel's webhook subscriptions exist
+                    if (bot != null && !string.IsNullOrEmpty(botConnection.ChannelId))
+                    {
+                        _botsByChannelId[botConnection.ChannelId] = bot;
+                        await _eventSubSubscriptionService.EnsureSubscriptionsAsync(botConnection.ChannelId);
+                    }
                 }
                 catch (Exception e)
                 {
