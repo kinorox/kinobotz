@@ -1,0 +1,52 @@
+name: Integration Tests (gated, live)
+
+# Live smoke tests against real services (Twitch + the deployed app). They run on every
+# PR per the project's choice. The Twitch job is GATED on the KINOBOTZ_BOT_TOKEN secret:
+# without it the tests return early (pass as a no-op), so forks / unconfigured repos stay
+# green. workflow_dispatch allows manual re-runs.
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  twitch-connection:
+    name: Twitch connection (live; gated on KINOBOTZ_BOT_TOKEN)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Twitch integration tests (skip when secret absent)
+        run: >
+          dotnet test backend/twitchBot.sln -c Release
+          --filter "FullyQualifiedName~TwitchConnectionIntegrationTests"
+        env:
+          KINOBOTZ_BOT_TOKEN: ${{ secrets.KINOBOTZ_BOT_TOKEN }}
+          KINOBOTZ_BOT_USERNAME: ${{ secrets.KINOBOTZ_BOT_USERNAME }}
+
+  overlay-e2e:
+    name: Overlay SignalR e2e (live; against deployed app)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: Overlay e2e (against deployed app; OVERLAY_APP/OVERLAY_API override the prod defaults)
+        run: npm run test:e2e
