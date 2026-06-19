@@ -1,7 +1,6 @@
 <script>
 import LoadingSpinner from './components/LoadingSpinner.vue';
 import router from '@/scripts/router'
-import { mapActions } from 'vuex';
 import Cookies from 'js-cookie';
 import axiosInstance from '@/scripts/axios-instance';
 import jwtDecode from 'jwt-decode';
@@ -13,7 +12,7 @@ export default {
         var code = this.extractTokenFromUrl();
         
         let redirectUri = 'https://k1no.tv/callback';
-        if(process.env.NODE_ENV === 'development') {
+        if (import.meta.env.DEV) {
             redirectUri = 'http://localhost:8080/callback';
         }
 
@@ -39,7 +38,6 @@ export default {
             Cookies.set('ProfileImageUrl', decodedToken.ProfileImageUrl, { expires: 30 });
             router.push('/dashboard')
         },
-        ...mapActions(['saveJwtToken']),
     },
 }
 </script>
