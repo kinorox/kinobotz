@@ -7,6 +7,7 @@ using System.Timers;
 using Entities;
 using Entities.Exceptions;
 using Infrastructure.Repository;
+using Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis.Extensions.Core.Abstractions;
@@ -33,8 +34,9 @@ namespace twitchBot
         private TwitchAPI _twitchApi;
         private BotConnection _botConnection;
         private readonly IBotConnectionRepository _botConnectionRepository;
+        private readonly IBotTokenService _botTokenService;
 
-        public Bot(IConfiguration configuration, IRedisClient redisClient, ICommandDispatcher commandDispatcher, ILogger<Bot> logger, ICommandFactory commandFactory, IBotConnectionRepository botConnectionRepository)
+        public Bot(IConfiguration configuration, IRedisClient redisClient, ICommandDispatcher commandDispatcher, ILogger<Bot> logger, ICommandFactory commandFactory, IBotConnectionRepository botConnectionRepository, IBotTokenService botTokenService)
         {
             _configuration = configuration;
             _redisClient = redisClient;
@@ -42,6 +44,7 @@ namespace twitchBot
             _logger = logger;
             _commandFactory = commandFactory;
             _botConnectionRepository = botConnectionRepository;
+            _botTokenService = botTokenService;
 
             var clientOptions = new ClientOptions
             {
@@ -74,14 +77,40 @@ namespace twitchBot
             _logger.LogError($"[conn] CONNECTION ERROR as '{e.BotUsername}': {e.Error?.Message}");
         }
 
-        private void TwitchClientOnIncorrectLogin(object sender, OnIncorrectLoginArgs e)
+        private async void TwitchClientOnIncorrectLogin(object sender, OnIncorrectLoginArgs e)
         {
             _logger.LogError(e.Exception, $"[conn] INCORRECT LOGIN for '{e.Exception?.Username}'");
+
+            // the bot token was probably revoked or expired early: force a refresh and retry once
+            if (await UpdateCredentials(forceRefresh: true))
+                _twitchClient.Reconnect();
         }
 
-        private void TwitchClientOnDisconnected(object sender, TwitchLib.Communication.Events.OnDisconnectedEventArgs e)
+        private async void TwitchClientOnDisconnected(object sender, TwitchLib.Communication.Events.OnDisconnectedEventArgs e)
         {
             _logger.LogWarning("[conn] DISCONNECTED from Twitch IRC");
+
+            // make sure the automatic reconnect logs in with a current (refreshed) bot token
+            await UpdateCredentials(forceRefresh: false);
+        }
+
+        private async Task<bool> UpdateCredentials(bool forceRefresh)
+        {
+            try
+            {
+                var botToken = await _botTokenService.GetAccessToken(forceRefresh);
+                if (string.IsNullOrEmpty(botToken) || botToken == _twitchClient.ConnectionCredentials?.TwitchOAuth?.Replace("oauth:", ""))
+                    return false;
+
+                _twitchClient.SetConnectionCredentials(new ConnectionCredentials(_configuration["twitch_username"], botToken));
+                _logger.LogInformation("[conn] Bot credentials updated with a refreshed token");
+                return true;
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "[conn] Couldn't update bot credentials");
+                return false;
+            }
         }
 
         // ── EventSub-driven handlers (replace the former Twitch PubSub events) ──
@@ -209,7 +238,7 @@ namespace twitchBot
             _commandFactory.Setup(_twitchApi, _botConnection);
 
             var username = _configuration["twitch_username"];
-            var botToken = _configuration["bot_access_token"];
+            var botToken = await _botTokenService.GetAccessToken();
             _logger.LogInformation($"[conn] Connecting: channel='{_botConnection.Login}' channelId='{_botConnection.ChannelId}' configuredUsername='{username}' botTokenSet={!string.IsNullOrEmpty(botToken)} botTokenLen={botToken?.Length ?? 0}");
 
             if (string.IsNullOrEmpty(username))

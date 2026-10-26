@@ -52,6 +52,16 @@ token is stale. Fix: that channel re-logs-in via the dashboard OAuth flow, which
 `AccessToken`/`RefreshToken` onto its `BotConnection` in Redis. (Global `twitch_client_id`/
 `secret` are fine — only the per-channel token is stale.)
 
+### Bot chat token (`Login authentication failed`)
+The bot account's own IRC token is shared by every channel connection. `BotTokenService`
+seeds it from the `bot_access_token`/`bot_refresh_token` config vars into the `bottoken` Redis
+key and refreshes it before it expires, so it normally never needs touching. If the bot logs
+`Login authentication failed` / `[bottoken] Error refreshing bot token` (token revoked, or the
+client secret was regenerated and the refresh token rejected), issue a new one by running
+`scripts/get-bot-token.ps1` in your own terminal: it opens the Twitch authorization as the bot
+account and sets both config vars. A new `bot_refresh_token` value re-seeds Redis on restart.
+Without `bot_refresh_token` the bot falls back to the plain `bot_access_token`, which expires.
+
 ### GPT not answering
 `%gpt` / `@kinobotz` returns "temporarily unavailable" (or nothing). Almost always the OpenAI
 account is **out of quota** — add credits at platform.openai.com → Billing. The bot fails
@@ -64,6 +74,8 @@ gracefully (circuit-breaker) but won't generate replies until the account has qu
 | `Should be connected!` / `Finished channel joining queue` | IRC connected, channels joined |
 | `Error on PubSub` + `OperationCanceledException` (throttler) | **Benign** reconnect noise (Phase 4/EventSub cleans this up) |
 | `… Error occurred trying to refresh access token` | Per-channel stale token → re-auth that channel |
+| `[bottoken] Bot token refreshed, expires at …` | Bot chat token renewed (normal, every few hours) |
+| `Login authentication failed` / `[bottoken] Error refreshing bot token` | Bot chat token dead → run `scripts/get-bot-token.ps1` |
 | `insufficient_quota` / `Error during GPT execution` | OpenAI billing |
 
 ### Dynos
