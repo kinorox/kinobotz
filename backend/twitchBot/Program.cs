@@ -53,7 +53,11 @@ namespace twitchBot
                         services.AddStackExchangeRedisExtensions<SystemTextJsonSerializer>(redisConfig);
                         services.AddCommandHandlers(typeof(Program).Assembly);
                         services.AddTransient<IBot, Bot>();
-                        
+                        services.AddSingleton(TimeProvider.System);
+                        services.AddSingleton<IBotTokenStore, RedisBotTokenStore>();
+                        services.AddSingleton<ITwitchTokenRefresher, TwitchTokenRefresher>();
+                        services.AddSingleton<IBotTokenService, BotTokenService>();
+
                         services.AddGptChatService(_configuration);
                         services.AddSingleton<IEventSubBus, EventSubBus>();
                         services.AddHttpClient<IEventSubSubscriptionService, EventSubSubscriptionService>();
