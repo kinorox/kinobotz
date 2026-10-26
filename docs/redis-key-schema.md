@@ -16,6 +16,7 @@ covered by `RedisSerializerCompatibilityTests`). Counters use raw `StringIncreme
 |-----|-----------|-------|-----------|
 | `botconnection:{id}:{channelId}:{login}` | string (JSON) | `BotConnection` (incl. OAuth access/refresh tokens, settings) | `BotConnectionRepository.SaveOrUpdate` |
 | `{botConnectionId}:commands:{prefix}:definition` | string (JSON) | `Command` (per-channel command config) | `BotConnectionRepository.SetCommand(s)` |
+| `bottoken` | string (JSON) | `BotToken` (the bot account's chat access/refresh token + expiry) | `BotTokenService` |
 | `{botConnectionId}:command:{name}` | string | custom command text | `CustomCommandRepository` |
 | `{botConnectionId}:gptbehavior:current` | string | current GPT system prompt | `GptRepository` |
 | `{botConnectionId}:gptbehavior:hist` | set (JSON) | `BehaviorDefinition` history (per channel) | `GptRepository` |
