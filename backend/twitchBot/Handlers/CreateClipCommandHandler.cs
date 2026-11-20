@@ -1,77 +1,76 @@
-﻿using Discord.Webhook;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
+using Discord.Webhook;
 using Entities;
-using twitchBot.Commands;
-using TwitchLib.Api.Helix.Models.Clips.GetClips;
 using Infrastructure.Repository;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using twitchBot.Commands;
 
 namespace twitchBot.Handlers
 {
     internal class CreateClipCommandHandler : BaseCommandHandler<CreateClipCommand>
     {
-        private bool _queryClip = true;
+        private readonly ClipCreator _clipCreator;
+        private readonly ILogger<CreateClipCommandHandler> _logger;
 
-        public CreateClipCommandHandler(IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
+        public CreateClipCommandHandler(TimeProvider timeProvider, ILogger<CreateClipCommandHandler> logger, IBotConnectionRepository botConnectionRepository, IConfiguration configuration, IAuditLogRepository auditLogRepository) : base(botConnectionRepository, configuration, auditLogRepository)
         {
+            _logger = logger;
+            _clipCreator = new ClipCreator(timeProvider, logger);
         }
 
         public override async Task<Response> InternalHandle(CreateClipCommand request, CancellationToken cancellationToken)
         {
-            var createClipResponse = await TwitchApi.Helix.Clips.CreateClipAsync(request.BotConnection.ChannelId);
+            var channel = request.BotConnection.Login;
 
-            var createdClip = createClipResponse.CreatedClips.FirstOrDefault();
-            
-            if(string.IsNullOrEmpty(createdClip?.Id))
-                return new Response()
+            var clipUrl = await _clipCreator.Create(
+                channel,
+                async () =>
                 {
-                    Message = "Couldn't create clip."
-                };
+                    var created = await TwitchApi.Helix.Clips.CreateClipAsync(request.BotConnection.ChannelId);
+                    return created.CreatedClips.FirstOrDefault()?.Id;
+                },
+                async clipId =>
+                {
+                    var found = await TwitchApi.Helix.Clips.GetClipsAsync(new List<string> { clipId });
+                    return found.Clips.FirstOrDefault()?.Url;
+                },
+                cancellationToken);
 
-            var timer = new System.Timers.Timer(15000);
-            timer.Elapsed += OnTimedEvent;
-            timer.Enabled = true;
-
-            Clip resultClip = null;
-            while (_queryClip && resultClip == null)
+            if (clipUrl == null)
             {
-                var response = await TwitchApi.Helix.Clips.GetClipsAsync(new List<string>() { createdClip.Id });
-                resultClip = response.Clips.FirstOrDefault();
+                return new Response
+                {
+                    Message = "Couldn't create clip. Twitch didn't finish it, try again in a few seconds.",
+                    // don't burn the cooldown on a clip that doesn't exist
+                    WasExecuted = false
+                };
             }
 
-            if (resultClip == null)
+            var resultMessage = $"Clip created: {clipUrl}";
+
+            if (!string.IsNullOrEmpty(request.BotConnection.DiscordClipsWebhookUrl))
             {
-                return new Response()
+                try
                 {
-                    Message = "Couldn't create clip."
-                };
+                    using var discordWebhookClient = new DiscordWebhookClient(request.BotConnection.DiscordClipsWebhookUrl);
+                    await discordWebhookClient.SendMessageAsync(clipUrl);
+                }
+                catch (Exception e)
+                {
+                    // the clip exists; a broken webhook shouldn't hide it from chat
+                    _logger.LogWarning(e, "{Channel} - couldn't post clip to Discord", channel);
+                }
             }
-            
-            var resultMessage = string.Format("Clip created: {0}", resultClip.Url);
 
-            if (string.IsNullOrEmpty(request.BotConnection.DiscordClipsWebhookUrl))
-                return new Response()
-                {
-                    Message = resultMessage
-                };
-
-            var discordWebhookClient = new DiscordWebhookClient(request.BotConnection.DiscordClipsWebhookUrl);
-
-            await discordWebhookClient.SendMessageAsync(resultClip.Url);
-
-            return new Response()
+            return new Response
             {
                 Message = resultMessage
             };
-        }
-
-        private void OnTimedEvent(object sender, ElapsedEventArgs e)
-        {
-            _queryClip = false;
         }
     }
 }
